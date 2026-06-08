@@ -14,6 +14,16 @@ function rpcMsg(res,def){return(res&&res.data&&res.data.message)||def||'Ошиб
 
 
 function daysLeft(exp){if(!exp)return 0;return Math.max(0,Math.ceil((new Date(exp)-new Date())/(864e5)));}
+function timeLeftMs(exp){if(!exp)return 0;return Math.max(0,new Date(exp)-new Date());}
+function timeLeftLabel(exp){
+  var ms=timeLeftMs(exp);
+  if(ms<=0)return'Истёк';
+  var mins=Math.floor(ms/60000);
+  if(mins<60)return mins+' мин.';
+  var hours=Math.floor(mins/60);
+  if(hours<24)return hours+' ч. '+(mins%60)+' мин.';
+  return Math.ceil(ms/864e5)+' дн.';
+}
 
 function getDeviceId(){
   var id=localStorage.getItem('kp_device_id');
@@ -514,18 +524,20 @@ async function loadAdminData(){
   document.getElementById('statBlocked').textContent=keys.filter(function(k){return(!k.is_active||daysLeft(k.expires_at)===0)&&!k.is_admin;}).length;
   document.getElementById('keysBody').innerHTML=keys.map(function(k){
     var dl=daysLeft(k.expires_at);
+    var tl=timeLeftLabel(k.expires_at);
     var st;
     if(k.is_admin)st='<span class="status-badge status-admin">👑 Админ</span>';
     else if(!k.is_active)st='<span class="status-badge status-blocked">✕ Заблокирован</span>';
-    else if(dl===0)st='<span class="status-badge status-blocked">⏰ Истёк</span>';
-    else if(dl<=3)st='<span class="status-badge" style="background:rgba(245,158,11,.12);color:var(--warn)">⚠ '+dl+' дн.</span>';
-    else st='<span class="status-badge status-active">✓ '+dl+' дн.</span>';
+    else if(timeLeftMs(k.expires_at)===0)st='<span class="status-badge status-blocked">⏰ Истёк</span>';
+    else if(dl<=3)st='<span class="status-badge" style="background:rgba(245,158,11,.12);color:var(--warn)">⚠ '+tl+'</span>';
+    else st='<span class="status-badge status-active">✓ '+tl+'</span>';
     var dev=k.device_id?'<span style="font-size:11px;color:var(--text3)">Привязан</span>':'<span style="font-size:11px;color:var(--success)">Свободен</span>';
     var lu=k.last_used?new Date(k.last_used).toLocaleDateString('ru-RU'):'—';
     var act='';
     if(!k.is_admin){
-      act+='<input type="number" min="1" placeholder="Дней" id="d_'+k.id+'" style="width:65px;padding:4px 6px;font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text)"> ';
-      act+='<button class="btn btn-primary btn-sm" onclick="addDays('+k.id+')">+Дней</button> ';
+      act+='<input type="number" min="1" placeholder="Дней" id="d_'+k.id+'" style="width:58px;padding:4px 6px;font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text)"> ';
+      act+='<input type="number" min="1" max="23" placeholder="Часов" id="h_'+k.id+'" style="width:62px;padding:4px 6px;font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text)"> ';
+      act+='<button class="btn btn-primary btn-sm" onclick="addDays('+k.id+')">+Время</button> ';
       if(k.is_active)act+='<button class="btn btn-danger btn-sm" onclick="blockKey('+k.id+')">Блок</button> ';
       else act+='<button class="btn btn-success btn-sm" onclick="unblockKey('+k.id+')">Разблок</button> ';
       if(k.device_id)act+='<button class="btn btn-warn btn-sm" onclick="resetDevice('+k.id+')">Сброс</button> ';
@@ -541,12 +553,21 @@ async function loadAdminData(){
 }
 
 async function addDays(id){
-  var inp=document.getElementById('d_'+id);var days=parseInt(inp.value);
-  if(!days||days<1){toast('Введите количество дней','error');return;}
-  var args=Object.assign(rpcAuthParams(),{p_target_id:id,p_days:days});
+  var dInp=document.getElementById('d_'+id);
+  var hInp=document.getElementById('h_'+id);
+  var days=parseInt(dInp.value)||0;
+  var hours=parseInt(hInp.value)||0;
+  if(days<1&&hours<1){toast('Введите дни или часы','error');return;}
+  var totalMs=(days*24+hours)*3600000;
+  var totalDays=days+(hours/24);
+  var args=Object.assign(rpcAuthParams(),{p_target_id:id,p_days:totalDays});
   var res=await sb.rpc('kp_admin_add_days',args);
   if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка'),'error');return;}
-  inp.value='';toast('+'+days+' дней ✓','success');loadAdminData();
+  dInp.value='';if(hInp)hInp.value='';
+  var label=days>0?'+'+days+' дн.':'';
+  if(hours>0)label+=(label?' ':'')+'+'+hours+' ч.';
+  toast(label+' добавлено ✓','success');
+  loadAdminData();
 }
 
 async function addKey(){

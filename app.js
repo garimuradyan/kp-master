@@ -104,13 +104,15 @@ function showApp(){
 function startDemoCountdown(){
   if(demoTimer) clearInterval(demoTimer);
   var dc = document.getElementById('daysCounter');
+  var expiry = new Date(currentKeyData.expires_at);
   function updateCounter(){
-    if(!currentKeyData||!currentKeyData.expires_at) return;
-    var ms = new Date(currentKeyData.expires_at) - new Date();
+    var now = new Date();
+    var ms = expiry - now;
     if(ms <= 0){
       clearInterval(demoTimer);
+      if(dc){dc.textContent='Демо истекло';dc.style.color='var(--danger)';}
       toast('Демо-доступ истёк','error');
-      setTimeout(function(){doLogout();}, 2000);
+      setTimeout(function(){doLogout();}, 3000);
       return;
     }
     var mins = Math.floor(ms/60000);
@@ -121,8 +123,22 @@ function startDemoCountdown(){
       dc.style.color = ms < 5*60*1000 ? 'var(--danger)' : 'var(--warn)';
     }
   }
-  updateCounter();
-  demoTimer = setInterval(updateCounter, 1000);
+  // Не выкидываем сразу — даём 3 секунды на загрузку
+  setTimeout(function(){
+    updateCounter();
+    demoTimer = setInterval(updateCounter, 1000);
+  }, 3000);
+  // Показываем начальное значение без проверки
+  if(dc){
+    var ms0 = expiry - new Date();
+    if(ms0 > 0){
+      var mins0 = Math.floor(ms0/60000);
+      var secs0 = Math.floor((ms0%60000)/1000);
+      dc.style.display='';
+      dc.textContent='Демо: '+mins0+'м '+secs0+'с';
+      dc.style.color = ms0 < 5*60*1000 ? 'var(--danger)' : 'var(--warn)';
+    }
+  }
 }
 
 async function loadUserData(){

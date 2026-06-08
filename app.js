@@ -4,7 +4,7 @@ var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=window.supabase.createClient(SURL,SKEY);
 var currentKeyId=null,currentKeyData=null;
 var services=[],priceItems=[],settings={},historyData=[],logoDataURL=null,quotePhotos=[];
-var MAX_KP=15,MAX_PHOTOS=6,MAX_PHOTO_MB=5;
+var MAX_KP=15,MAX_PHOTOS=6,MAX_PHOTO_MB=1;
 var ALLOWED_TYPES=['image/jpeg','image/jpg','image/png','image/webp'];
 
 function getStoredKey(){return localStorage.getItem('kp_access_key')||'';}
@@ -56,6 +56,7 @@ function setAuthMsg(msg,color){
 }
 
 function doLogout(){
+  if(demoTimer){clearInterval(demoTimer);demoTimer=null;}
   localStorage.removeItem('kp_access_key');localStorage.removeItem('kp_key_id');
   currentKeyId=null;currentKeyData=null;
   services=[];priceItems=[];settings={};historyData=[];logoDataURL=null;quotePhotos=[];
@@ -65,21 +66,53 @@ function doLogout(){
   setAuthMsg('');
 }
 
+var demoTimer = null;
+
 function showApp(){
   document.getElementById('authWrap').style.display='none';
   document.getElementById('appWrap').style.display='block';
   if(currentKeyData){
     document.getElementById('masterName').textContent=currentKeyData.master_name||'';
+    var isDemo = currentKeyData.key && currentKeyData.key.startsWith('DEMO-');
     if(!currentKeyData.is_admin){
-      var dl=daysLeft(currentKeyData.expires_at);
       var dc=document.getElementById('daysCounter');
-      if(dc){dc.style.display='';dc.textContent=dl+' дн.';dc.style.color=dl<=3?'var(--danger)':'var(--success)';}
+      if(isDemo){
+        // Demo key - show minutes countdown
+        startDemoCountdown();
+      } else {
+        var dl=daysLeft(currentKeyData.expires_at);
+        if(dc){dc.style.display='';dc.textContent=dl+' дн.';dc.style.color=dl<=3?'var(--danger)':'var(--success)';}
+      }
     }
     if(currentKeyData.is_admin){
       document.getElementById('bnav-admin').style.display='';
     }
   }
   loadUserData();
+}
+
+function startDemoCountdown(){
+  if(demoTimer) clearInterval(demoTimer);
+  var dc = document.getElementById('daysCounter');
+  function updateCounter(){
+    if(!currentKeyData||!currentKeyData.expires_at) return;
+    var ms = new Date(currentKeyData.expires_at) - new Date();
+    if(ms <= 0){
+      clearInterval(demoTimer);
+      toast('Демо-доступ истёк','error');
+      setTimeout(function(){doLogout();}, 2000);
+      return;
+    }
+    var mins = Math.floor(ms/60000);
+    var secs = Math.floor((ms%60000)/1000);
+    if(dc){
+      dc.style.display='';
+      dc.textContent='Демо: '+mins+'м '+secs+'с';
+      dc.style.color = ms < 5*60*1000 ? 'var(--danger)' : 'var(--warn)';
+    }
+  }
+  updateCounter();
+  demoTimer = setInterval(updateCounter, 1000);
 }
 
 async function loadUserData(){
@@ -575,4 +608,3 @@ function generateQuoteNumber(){var d=new Date();return d.getFullYear()+pad(d.get
 function pad(n){return String(n).padStart(2,'0');}
 var toastTimer;
 function toast(msg,type){var el=document.getElementById('toast');el.textContent=msg;el.className='show '+(type||'success');clearTimeout(toastTimer);toastTimer=setTimeout(function(){el.classList.remove('show');},3000);}
-

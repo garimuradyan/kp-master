@@ -250,3 +250,26 @@ thead th:nth-child(4){
 .tariff-price{font-size:18px;font-weight:900;color:#2563eb}
 .contact-link{display:inline-flex;align-items:center;gap:8px;background:#2563eb;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:10px;text-decoration:none}
 .contact-link:hover{background:#1d4ed8}
+
+/* ═══════════ ABOUT PAGE ═══════════ */
+.about-header{text-align:center;padding:24px 16px 16px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.about-logo{font-size:26px;font-weight:900;letter-spacing:2px;color:#2563eb;margin-bottom:6px}
+.about-version{font-size:13px;color:var(--text2)}
+.about-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.about-section-title{font-size:14px;font-weight:800;color:var(--text);margin-bottom:10px}
+.about-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:7px}
+.about-list li{font-size:13px;color:var(--text2);padding-left:16px;position:relative}
+.about-list li::before{content:'—';position:absolute;left:0;color:var(--accent)}
+.tariff-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:400px){.tariff-cards{grid-template-columns:1fr}}
+.tariff-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 10px;text-align:center;position:relative}
+.tariff-card.tariff-popular{border-color:#2563eb;background:rgba(37,99,235,.08)}
+.tariff-card.tariff-best{border-color:#10b981;background:rgba(16,185,129,.08)}
+.tariff-badge{font-size:10px;font-weight:700;background:#2563eb;color:#fff;border-radius:20px;padding:2px 8px;display:inline-block;margin-bottom:6px}
+.tariff-badge.tariff-badge-best{background:#10b981}
+.tariff-name{font-size:12px;color:var(--text2);margin-bottom:4px}
+.tariff-price{font-size:18px;font-weight:900;color:#2563eb}
+.tariff-card.tariff-best .tariff-price{color:#10b981}
+.tariff-old{font-size:11px;color:var(--text3);text-decoration:line-through;margin-top:2px}
+.contact-link{display:inline-flex;align-items:center;gap:8px;background:#2563eb;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:10px;text-decoration:none}
+.contact-link:hover{background:#1d4ed8}

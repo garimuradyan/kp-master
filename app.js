@@ -54,7 +54,13 @@ async function doLogin(){
 
 async function verifyKey(key,keyId,silent){
   var res=await sb.rpc('kp_verify',{p_key:key,p_key_id:keyId,p_device_id:getDeviceId()});
-  if(res.error||rpcFailed(res)){doLogout();return;}
+  if(res.error||rpcFailed(res)){
+    // Не удаляем ключ из localStorage - просто показываем экран входа
+    document.getElementById('authWrap').style.display='flex';
+    document.getElementById('appWrap').style.display='none';
+    if(!silent){setAuthMsg(rpcMsg(res,'Ошибка входа'));}
+    return;
+  }
   var data=res.data.key_data;
   currentKeyId=data.id;currentKeyData=data;
   showApp();

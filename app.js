@@ -4,7 +4,7 @@ var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=window.supabase.createClient(SURL,SKEY);
 var currentKeyId=null,currentKeyData=null;
 var services=[],priceItems=[],settings={},historyData=[],logoDataURL=null,quotePhotos=[];
-var MAX_KP=15,MAX_PHOTOS=6,MAX_PHOTO_MB=1;
+var MAX_KP=15,MAX_PHOTOS=6,MAX_PHOTO_MB=5;
 var ALLOWED_TYPES=['image/jpeg','image/jpg','image/png','image/webp'];
 
 function getStoredKey(){return localStorage.getItem('kp_access_key')||'';}

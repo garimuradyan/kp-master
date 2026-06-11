@@ -2024,3 +2024,119 @@ thead th:nth-child(4){
   #section-services .service-row .svc-total{grid-area:total!important;text-align:right!important}
   #section-services .service-row .delete-btn{grid-area:del!important;align-self:center!important}
 }
+
+/* ===== ABSOLUTE MONEY / COLUMN LOCK V28 ===== */
+#section-services .services-header,
+#section-services .service-row{
+  grid-template-columns:minmax(0,1fr) 120px 64px 158px 32px!important;
+  column-gap:10px!important;
+  align-items:start!important;
+}
+#section-services .services-header span:nth-child(2),
+#section-services .service-row input:nth-of-type(1){text-align:right!important}
+#section-services .services-header span:nth-child(3),
+#section-services .service-row input:nth-of-type(2){text-align:center!important}
+#section-services .services-header span:nth-child(4),
+#section-services .service-row .svc-total{text-align:right!important}
+#section-services .svc-total,
+.app-money-nowrap,
+.money-nowrap,
+#equipmentTotalDisplay,
+#worksTotalDisplay,
+#subtotalDisplay,
+#discountDisplay,
+#prepayDisplay,
+#grandTotalDisplay{
+  white-space:nowrap!important;
+  word-break:normal!important;
+  overflow-wrap:normal!important;
+  font-variant-numeric:tabular-nums!important;
+  max-width:100%!important;
+  min-width:0!important;
+}
+#section-services .svc-total{
+  overflow:hidden!important;
+  text-overflow:clip!important;
+  line-height:1.15!important;
+  padding-top:7px!important;
+}
+.app-money-nowrap,
+.money-nowrap{
+  display:inline-block!important;
+  line-height:1.05!important;
+  max-width:100%!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  letter-spacing:-.35px!important;
+}
+.total-row,
+.total-row span,
+.totals-card,
+.summary-row,
+.history-total{
+  min-width:0!important;
+}
+.total-row span:last-child,
+.summary-row span:last-child,
+.history-total{
+  overflow:hidden!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+  word-break:normal!important;
+  overflow-wrap:normal!important;
+}
+.quote-preview-table{
+  table-layout:fixed!important;
+  width:100%!important;
+  max-width:100%!important;
+}
+.quote-preview-table th,
+.quote-preview-table td{
+  box-sizing:border-box!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+}
+.quote-preview-table .qp-name{
+  white-space:normal!important;
+  word-break:break-word!important;
+  overflow-wrap:anywhere!important;
+  line-height:1.25!important;
+  max-height:3.75em!important;
+}
+.quote-preview-table .qp-money,
+.quote-preview-table .qp-total{
+  text-align:right!important;
+  white-space:nowrap!important;
+  word-break:normal!important;
+  overflow-wrap:normal!important;
+  font-variant-numeric:tabular-nums!important;
+}
+.quote-preview-table .qp-qty{
+  text-align:center!important;
+  white-space:nowrap!important;
+}
+@media(max-width:760px){
+  #section-services .services-header{display:none!important}
+  #section-services .service-row{
+    grid-template-columns:minmax(0,1fr) minmax(86px,.45fr) minmax(54px,.26fr) minmax(118px,.58fr) 28px!important;
+    grid-template-areas:
+      "name name name name name"
+      "price qty total total del"!important;
+    row-gap:8px!important;
+  }
+  #section-services .service-row .svc-name{grid-area:name!important}
+  #section-services .service-row input:nth-of-type(1){grid-area:price!important}
+  #section-services .service-row input:nth-of-type(2){grid-area:qty!important}
+  #section-services .service-row .svc-total{grid-area:total!important}
+  #section-services .service-row .delete-btn{grid-area:del!important;align-self:center!important}
+}
+@media(max-width:420px){
+  #section-services .service-row{
+    grid-template-columns:minmax(0,1fr) 58px 28px!important;
+    grid-template-areas:
+      "name name name"
+      "price qty del"
+      "total total total"!important;
+  }
+  #section-services .service-row .svc-total{text-align:left!important;padding-top:2px!important}
+}

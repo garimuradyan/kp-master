@@ -204,7 +204,7 @@ function renderServices(){
     '<textarea class="svc-name" rows="2" maxlength="120" placeholder="Наименование" oninput="services['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+
     '<input type="number" min="0" maxlength="10" value="'+s.price+'" oninput="services['+i+'].price=parseFloat(this.value)||0;recalc()">'+
     '<input type="number" min="1" maxlength="6" value="'+s.qty+'" oninput="services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
-    '<div class="svc-total" id="svcTotal'+i+'">'+fmt(s.price*s.qty)+'</div>'+
+    '<div class="svc-total" id="svcTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+
     '<button class="delete-btn" onclick="removeService('+i+')" style="padding-top:4px">✕</button></div>';
   }).join('');
   recalc();
@@ -219,7 +219,7 @@ function renderEquipment(){
     '<textarea class="svc-name" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipment['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+ 
     '<input type="number" min="0" maxlength="10" value="'+s.price+'" oninput="equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
     '<input type="number" min="1" maxlength="6" value="'+s.qty+'" oninput="equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
-    '<div class="svc-total" id="eqTotal'+i+'">'+fmt(s.price*s.qty)+'</div>'+ 
+    '<div class="svc-total" id="eqTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+ 
     '<button class="delete-btn" onclick="removeEquipment('+i+')" style="padding-top:4px">✕</button></div>';
   }).join('');
   recalc();
@@ -230,22 +230,25 @@ function recalc(){
   var worksSub=services.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
   var equipmentSub=equipment.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
   var sub=worksSub+equipmentSub;
-  services.forEach(function(s,i){var el=document.getElementById('svcTotal'+i);if(el)el.textContent=fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1));});
-  equipment.forEach(function(s,i){var el=document.getElementById('eqTotal'+i);if(el)el.textContent=fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1));});
+  services.forEach(function(s,i){var el=document.getElementById('svcTotal'+i);var v=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);if(el){el.innerHTML=appMoneyHtml(v);el.title=fmt(v);}});
+  equipment.forEach(function(s,i){var el=document.getElementById('eqTotal'+i);var v=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);if(el){el.innerHTML=appMoneyHtml(v);el.title=fmt(v);}});
   var dv=parseFloat(document.getElementById('discountVal').value)||0;
   var dt=document.getElementById('discountType').value;
   var disc=dv>0?(dt==='percent'?sub*dv/100:dv):0;
-  if(dv>0){document.getElementById('discountRow').style.display='';document.getElementById('discountDisplay').textContent='−'+fmt(disc);}
+  var discountDisplay=document.getElementById('discountDisplay');
+  if(dv>0){document.getElementById('discountRow').style.display='';if(discountDisplay){discountDisplay.innerHTML='−'+appMoneyHtml(disc);discountDisplay.title='−'+fmt(disc);}}
   else{document.getElementById('discountRow').style.display='none';}
   var prepay=parseFloat(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0;
-  if(prepay>0&&document.getElementById('prepayRow')){document.getElementById('prepayRow').style.display='';document.getElementById('prepayDisplay').textContent='−'+fmt(prepay);}
+  var prepayDisplay=document.getElementById('prepayDisplay');
+  if(prepay>0&&document.getElementById('prepayRow')){document.getElementById('prepayRow').style.display='';if(prepayDisplay){prepayDisplay.innerHTML='−'+appMoneyHtml(prepay);prepayDisplay.title='−'+fmt(prepay);}}
   else if(document.getElementById('prepayRow')){document.getElementById('prepayRow').style.display='none';}
   var eqRow=document.getElementById('equipmentTotalRow');if(eqRow)eqRow.style.display=equipmentSub>0?'':'none';
-  var eqEl=document.getElementById('equipmentTotalDisplay');if(eqEl)eqEl.textContent=fmt(equipmentSub);
-  var workEl=document.getElementById('worksTotalDisplay');if(workEl)workEl.textContent=fmt(worksSub);
-  document.getElementById('subtotalDisplay').textContent=fmt(sub);
-  document.getElementById('grandTotalDisplay').textContent=fmt(Math.max(0,sub-disc-prepay));
+  var eqEl=document.getElementById('equipmentTotalDisplay');if(eqEl){eqEl.innerHTML=appMoneyHtml(equipmentSub);eqEl.title=fmt(equipmentSub);}
+  var workEl=document.getElementById('worksTotalDisplay');if(workEl){workEl.innerHTML=appMoneyHtml(worksSub);workEl.title=fmt(worksSub);}
+  var subEl=document.getElementById('subtotalDisplay');if(subEl){subEl.innerHTML=appMoneyHtml(sub);subEl.title=fmt(sub);}
+  var grandEl=document.getElementById('grandTotalDisplay');if(grandEl){var gv=Math.max(0,sub-disc-prepay);grandEl.innerHTML=appMoneyHtml(gv);grandEl.title=fmt(gv);}
 }
+
 
 
 // PRICE LIST
@@ -506,9 +509,9 @@ function loadPhotoFromFile(e){
 function buildPreview(){
   var c=getClientData(),t=getTotals();
   var today=new Date().toLocaleDateString('ru-RU'),num=generateQuoteNumber(),color=settings.color||'#0066ff';
-  var workRows=services.map(function(s){return'<tr><td>'+esc(s.name)+'</td><td style="text-align:right">'+fmt(s.price)+'</td><td style="text-align:center">'+s.qty+'</td><td style="text-align:right;font-weight:700">'+fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</td></tr>';}).join('');
-  var eqRows=equipment.map(function(s){return'<tr><td>'+esc(s.name)+'</td><td style="text-align:right">'+fmt(s.price)+'</td><td style="text-align:center">'+s.qty+'</td><td style="text-align:right;font-weight:700">'+fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</td></tr>';}).join('');
-  var tableHead='<table style="table-layout:fixed;width:100%"><thead style="background:'+color+'"><tr><th style="color:#fff;padding:7px">Наименование</th><th style="color:#fff;padding:7px;text-align:right">Цена</th><th style="color:#fff;padding:7px;text-align:center">Кол.</th><th style="color:#fff;padding:7px;text-align:right">Сумма</th></tr></thead><tbody>';
+  var workRows=services.map(function(s){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);return'<tr><td class="qp-name">'+esc(s.name)+'</td><td class="qp-money">'+moneyHtml(s.price)+'</td><td class="qp-qty">'+s.qty+'</td><td class="qp-money qp-total">'+moneyHtml(total)+'</td></tr>';}).join('');
+  var eqRows=equipment.map(function(s){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);return'<tr><td class="qp-name">'+esc(s.name)+'</td><td class="qp-money">'+moneyHtml(s.price)+'</td><td class="qp-qty">'+s.qty+'</td><td class="qp-money qp-total">'+moneyHtml(total)+'</td></tr>';}).join('');
+  var tableHead='<table class="quote-preview-table" style="table-layout:fixed;width:100%"><colgroup><col><col style="width:96px"><col style="width:44px"><col style="width:124px"></colgroup><thead style="background:'+color+'"><tr><th style="color:#fff;padding:7px">Наименование</th><th style="color:#fff;padding:7px;text-align:right">Цена</th><th style="color:#fff;padding:7px;text-align:center">Кол.</th><th style="color:#fff;padding:7px;text-align:right">Сумма</th></tr></thead><tbody>';
   var tableEnd='</tbody></table>';
   var hasEquipment = equipment.length > 0;
   var hasWorks = services.length > 0;
@@ -531,12 +534,12 @@ function buildPreview(){
     '</div>'+
     sections+
     '<div style="text-align:right"><div style="display:inline-block;min-width:210px">'+
-    (t.equipmentSubtotal>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Оборудование:</span><span>'+fmt(t.equipmentSubtotal)+'</span></div>':'')+
-    (t.worksSubtotal>0 && t.equipmentSubtotal>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Работы:</span><span>'+fmt(t.worksSubtotal)+'</span></div>':'')+
-    '<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Итого:</span><span>'+fmt(t.subtotal)+'</span></div>'+
-    (t.discount>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#c00;padding:3px 0"><span>Скидка:</span><span style="white-space:nowrap">−'+fmt(t.discount)+'</span></div>':'')+
-    (t.prepay>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#059669;padding:3px 0"><span>Предоплата:</span><span style="white-space:nowrap">−'+fmt(t.prepay)+'</span></div>':'')+
-    '<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:900;color:'+color+';border-top:2px solid '+color+';padding-top:6px;margin-top:4px"><span>К ОПЛАТЕ:</span><span style="white-space:nowrap">'+fmt(t.grand)+'</span></div></div></div>'+
+    (t.equipmentSubtotal>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Оборудование:</span><span class="qp-money">'+moneyHtml(t.equipmentSubtotal)+'</span></div>':'')+
+    (t.worksSubtotal>0 && t.equipmentSubtotal>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Работы:</span><span class="qp-money">'+moneyHtml(t.worksSubtotal)+'</span></div>':'')+
+    '<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Итого:</span><span class="qp-money">'+moneyHtml(t.subtotal)+'</span></div>'+
+    (t.discount>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#c00;padding:3px 0"><span>Скидка:</span><span class="qp-money">−'+moneyHtml(t.discount)+'</span></div>':'')+
+    (t.prepay>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#059669;padding:3px 0"><span>Предоплата:</span><span class="qp-money">−'+moneyHtml(t.prepay)+'</span></div>':'')+
+    '<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:900;color:'+color+';border-top:2px solid '+color+';padding-top:6px;margin-top:4px"><span>К ОПЛАТЕ:</span><span class="qp-money">'+moneyHtml(t.grand)+'</span></div></div></div>'+
     (c.notes?'<div data-wrap-fix="1" style="background:#fffbf0;border-left:3px solid #f0a020;padding:8px 12px;margin-top:10px;font-size:11px;overflow-wrap:anywhere;word-break:break-word;white-space:normal;max-width:100%;overflow:hidden"><b>Примечание:</b> '+esc(c.notes)+'</div>':'')+
     (settings.warranty?'<div data-wrap-fix="1" style="background:#f0f8ff;border-left:3px solid '+color+';padding:8px 12px;margin-top:10px;font-size:11px;color:#445;overflow-wrap:anywhere;word-break:break-word;white-space:normal">'+esc(settings.warranty)+'</div>':'')+
     (quotePhotos.length?'<div style="margin-top:14px;padding-top:10px;border-top:2px solid '+color+'"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:'+color+';margin-bottom:8px">Фото оборудования</div><div style="display:grid;grid-template-columns:repeat('+Math.min(quotePhotos.length,3)+',1fr);gap:6px">'+quotePhotos.map(function(p){return'<img src="'+p.dataURL+'" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;border:1px solid #ddd">';}).join('')+'</div></div>':'')+
@@ -550,19 +553,19 @@ function buildPreview(){
 function printPDF(){
   var c=getClientData(),t=getTotals();
   var today=new Date().toLocaleDateString('ru-RU'),num=generateQuoteNumber(),color=settings.color||'#0066ff';
-  var sRows=services.map(function(s,i){
+  var sRows=services.map(function(s,i){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);
     return'<tr style="background:'+(i%2===0?'#fff':'#f8fafc')+'">'+
-    '<td style="text-align:center;color:#888">'+(i+1)+'</td><td>'+esc(s.name)+'</td>'+ 
-    '<td style="text-align:right">'+fmt(s.price)+'</td><td style="text-align:center">'+s.qty+'</td>'+ 
-    '<td style="text-align:right;font-weight:700;color:'+color+'">'+fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</td></tr>';
+    '<td class="num-td">'+(i+1)+'</td><td class="name-td"><span class="clip-name">'+esc(s.name)+'</span></td>'+ 
+    '<td class="money-td">'+moneyHtml(s.price)+'</td><td class="qty-td">'+s.qty+'</td>'+ 
+    '<td class="money-td sum-td" style="color:'+color+'">'+moneyHtml(total)+'</td></tr>';
   }).join('');
-  var eqRows=equipment.map(function(s,i){
+  var eqRows=equipment.map(function(s,i){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);
     return'<tr style="background:'+(i%2===0?'#fff':'#f8fafc')+'">'+
-    '<td style="text-align:center;color:#888">'+(i+1)+'</td><td>'+esc(s.name)+'</td>'+ 
-    '<td style="text-align:right">'+fmt(s.price)+'</td><td style="text-align:center">'+s.qty+'</td>'+ 
-    '<td style="text-align:right;font-weight:700;color:'+color+'">'+fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</td></tr>';
+    '<td class="num-td">'+(i+1)+'</td><td class="name-td"><span class="clip-name">'+esc(s.name)+'</span></td>'+ 
+    '<td class="money-td">'+moneyHtml(s.price)+'</td><td class="qty-td">'+s.qty+'</td>'+ 
+    '<td class="money-td sum-td" style="color:'+color+'">'+moneyHtml(total)+'</td></tr>';
   }).join('');
-  var pdfTableHead='<table><thead><tr><th>#</th><th>Наименование</th><th>Цена</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>';
+  var pdfTableHead='<table><colgroup><col style="width:22px"><col><col style="width:92px"><col style="width:30px"><col style="width:122px"></colgroup><thead><tr><th>#</th><th>Наименование</th><th>Цена</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>';
   var pdfTableEnd='</tbody></table>';
   var hasPdfEquipment = equipment.length > 0;
   var hasPdfWorks = services.length > 0;
@@ -575,8 +578,8 @@ function printPDF(){
   if(settings.company)masterH+='<div style="font-size:15px;font-weight:800;color:#111;margin-bottom:2px;word-break:normal;overflow-wrap:normal;white-space:normal;hyphens:none;word-break:keep-all;max-width:100%;overflow:hidden">'+esc(settings.company)+'</div>';
   var ct=[settings.phone,settings.email].filter(Boolean).join(' · ');if(ct)masterH+='<div style="font-size:11px;color:#555;word-break:normal;overflow-wrap:normal;white-space:normal;hyphens:none;word-break:keep-all;max-width:100%;overflow:hidden">'+ct+'</div>';
   var dt=[settings.city,settings.inn?'ИНН '+settings.inn:''].filter(Boolean).join(' · ');if(dt)masterH+='<div style="font-size:10px;color:#888;word-break:normal;overflow-wrap:normal;white-space:normal;hyphens:none;word-break:keep-all;max-width:100%;overflow:hidden">'+dt+'</div>';
-  var discH=t.discount>0?'<tr><td style="color:#888">Скидка:</td><td style="text-align:right;white-space:nowrap;color:#c00">−'+fmt(t.discount)+'</td></tr>':'';
-  var prepayH=t.prepay>0?'<tr><td style="color:#059669">Предоплата:</td><td style="text-align:right;white-space:nowrap;color:#059669">−'+fmt(t.prepay)+'</td></tr>':'';
+  var discH=t.discount>0?'<tr><td style="color:#888">Скидка:</td><td class="money-td" style="color:#c00">−'+moneyHtml(t.discount)+'</td></tr>':'';
+  var prepayH=t.prepay>0?'<tr><td style="color:#059669">Предоплата:</td><td class="money-td" style="color:#059669">−'+moneyHtml(t.prepay)+'</td></tr>':'';
   var photosH='';
   if(quotePhotos.length){photosH='<div style="margin-top:18px;padding-top:12px;border-top:2px solid '+color+'"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:'+color+';margin-bottom:8px">Фото оборудования</div><div style="display:grid;grid-template-columns:repeat('+Math.min(quotePhotos.length,3)+',1fr);gap:6px">'+quotePhotos.map(function(p){return'<img src="'+p.dataURL+'" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;border:1px solid #ddd">';}).join('')+'</div></div>';}
   var footer=[settings.requisites,settings.inn?'ИНН '+settings.inn:'',settings.city].filter(Boolean).join(' · ');
@@ -597,21 +600,23 @@ function printPDF(){
     'thead tr{background:'+color+'}thead th{padding:7px 5px;color:#fff;font-size:9px;text-align:left;white-space:normal;overflow:hidden;vertical-align:middle;line-height:1.15}'+
     'thead th:nth-child(1){width:22px;text-align:center}'+
     'thead th:nth-child(2){width:auto}'+
-    'thead th:nth-child(3){text-align:right;width:54px}'+
-    'thead th:nth-child(4){text-align:center;width:34px;vertical-align:middle;white-space:nowrap;word-break:normal;overflow-wrap:normal}'+
-    'thead th:nth-child(5){text-align:right;width:78px}'+
-    'tbody td{padding:6px 5px;border-bottom:1px solid #eee;font-size:10.5px;white-space:normal;overflow:hidden;text-overflow:clip}'+
-    'tbody td:nth-child(1){text-align:center;color:#888}'+
-    'tbody td:nth-child(2){word-break:break-word;overflow-wrap:anywhere}'+
-    'tbody td:nth-child(3),tbody td:nth-child(5){text-align:right;font-size:10px;word-break:break-word;overflow-wrap:anywhere}'+
-    'tbody td:nth-child(4){text-align:center;font-size:10px}'+
-    '.tot{display:flex;justify-content:flex-end;margin-bottom:12px;width:100%;overflow:hidden}.tot table{width:100%;max-width:240px;min-width:0;table-layout:fixed}'+
-    '.tot td{padding:4px 0;font-size:11px;white-space:normal;overflow-wrap:anywhere;word-break:break-word}.tot td:last-child{text-align:right;padding-left:10px}'+
+    'thead th:nth-child(3){text-align:right;width:92px}'+
+    'thead th:nth-child(4){text-align:center;width:30px;vertical-align:middle;white-space:nowrap;word-break:normal;overflow-wrap:normal}'+
+    'thead th:nth-child(5){text-align:right;width:122px}'+
+    'tbody td{padding:6px 5px;border-bottom:1px solid #eee;font-size:10.5px;white-space:normal;overflow:hidden;text-overflow:clip;vertical-align:top}'+
+    '.num-td{text-align:center!important;color:#888;width:22px!important}'+
+    '.name-td{word-break:break-word;overflow-wrap:anywhere}'+
+    '.clip-name{display:block;max-height:3.75em;line-height:1.25;overflow:hidden}'+
+    '.qty-td{text-align:center!important;font-size:10px;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important}'+
+    '.money-td{text-align:right!important;font-weight:700;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;overflow:hidden!important}'+
+    '.money-nowrap{display:inline-block;max-width:100%;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;line-height:1.05;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.35px}'+
+    '.tot{display:flex;justify-content:flex-end;margin-bottom:12px;width:100%;overflow:hidden}.tot table{width:100%;max-width:330px;min-width:0;table-layout:fixed}'+
+    '.tot td{padding:4px 0;font-size:11px;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;overflow:hidden}.tot td:first-child{width:110px}.tot td:last-child{text-align:right;padding-left:10px;width:220px}'+
     '.grand td{font-size:14px;font-weight:900;color:'+color+';border-top:2px solid '+color+';padding-top:8px}'+
     'a{color:inherit;text-decoration:none}'+
     '.ftr{margin-top:18px;padding-top:10px;border-top:1px solid #ddd;display:flex;justify-content:space-between;gap:10px;font-size:9px;color:#aaa;overflow:hidden}.ftr>div{min-width:0}'+
     '.pbtn{display:block;width:100%;padding:14px;margin-bottom:14px;background:'+color+';color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}'+
-    '@media(max-width:520px){body{padding:10px;font-size:10.5px}.hdr{gap:8px}.hdr>div:first-child{max-width:55%}.hdr>div:last-child{flex:0 0 148px;max-width:148px;min-width:148px}.kpt{font-size:12px;word-break:normal;overflow-wrap:normal;hyphens:none;word-break:keep-all}.cg{grid-template-columns:minmax(0,1fr);font-size:10px}thead th{font-size:8.5px;padding:6px 3px}tbody td{font-size:9.5px;padding:5px 3px}thead th:nth-child(3){width:48px}thead th:nth-child(4){width:32px}thead th:nth-child(5){width:66px}tbody td:nth-child(3),tbody td:nth-child(5){font-size:9px}.tot table{max-width:210px}.grand td{font-size:13px}}'+
+    '@media(max-width:520px){body{padding:10px;font-size:10.5px}.hdr{gap:8px}.hdr>div:first-child{max-width:55%}.hdr>div:last-child{flex:0 0 148px;max-width:148px;min-width:148px}.kpt{font-size:12px;word-break:normal;overflow-wrap:normal;hyphens:none;word-break:keep-all}.cg{grid-template-columns:minmax(0,1fr);font-size:10px}thead th{font-size:8.5px;padding:6px 3px}tbody td{font-size:9.5px;padding:5px 3px}thead th:nth-child(3){width:82px}thead th:nth-child(4){width:28px}thead th:nth-child(5){width:110px}.money-nowrap{letter-spacing:-.45px}.tot table{max-width:210px}.grand td{font-size:13px}}'+
     '@media print{.pbtn{display:none}@page{margin:12mm 14mm}body{padding:0;overflow:visible}}'+
     '</style></head><body>'+
     '<button class="pbtn" onclick="window.print()">💾 Сохранить как PDF</button>'+
@@ -625,9 +630,9 @@ function printPDF(){
     '</div></div>'+
     pdfSections+
     '<div class="tot"><table>'+
-    (t.equipmentSubtotal>0?'<tr><td style="color:#888">Оборудование:</td><td>'+fmt(t.equipmentSubtotal)+'</td></tr>':'')+
-    (t.worksSubtotal>0 && t.equipmentSubtotal>0?'<tr><td style="color:#888">Работы:</td><td>'+fmt(t.worksSubtotal)+'</td></tr>':'')+
-    '<tr><td style="color:#888">Итого:</td><td>'+fmt(t.subtotal)+'</td></tr>'+discH+prepayH+'<tr class="grand"><td>К ОПЛАТЕ:</td><td>'+fmt(t.grand)+'</td></tr></table></div>'+
+    (t.equipmentSubtotal>0?'<tr><td style="color:#888">Оборудование:</td><td class="money-td">'+moneyHtml(t.equipmentSubtotal)+'</td></tr>':'')+
+    (t.worksSubtotal>0 && t.equipmentSubtotal>0?'<tr><td style="color:#888">Работы:</td><td class="money-td">'+moneyHtml(t.worksSubtotal)+'</td></tr>':'')+
+    '<tr><td style="color:#888">Итого:</td><td class="money-td">'+moneyHtml(t.subtotal)+'</td></tr>'+discH+prepayH+'<tr class="grand"><td>К ОПЛАТЕ:</td><td class="money-td">'+moneyHtml(t.grand,'grand-money')+'</td></tr></table></div>'+
     (c.notes?'<div style="background:#fffbf0;border-left:3px solid #f0a020;padding:8px 12px;border-radius:3px;margin-top:10px;font-size:11px;overflow-wrap:anywhere;word-break:break-word;white-space:normal;max-width:100%;overflow:hidden"><b>Примечание:</b> '+esc(c.notes)+'</div>':'')+
     (settings.warranty?'<div style="background:#f0f8ff;border-left:3px solid '+color+';padding:8px 12px;border-radius:3px;margin-top:10px;font-size:11px;color:#445;overflow-wrap:anywhere;word-break:break-word;white-space:normal">'+esc(settings.warranty)+'</div>':'')+
     photosH+
@@ -811,6 +816,27 @@ async function deleteKey(id){
 function getClientData(){return{name:document.getElementById('c-name').value.trim(),phone:document.getElementById('c-phone').value.trim(),email:document.getElementById('c-email').value.trim(),city:document.getElementById('c-city').value.trim(),addr:document.getElementById('c-addr').value.trim(),notes:document.getElementById('c-notes').value.trim()};}
 function getTotals(){var worksSub=services.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);var equipmentSub=equipment.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);var sub=worksSub+equipmentSub;var dv=parseFloat(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*dv/100:dv):0;var prepay=parseFloat(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0;return{worksSubtotal:worksSub,equipmentSubtotal:equipmentSub,subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}
 function fmt(n){return Number(n).toLocaleString('ru-RU')+' ₽';}
+function moneyFontByText(txt){
+  var len=String(txt||'').length;
+  if(len>30)return 6.2;
+  if(len>26)return 6.8;
+  if(len>22)return 7.4;
+  if(len>18)return 8.4;
+  if(len>14)return 9.4;
+  return 10.5;
+}
+function moneyHtml(n,cls){
+  var txt=fmt(n);
+  var safe=esc(txt).replace(/ /g,'&nbsp;');
+  return '<span class="money-nowrap '+(cls||'')+'" title="'+esc(txt)+'" style="font-size:'+moneyFontByText(txt)+'px">'+safe+'</span>';
+}
+function appMoneyHtml(n){
+  var txt=fmt(n);
+  var safe=esc(txt).replace(/ /g,'&nbsp;');
+  var fs=moneyFontByText(txt);
+  if(fs<8)fs=8;
+  return '<span class="app-money-nowrap" title="'+esc(txt)+'" style="font-size:'+fs+'px">'+safe+'</span>';
+}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function generateQuoteNumber(){var d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());}
 function pad(n){return String(n).padStart(2,'0');}

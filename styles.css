@@ -2502,26 +2502,27 @@ thead th:nth-child(4){
   }
 }
 
-/* V57: normal login key input and readable placeholder */
+/* V58 FORCE login input fix */
+.auth-wrap input#keyInput,
+.auth-box input#keyInput,
+.key-input-wrap input#keyInput,
+input#keyInput.key-login-input-v58,
 #keyInput{
-  text-transform:none !important;
-  letter-spacing:.5px !important;
-  font-size:18px !important;
-  font-weight:700 !important;
-  text-align:left !important;
-}
-#keyInput::placeholder{
   text-transform:none !important;
   letter-spacing:0 !important;
   font-size:14px !important;
   font-weight:500 !important;
-  opacity:.72 !important;
+  text-align:left !important;
 }
-@media(max-width:420px){
-  #keyInput{
-    font-size:17px !important;
-  }
-  #keyInput::placeholder{
-    font-size:13px !important;
-  }
+
+.auth-wrap input#keyInput::placeholder,
+.auth-box input#keyInput::placeholder,
+.key-input-wrap input#keyInput::placeholder,
+input#keyInput.key-login-input-v58::placeholder,
+#keyInput::placeholder{
+  text-transform:none !important;
+  letter-spacing:0 !important;
+  font-size:14px !important;
+  font-weight:400 !important;
+  opacity:.75 !important;
 }

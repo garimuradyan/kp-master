@@ -26,6 +26,8 @@
 
   window.buildDocumentContextFromCurrentQuote = function(){
     var c = typeof getClientData === 'function' ? getClientData() : {};
+    var emailInput = document.getElementById('c-email');
+    if(emailInput && !c.email) c.email = emailInput.value.trim();
     var t = typeof getTotals === 'function' ? getTotals() : {subtotal:0,discount:0,prepay:0,grand:0};
     return {
       client: c,

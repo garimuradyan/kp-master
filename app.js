@@ -1,5 +1,5 @@
 
-window.KP_APP_VERSION='v59-default-examples';
+window.KP_APP_VERSION='v60-settings-rows-align';
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=null;
@@ -297,7 +297,7 @@ function renderPriceList(){
   var list=document.getElementById('priceList');if(!list)return;
   list.innerHTML=priceItems.map(function(p,i){
     return'<div class="service-row settings-price-row">'+
-    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Услуга</em><textarea rows="2" maxlength="120" placeholder="Услуга" oninput="priceItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
+    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Услуга</em><input type="text" maxlength="120" placeholder="Услуга" value="'+esc(p.name)+'" oninput="priceItems['+i+'].name=this.value"></label>'+
     '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" placeholder="Цена" oninput="clampMoneyInput(this);priceItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em>'+unitSelectHtml(p.unit,'priceItems['+i+'].unit=this.value')+'</label>'+
     '<button class="delete-btn" onclick="removePriceItem('+i+')">✕</button></div>';
@@ -337,7 +337,7 @@ function renderEquipmentList(){
   var list=document.getElementById('equipmentPriceList');if(!list)return;
   list.innerHTML=equipmentItems.map(function(p,i){
     return'<div class="service-row settings-price-row">'+
-    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Оборудование</em><textarea rows="2" maxlength="140" placeholder="Оборудование" oninput="equipmentItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
+    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Оборудование</em><input type="text" maxlength="140" placeholder="Оборудование" value="'+esc(p.name)+'" oninput="equipmentItems['+i+'].name=this.value"></label>'+
     '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" placeholder="Цена" oninput="clampMoneyInput(this);equipmentItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em>'+unitSelectHtml(p.unit,'equipmentItems['+i+'].unit=this.value')+'</label>'+
     '<button class="delete-btn" onclick="removeEquipmentItem('+i+')">✕</button></div>';

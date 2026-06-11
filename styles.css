@@ -2330,3 +2330,69 @@ thead th:nth-child(4){
   }
   #section-services .svc-total{font-size:12px!important}
 }
+
+
+/* === V40 fixed unit select controls === */
+.unit-select{
+  width:100%!important;
+  min-width:0!important;
+  height:32px!important;
+  padding:4px 6px!important;
+  border:1px solid transparent!important;
+  border-radius:6px!important;
+  background:transparent!important;
+  color:var(--text)!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  text-align:center!important;
+  outline:none!important;
+  cursor:pointer!important;
+}
+.unit-select:focus{background:var(--surface)!important;border-color:var(--accent)!important}
+#section-services .services-header{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 86px 56px 58px 104px 28px!important;
+  gap:6px!important;
+  padding:0 12px!important;
+  align-items:center!important;
+}
+#section-services .services-header span:nth-child(1){text-align:left!important}
+#section-services .services-header span:nth-child(2),
+#section-services .services-header span:nth-child(5){text-align:right!important}
+#section-services .services-header span:nth-child(3),
+#section-services .services-header span:nth-child(4){text-align:center!important}
+#section-services .service-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 86px 56px 58px 104px 28px!important;
+  gap:6px!important;
+  align-items:start!important;
+  overflow:hidden!important;
+}
+#section-services .service-row .svc-name{grid-column:auto!important;min-width:0!important}
+#section-services .service-row input:nth-of-type(1){text-align:right!important;min-width:0!important;width:100%!important}
+#section-services .service-row .unit-select{text-align:center!important;min-width:0!important;width:100%!important}
+#section-services .service-row input:nth-of-type(2){text-align:center!important;min-width:0!important;width:100%!important}
+#section-services .service-row .svc-total{text-align:right!important;min-width:0!important;width:100%!important;overflow:hidden!important;white-space:nowrap!important}
+#section-services .service-row .delete-btn{align-self:center!important}
+#priceList .settings-price-cell-unit .unit-select,
+#equipmentPriceList .settings-price-cell-unit .unit-select{
+  height:38px!important;
+  background:var(--surface)!important;
+  border:1px solid var(--border)!important;
+  text-align:left!important;
+}
+@media(max-width:640px){
+  #section-services .services-header{display:none!important}
+  #section-services .service-row{
+    grid-template-columns:minmax(0,1fr) 78px 54px 54px 1fr 28px!important;
+    grid-template-areas:
+      "name name name name name name"
+      "price unit qty total total del"!important;
+  }
+  #section-services .service-row .svc-name{grid-area:name!important}
+  #section-services .service-row input:nth-of-type(1){grid-area:price!important}
+  #section-services .service-row .unit-select{grid-area:unit!important}
+  #section-services .service-row input:nth-of-type(2){grid-area:qty!important}
+  #section-services .service-row .svc-total{grid-area:total!important;text-align:right!important}
+  #section-services .service-row .delete-btn{grid-area:del!important}
+}

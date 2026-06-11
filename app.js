@@ -191,7 +191,17 @@ function validateClient(){
 }
 
 // SERVICES
-function normalizeUnit(unit){return String(unit||'шт').trim().slice(0,10)||'шт';}
+var UNIT_OPTIONS=['шт.','м','п.м.','кг','л','км'];
+function normalizeUnit(unit){
+  var u=String(unit||'шт.').trim();
+  if(u==='шт')u='шт.';
+  if(u==='м.п.'||u==='м/п'||u==='пм'||u==='п. м.'||u==='п.м')u='п.м.';
+  return UNIT_OPTIONS.indexOf(u)>=0?u:'шт.';
+}
+function unitSelectHtml(value,onchange){
+  var current=normalizeUnit(value);
+  return '<select class="unit-select" onchange="'+onchange+'">'+UNIT_OPTIONS.map(function(u){return '<option value="'+esc(u)+'" '+(u===current?'selected':'')+'>'+esc(u)+'</option>';}).join('')+'</select>';
+}
 function addServiceRow(name,price,qty,unit){services.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty),unit:normalizeUnit(unit)});renderServices();}
 function addEquipmentRow(name,price,qty,unit){equipment.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty),unit:normalizeUnit(unit)});renderEquipment();}
 function removeEquipment(i){equipment.splice(i,1);renderEquipment();}
@@ -203,6 +213,7 @@ function renderServices(){
     return'<div class="service-row">'+
     '<textarea class="svc-name" rows="2" maxlength="120" placeholder="Наименование" oninput="services['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" onpaste="setTimeout(()=>clampMoneyInput(this),0)" oninput="clampMoneyInput(this);services['+i+'].price=parseFloat(this.value)||0;recalc()">'+
+    unitSelectHtml(s.unit,'services['+i+'].unit=this.value;recalc()')+
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" onpaste="setTimeout(()=>clampQtyInput(this),0)" oninput="clampQtyInput(this);services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="svcTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+
     '<button class="delete-btn" onclick="removeService('+i+')" style="padding-top:4px">✕</button></div>';
@@ -218,6 +229,7 @@ function renderEquipment(){
     return'<div class="service-row equipment-row">'+
     '<textarea class="svc-name" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipment['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+ 
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" onpaste="setTimeout(()=>clampMoneyInput(this),0)" oninput="clampMoneyInput(this);equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
+    unitSelectHtml(s.unit,'equipment['+i+'].unit=this.value;recalc()')+
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" onpaste="setTimeout(()=>clampQtyInput(this),0)" oninput="clampQtyInput(this);equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="eqTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+ 
     '<button class="delete-btn" onclick="removeEquipment('+i+')" style="padding-top:4px">✕</button></div>';
@@ -258,33 +270,33 @@ function renderPriceList(){
     return'<div class="service-row settings-price-row">'+
     '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Услуга</em><textarea rows="2" maxlength="120" placeholder="Услуга" oninput="priceItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
     '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" placeholder="Цена" oninput="clampMoneyInput(this);priceItems['+i+'].price=parseFloat(this.value)||0"></label>'+
-    '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em><input type="text" maxlength="10" value="'+esc(p.unit||'шт')+'" placeholder="Ед." oninput="priceItems['+i+'].unit=this.value"></label>'+
+    '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em>'+unitSelectHtml(p.unit,'priceItems['+i+'].unit=this.value')+'</label>'+
     '<button class="delete-btn" onclick="removePriceItem('+i+')">✕</button></div>';
   }).join('');
 }
-function addPriceItem(){priceItems.push({name:'',price:0,unit:'шт'});renderPriceList();}
+function addPriceItem(){priceItems.push({name:'',price:0,unit:'шт.'});renderPriceList();}
 function removePriceItem(i){priceItems.splice(i,1);renderPriceList();}
 
 function defaultQuoteServices(){return[];}
 
 function defaultPrices(){return[
-  {name:'Монтаж кондиционера до 2,5 кВт',price:4500,unit:'шт'},
-  {name:'Монтаж кондиционера 3,5–5 кВт',price:5500,unit:'шт'},
-  {name:'Демонтаж кондиционера',price:2000,unit:'шт'},
-  {name:'Прокладка трассы (1 м.п.)',price:350,unit:'м.п.'},
-  {name:'Штробление стены (1 м.п.)',price:800,unit:'м.п.'},
-  {name:'Установка дренажной помпы',price:1800,unit:'шт'},
-  {name:'Подключение к электросети',price:1200,unit:'шт'},
+  {name:'Монтаж кондиционера до 2,5 кВт',price:4500,unit:'шт.'},
+  {name:'Монтаж кондиционера 3,5–5 кВт',price:5500,unit:'шт.'},
+  {name:'Демонтаж кондиционера',price:2000,unit:'шт.'},
+  {name:'Прокладка трассы (1 м.п.)',price:350,unit:'п.м.'},
+  {name:'Штробление стены (1 м.п.)',price:800,unit:'п.м.'},
+  {name:'Установка дренажной помпы',price:1800,unit:'шт.'},
+  {name:'Подключение к электросети',price:1200,unit:'шт.'},
   {name:'Заправка фреоном R-32 (1 кг)',price:1500,unit:'кг'},
-  {name:'Выезд мастера',price:500,unit:'шт'}
+  {name:'Выезд мастера',price:500,unit:'шт.'}
 ];}
 
 function defaultEquipmentItems(){return[
-  {name:'Кондиционер настенный сплит-система 7 BTU',price:0,unit:'шт'},
-  {name:'Кондиционер настенный сплит-система 9 BTU',price:0,unit:'шт'},
-  {name:'Кондиционер настенный сплит-система 12 BTU',price:0,unit:'шт'},
-  {name:'Кондиционер настенный сплит-система 18 BTU',price:0,unit:'шт'},
-  {name:'Кондиционер настенный сплит-система 24 BTU',price:0,unit:'шт'}
+  {name:'Кондиционер настенный сплит-система 7 BTU',price:0,unit:'шт.'},
+  {name:'Кондиционер настенный сплит-система 9 BTU',price:0,unit:'шт.'},
+  {name:'Кондиционер настенный сплит-система 12 BTU',price:0,unit:'шт.'},
+  {name:'Кондиционер настенный сплит-система 18 BTU',price:0,unit:'шт.'},
+  {name:'Кондиционер настенный сплит-система 24 BTU',price:0,unit:'шт.'}
 ];}
 function renderEquipmentList(){
   var list=document.getElementById('equipmentPriceList');if(!list)return;
@@ -292,11 +304,11 @@ function renderEquipmentList(){
     return'<div class="service-row settings-price-row">'+
     '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Оборудование</em><textarea rows="2" maxlength="140" placeholder="Оборудование" oninput="equipmentItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
     '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" placeholder="Цена" oninput="clampMoneyInput(this);equipmentItems['+i+'].price=parseFloat(this.value)||0"></label>'+
-    '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em><input type="text" maxlength="10" value="'+esc(p.unit||'шт')+'" placeholder="Ед." oninput="equipmentItems['+i+'].unit=this.value"></label>'+
+    '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em>'+unitSelectHtml(p.unit,'equipmentItems['+i+'].unit=this.value')+'</label>'+
     '<button class="delete-btn" onclick="removeEquipmentItem('+i+')">✕</button></div>';
   }).join('');
 }
-function addEquipmentItem(){equipmentItems.push({name:'',price:0,unit:'шт'});renderEquipmentList();}
+function addEquipmentItem(){equipmentItems.push({name:'',price:0,unit:'шт.'});renderEquipmentList();}
 function removeEquipmentItem(i){equipmentItems.splice(i,1);renderEquipmentList();}
 
 
@@ -310,7 +322,7 @@ function addFromPriceList(){
     return'<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;min-width:0">'+
     '<input type="checkbox" data-idx="'+i+'" style="width:16px;height:16px;flex-shrink:0;margin-top:2px">'+
     '<span style="flex:1;font-size:14px;word-break:break-word;min-width:0;overflow-wrap:break-word">'+esc(p.name)+'</span>'+
-    '<span style="color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:8px">'+fmt(p.price)+' / '+esc(p.unit||'шт')+'</span></label>';
+    '<span style="color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:8px">'+fmt(p.price)+' / '+esc(normalizeUnit(p.unit))+'</span></label>';
   }).join('');
   document.getElementById('priceModal').style.display='flex';
 }
@@ -322,7 +334,7 @@ function addFromEquipmentList(){
     return'<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;min-width:0">'+
     '<input type="checkbox" data-idx="'+i+'" style="width:16px;height:16px;flex-shrink:0;margin-top:2px">'+
     '<span style="flex:1;font-size:14px;word-break:break-word;min-width:0;overflow-wrap:break-word">'+esc(p.name)+'</span>'+
-    '<span style="color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:8px">'+fmt(p.price)+' / '+esc(p.unit||'шт')+'</span></label>';
+    '<span style="color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:8px">'+fmt(p.price)+' / '+esc(normalizeUnit(p.unit))+'</span></label>';
   }).join('');
   document.getElementById('priceModal').style.display='flex';
 }
@@ -330,9 +342,9 @@ function closeModal(){document.getElementById('priceModal').style.display='none'
 function applyModalItems(){
   document.querySelectorAll('#modalPriceList input:checked').forEach(function(cb){
     if(priceModalTarget==='equipment'){
-      var e=equipmentItems[cb.dataset.idx];if(e)addEquipmentRow(e.name,e.price,1,e.unit||'шт');
+      var e=equipmentItems[cb.dataset.idx];if(e)addEquipmentRow(e.name,e.price,1,normalizeUnit(e.unit));
     }else{
-      var p=priceItems[cb.dataset.idx];if(p)addServiceRow(p.name,p.price,1,p.unit||'шт');
+      var p=priceItems[cb.dataset.idx];if(p)addServiceRow(p.name,p.price,1,normalizeUnit(p.unit));
     }
   });
   closeModal();

@@ -95,7 +95,7 @@
       var t = ctx.totals;
       var worksTotal = (t && typeof t.worksSubtotal !== 'undefined') ? t.worksSubtotal : ctx.services.reduce(function(sum,s){return sum+(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);},0);
       var rows = ctx.services.map(function(s,i){
-        var unit = (typeof normalizeUnit === 'function') ? normalizeUnit(s.unit) : String(s.unit || 'шт').trim() || 'шт';
+        var unit = (typeof normalizeUnit === 'function') ? normalizeUnit(s.unit) : String(s.unit || 'шт.').trim() || 'шт.';
         return '<tr><td>'+(i+1)+'</td><td>'+ctx.esc(s.name)+'</td><td>'+ctx.fmt(s.price)+'</td><td>'+ctx.esc(unit)+'</td><td>'+ctx.esc(s.qty)+'</td><td>'+ctx.fmt(s.price*s.qty)+'</td></tr>';
       }).join('');
 

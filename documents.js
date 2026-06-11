@@ -52,7 +52,7 @@
   };
 
   function buildDocumentPrintHtml(ctx, body){
-    return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Документы № '+ctx.num+'</title>'+docStyles(ctx.color)+'</head><body><button class="pbtn" onclick="window.print()">💾 Сохранить как PDF</button>'+body+'</body></html>';
+    return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title></title>'+docStyles(ctx.color)+'</head><body><button class="pbtn" onclick="document.title=\'\';window.print()">💾 Сохранить как PDF</button>'+body+'</body></html>';
   }
 
   function docStyles(color){

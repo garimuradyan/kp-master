@@ -580,7 +580,7 @@ function printPDF(){
   var photosH='';
   if(quotePhotos.length){photosH='<div style="margin-top:18px;padding-top:12px;border-top:2px solid '+color+'"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:'+color+';margin-bottom:8px">Фото оборудования</div><div style="display:grid;grid-template-columns:repeat('+Math.min(quotePhotos.length,3)+',1fr);gap:6px">'+quotePhotos.map(function(p){return'<img src="'+p.dataURL+'" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;border:1px solid #ddd">';}).join('')+'</div></div>';}
   var footer=[settings.requisites,settings.inn?'ИНН '+settings.inn:'',settings.city].filter(Boolean).join(' · ');
-  var html='<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no"><title>КП № '+num+'</title>'+
+  var html='<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no"><title></title>'+
     '<style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
     'html,body{width:100%;max-width:100%;overflow-x:hidden;background:#fff}'+
@@ -616,7 +616,7 @@ function printPDF(){
     '@media(max-width:520px){body{padding:10px;font-size:10.5px}.hdr{gap:8px}.hdr>div:first-child{max-width:55%}.hdr>div:last-child{flex:0 0 148px;max-width:148px;min-width:148px}.kpt{font-size:12px;word-break:normal;overflow-wrap:normal;hyphens:none;word-break:keep-all}.cg{grid-template-columns:minmax(0,1fr);font-size:10px}thead th{font-size:8.5px;padding:6px 3px}tbody td{font-size:9.5px;padding:5px 3px}thead th:nth-child(3){width:74px}thead th:nth-child(4){width:26px}thead th:nth-child(5){width:100px}.money-nowrap{letter-spacing:-.45px}.tot table{max-width:210px}.grand td{font-size:13px}}'+
     '@media print{.pbtn{display:none}@page{margin:12mm 14mm}body{padding:0;overflow:visible}}'+
     '</style></head><body>'+
-    '<button class="pbtn" onclick="window.print()">💾 Сохранить как PDF</button>'+
+    '<button class="pbtn" onclick="document.title=\'\';window.print()">💾 Сохранить как PDF</button>'+
     '<div class="hdr"><div>'+logoH+masterH+'</div>'+
     '<div><div class="kpt">КОММЕРЧЕСКОЕ<br/>ПРЕДЛОЖЕНИЕ</div><div style="font-size:10px;color:#888;text-align:right;margin-top:4px">№ '+num+' от '+today+'</div></div></div>'+
     '<div class="cb"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#999;font-weight:700;margin-bottom:6px">Клиент</div>'+

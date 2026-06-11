@@ -2396,3 +2396,108 @@ thead th:nth-child(4){
   #section-services .service-row .svc-total{grid-area:total!important;text-align:right!important}
   #section-services .service-row .delete-btn{grid-area:del!important}
 }
+
+
+/* PUBLIC ABOUT ACCESS WITHOUT KEY - V43 */
+.auth-wrap{
+  min-height:auto;
+  padding:42px 16px 24px;
+  align-items:flex-start;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(59,130,246,.22), transparent 30%),
+    radial-gradient(circle at 80% 15%, rgba(16,185,129,.16), transparent 28%),
+    var(--bg);
+}
+.auth-box{position:relative;z-index:3}
+.public-about-wrap{
+  display:block;
+  background:var(--bg);
+  padding:0 0 96px;
+}
+.public-about-page{
+  display:block!important;
+  max-width:1180px;
+  margin:0 auto;
+  padding:18px 16px 0;
+}
+#publicAboutWrap .about-v21-section,
+#publicAboutWrap .about-v21-hero{max-width:100%}
+#appWrap[style*="display: none"] .bottom-nav,
+#appWrap[style*="display:none"] .bottom-nav{display:none!important}
+@media(max-width:640px){
+  .auth-wrap{padding-top:64px}
+  .public-about-page{padding:18px 10px 0}
+}
+
+
+/* ABOUT SUPPORT BUTTON V45 */
+.about-v21-support-btn{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none!important;
+}
+.about-v21-support-section{
+  align-items:center;
+}
+
+
+/* ABOUT TELEGRAM BUTTONS RESTORE V46 */
+.about-v21-payment-note{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:12px!important;
+  flex-wrap:wrap!important;
+}
+.about-v21-telegram-button,
+.about-v21-bot-link,
+.about-v21-support-link,
+.about-v21-support-btn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:46px!important;
+  padding:0 22px!important;
+  border-radius:16px!important;
+  background:linear-gradient(135deg,#2563eb,#3b82f6)!important;
+  color:#ffffff!important;
+  text-decoration:none!important;
+  font-size:14px!important;
+  font-weight:900!important;
+  line-height:1!important;
+  box-shadow:0 16px 32px rgba(37,99,235,.28)!important;
+  white-space:nowrap!important;
+  border:1px solid rgba(147,197,253,.35)!important;
+}
+.about-v21-telegram-button:hover,
+.about-v21-bot-link:hover,
+.about-v21-support-link:hover,
+.about-v21-support-btn:hover{
+  background:linear-gradient(135deg,#1d4ed8,#2563eb)!important;
+  color:#ffffff!important;
+}
+.about-v21-support-section{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:16px!important;
+}
+@media(max-width:900px){
+  .about-v21-support-section{
+    flex-direction:column!important;
+    align-items:stretch!important;
+  }
+  .about-v21-telegram-button,
+  .about-v21-bot-link,
+  .about-v21-support-link,
+  .about-v21-support-btn{
+    width:100%!important;
+  }
+}
+@media(max-width:760px){
+  .about-v21-payment-note{
+    align-items:stretch!important;
+    flex-direction:column!important;
+  }
+}

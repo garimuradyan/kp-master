@@ -27,6 +27,7 @@ function getDeviceId(){
 
 window.addEventListener('DOMContentLoaded',function(){
   try{
+    showPublicLanding();
     var sk=localStorage.getItem('kp_access_key'),sid=localStorage.getItem('kp_key_id');
     if(sk&&sid) verifyKey(sk,parseInt(sid,10),true);
     var keyInput=document.getElementById('keyInput');
@@ -43,6 +44,27 @@ window.addEventListener('DOMContentLoaded',function(){
     setAuthMsg('Ошибка загрузки приложения. Обновите страницу.');
   }
 });
+
+
+function isLoggedIn(){
+  return !!(currentKeyId && currentKeyData && currentKeyData.id);
+}
+function showPublicLanding(){
+  var a=document.getElementById('authWrap');
+  var p=document.getElementById('publicAboutWrap');
+  var app=document.getElementById('appWrap');
+  if(a)a.style.display='flex';
+  if(p)p.style.display='block';
+  if(app)app.style.display='none';
+}
+function hidePublicLanding(){
+  var p=document.getElementById('publicAboutWrap');
+  if(p)p.style.display='none';
+}
+function scrollToLogin(){
+  var el=document.getElementById('authWrap');
+  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+}
 
 async function doLogin(){
   try{
@@ -72,8 +94,7 @@ async function verifyKey(key,keyId,silent){
   catch(e){console.error('Verify error',e);if(!silent)setAuthMsg('Ошибка проверки ключа');return;}
   if(res.error||rpcFailed(res)){
     // Не удаляем ключ из localStorage - просто показываем экран входа
-    document.getElementById('authWrap').style.display='flex';
-    document.getElementById('appWrap').style.display='none';
+    showPublicLanding();
     if(!silent){setAuthMsg(rpcMsg(res,'Ошибка входа'));}
     return;
   }
@@ -92,8 +113,7 @@ function doLogout(){
   localStorage.removeItem('kp_access_key');localStorage.removeItem('kp_key_id');
   currentKeyId=null;currentKeyData=null;
   services=[];equipment=[];priceItems=[];equipmentItems=[];settings={};historyData=[];logoDataURL=null;quotePhotos=[];
-  document.getElementById('authWrap').style.display='flex';
-  document.getElementById('appWrap').style.display='none';
+  showPublicLanding();
   document.getElementById('keyInput').value='';
   setAuthMsg('');
 }
@@ -101,6 +121,7 @@ function doLogout(){
 var demoTimer = null;
 
 function showApp(){
+  hidePublicLanding();
   document.getElementById('authWrap').style.display='none';
   document.getElementById('appWrap').style.display='block';
   if(currentKeyData){
@@ -118,6 +139,8 @@ function showApp(){
 }
 
 async function loadUserData(){
+  if(!isLoggedIn()){showPublicLanding();toast('Введите ключ доступа','error');return;}
+
   if(!currentKeyId)return;
   var res=await sb.rpc('kp_get_user_data',rpcAuthParams());
   if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка загрузки данных'),'error');return;}
@@ -152,6 +175,11 @@ function applySettings(){
 
 // NAV
 function showPage(name,el){
+  if(!isLoggedIn()){
+    showPublicLanding();
+    setAuthMsg('Введите ключ доступа, чтобы открыть рабочие разделы','var(--danger)');
+    return;
+  }
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.bottom-nav-btn').forEach(function(b){b.classList.remove('active');});
   document.getElementById('page-'+name).classList.add('active');
@@ -353,6 +381,8 @@ function applyModalItems(){
 
 // SETTINGS
 async function saveSettings(showMsg){
+  if(!isLoggedIn()){showPublicLanding();toast('Введите ключ доступа','error');return;}
+
   settings={
     company:document.getElementById('s-company').value,
     phone:document.getElementById('s-phone').value,
@@ -560,6 +590,8 @@ function buildPreview(){
 
 // PDF
 function printPDF(){
+  if(!isLoggedIn()){showPublicLanding();toast('Введите ключ доступа','error');return;}
+
   normalizeLineItems();
   var c=getClientData(),t=getTotals();
   var today=new Date().toLocaleDateString('ru-RU'),num=generateQuoteNumber(),color=settings.color||'#0066ff';
@@ -656,6 +688,8 @@ function printPDF(){
 
 // HISTORY
 async function saveToHistory(){
+  if(!isLoggedIn()){showPublicLanding();toast('Введите ключ доступа','error');return;}
+
   if(!validateClient()){nextStep(1);return;}
   if(!currentKeyData.is_admin&&historyData.length>=MAX_KP){
     toast('Память заполнена ('+MAX_KP+' КП). Удалите хотя бы одно.','error');
@@ -729,6 +763,8 @@ function resetForm(){
 
 // ═══════════════ ADMIN ═══════════════
 async function loadAdminData(){
+  if(!isLoggedIn()){showPublicLanding();toast('Введите ключ доступа','error');return;}
+
   var res=await sb.rpc('kp_admin_data',rpcAuthParams());
   if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка загрузки'),'error');return;}
   var keys=res.data.keys||[];

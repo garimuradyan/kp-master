@@ -1,5 +1,5 @@
 
-window.KP_APP_VERSION='v60-settings-rows-align';
+window.KP_APP_VERSION='v62-settings-global-align';
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=null;

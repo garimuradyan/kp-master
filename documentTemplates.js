@@ -84,7 +84,7 @@
         '<h2>6. Реквизиты и подписи сторон</h2>'+
         '<div class="doc-sign-grid compact">'+
           '<div><b>ПОДРЯДЧИК:</b>'+line('ФИО / наименование',ctx.esc(m.company || ''))+line('ИНН',ctx.esc(m.inn || ''))+line('Адрес',ctx.esc(m.address || m.city || ''))+line('Банковские реквизиты',ctx.esc(m.requisites || ''))+line('Телефон',ctx.esc(m.phone || ''))+line('E-mail',ctx.esc(m.email || ''))+'<div class="doc-sign-title">Подпись Подрядчика:</div>'+signatureBlock(ctx)+'</div>'+
-          '<div><b>ЗАКАЗЧИК:</b>'+line('ФИО / наименование',ctx.esc(c.name || ''))+line('Телефон',ctx.esc(c.phone || ''))+line('Адрес объекта',ctx.esc(c.addr || ''))+'<div class="doc-sign-title">Подпись Заказчика:</div><div class="doc-sign-placeholder">_______________________</div></div>'+
+          '<div><b>ЗАКАЗЧИК:</b>'+line('ФИО / наименование',ctx.esc(c.name || ''))+line('Телефон',ctx.esc(c.phone || ''))+line('E-mail',ctx.esc(c.email || ''))+line('Адрес объекта',ctx.esc(c.addr || ''))+'<div class="doc-sign-title">Подпись Заказчика:</div><div class="doc-sign-placeholder">_______________________</div></div>'+
         '</div>'+
         '</section>';
     },

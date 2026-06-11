@@ -103,13 +103,13 @@
 <div class="totals-row"><span>Итого:</span><span id="subtotalDisplay">0 ₽</span></div>
 <div class="discount-row">
 <label>Скидка</label>
-<input id="discountVal" min="0" oninput="recalc()" placeholder="0" style="width:80px" type="number"/>
+<input id="discountVal" min="0" oninput="recalc()" placeholder="0" style="width:80px" type="text"/ inputmode="numeric" pattern="[0-9]*" maxlength="8">
 <select id="discountType" onchange="recalc()" style="width:80px"><option value="percent">%</option><option value="fixed">₽</option></select>
 </div>
 <div class="totals-row" id="discountRow" style="display:none"><span>Скидка:</span><span id="discountDisplay" style="color:var(--danger)">0 ₽</span></div>
 <div class="discount-row">
 <label>Предоплата</label>
-<input id="prepayVal" min="0" oninput="recalc()" placeholder="0" style="width:110px" type="number"/>
+<input id="prepayVal" min="0" oninput="recalc()" placeholder="0" style="width:110px" type="text"/ inputmode="numeric" pattern="[0-9]*" maxlength="8">
 <span style="font-size:12px;color:var(--text2)">₽</span>
 </div>
 <div class="totals-row" id="prepayRow" style="display:none"><span>Предоплата:</span><span id="prepayDisplay" style="color:var(--success)">0 ₽</span></div>

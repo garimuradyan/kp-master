@@ -201,8 +201,8 @@ function renderServices(){
   list.innerHTML=services.map(function(s,i){
     return'<div class="service-row">'+
     '<textarea class="svc-name" rows="2" maxlength="120" placeholder="Наименование" oninput="services['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+
-    '<input type="number" min="0" max="9999999" step="1" value="'+s.price+'" oninput="clampMoneyInput(this);services['+i+'].price=parseFloat(this.value)||0;recalc()">'+
-    '<input type="number" min="1" max="99" step="1" value="'+s.qty+'" oninput="clampQtyInput(this);services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
+    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" data-prev="'+s.price+'" oninput="clampMoneyInput(this);services['+i+'].price=parseFloat(this.value)||0;recalc()">'+
+    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" data-prev="'+s.qty+'" oninput="clampQtyInput(this);services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="svcTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+
     '<button class="delete-btn" onclick="removeService('+i+')" style="padding-top:4px">✕</button></div>';
   }).join('');
@@ -216,8 +216,8 @@ function renderEquipment(){
   list.innerHTML=equipment.map(function(s,i){
     return'<div class="service-row equipment-row">'+
     '<textarea class="svc-name" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipment['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+ 
-    '<input type="number" min="0" max="9999999" step="1" value="'+s.price+'" oninput="clampMoneyInput(this);equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
-    '<input type="number" min="1" max="99" step="1" value="'+s.qty+'" oninput="clampQtyInput(this);equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
+    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" data-prev="'+s.price+'" oninput="clampMoneyInput(this);equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
+    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" data-prev="'+s.qty+'" oninput="clampQtyInput(this);equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="eqTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+ 
     '<button class="delete-btn" onclick="removeEquipment('+i+')" style="padding-top:4px">✕</button></div>';
   }).join('');
@@ -256,7 +256,7 @@ function renderPriceList(){
   list.innerHTML=priceItems.map(function(p,i){
     return'<div class="service-row settings-price-row">'+
     '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Услуга</em><textarea rows="2" maxlength="120" placeholder="Услуга" oninput="priceItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
-    '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="number" min="0" max="9999999" step="1" value="'+p.price+'" placeholder="Цена" oninput="clampMoneyInput(this);priceItems['+i+'].price=parseFloat(this.value)||0"></label>'+
+    '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" data-prev="'+p.price+'" placeholder="Цена" oninput="clampMoneyInput(this);priceItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em><input type="text" maxlength="10" value="'+esc(p.unit||'шт')+'" placeholder="Ед." oninput="priceItems['+i+'].unit=this.value"></label>'+
     '<button class="delete-btn" onclick="removePriceItem('+i+')">✕</button></div>';
   }).join('');
@@ -290,7 +290,7 @@ function renderEquipmentList(){
   list.innerHTML=equipmentItems.map(function(p,i){
     return'<div class="service-row settings-price-row">'+
     '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Оборудование</em><textarea rows="2" maxlength="140" placeholder="Оборудование" oninput="equipmentItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
-    '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="number" min="0" max="9999999" step="1" value="'+p.price+'" placeholder="Цена" oninput="clampMoneyInput(this);equipmentItems['+i+'].price=parseFloat(this.value)||0"></label>'+
+    '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" data-prev="'+p.price+'" placeholder="Цена" oninput="clampMoneyInput(this);equipmentItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em><input type="text" maxlength="10" value="'+esc(p.unit||'шт')+'" placeholder="Ед." oninput="equipmentItems['+i+'].unit=this.value"></label>'+
     '<button class="delete-btn" onclick="removeEquipmentItem('+i+')">✕</button></div>';
   }).join('');
@@ -816,23 +816,37 @@ function normalizeLineItems(){
 }
 function getClientData(){return{name:document.getElementById('c-name').value.trim(),phone:document.getElementById('c-phone').value.trim(),email:document.getElementById('c-email').value.trim(),city:document.getElementById('c-city').value.trim(),addr:document.getElementById('c-addr').value.trim(),notes:document.getElementById('c-notes').value.trim()};}
 function getTotals(){normalizeLineItems();var worksSub=services.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var equipmentSub=equipment.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var sub=worksSub+equipmentSub;var dv=clampMoneyValue(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*Math.min(dv,100)/100:Math.min(dv,sub)):0;var prepay=Math.min(clampMoneyValue(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0,sub);return{worksSubtotal:worksSub,equipmentSubtotal:equipmentSub,subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}
+var MONEY_LIMIT=99999999;
+var QTY_LIMIT=9999;
 function clampMoneyValue(v){
   var n=Math.round(parseFloat(v)||0);
   if(!isFinite(n)||n<0)n=0;
-  return Math.min(n,9999999);
+  return Math.min(n,MONEY_LIMIT);
 }
 function clampQtyValue(v){
   var n=Math.round(parseFloat(v)||1);
   if(!isFinite(n)||n<1)n=1;
-  return Math.min(n,99);
+  return Math.min(n,QTY_LIMIT);
+}
+function keepIntegerInputInLimit(el,max){
+  if(!el)return;
+  var raw=String(el.value||'').replace(/[^0-9]/g,'');
+  if(raw.length>1)raw=raw.replace(/^0+(?=\d)/,'');
+  if(raw===''){el.dataset.prev='';el.value='';return;}
+  var n=parseInt(raw,10);
+  var maxLen=String(max).length;
+  if(!isFinite(n)||n>max||raw.length>maxLen){
+    el.value=el.dataset.prev||'';
+    return;
+  }
+  el.value=raw;
+  el.dataset.prev=raw;
 }
 function clampMoneyInput(el){
-  var n=clampMoneyValue(el.value);
-  if(String(el.value)!==String(n))el.value=n;
+  keepIntegerInputInLimit(el,MONEY_LIMIT);
 }
 function clampQtyInput(el){
-  var n=clampQtyValue(el.value);
-  if(String(el.value)!==String(n))el.value=n;
+  keepIntegerInputInLimit(el,QTY_LIMIT);
 }
 function fmt(n){var v=Math.round(Number(n)||0);return v.toLocaleString('ru-RU')+' ₽';}
 function moneyFontByText(txt){

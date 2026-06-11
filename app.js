@@ -201,8 +201,8 @@ function renderServices(){
   list.innerHTML=services.map(function(s,i){
     return'<div class="service-row">'+
     '<textarea class="svc-name" rows="2" maxlength="120" placeholder="Наименование" oninput="services['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+
-    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" oninput="clampMoneyInput(this);services['+i+'].price=parseFloat(this.value)||0;recalc()">'+
-    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" oninput="clampQtyInput(this);services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
+    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" onpaste="setTimeout(()=>clampMoneyInput(this),0)" oninput="clampMoneyInput(this);services['+i+'].price=parseFloat(this.value)||0;recalc()">'+
+    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" onpaste="setTimeout(()=>clampQtyInput(this),0)" oninput="clampQtyInput(this);services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="svcTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+
     '<button class="delete-btn" onclick="removeService('+i+')" style="padding-top:4px">✕</button></div>';
   }).join('');
@@ -216,8 +216,8 @@ function renderEquipment(){
   list.innerHTML=equipment.map(function(s,i){
     return'<div class="service-row equipment-row">'+
     '<textarea class="svc-name" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipment['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+ 
-    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" oninput="clampMoneyInput(this);equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
-    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" oninput="clampQtyInput(this);equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
+    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" onpaste="setTimeout(()=>clampMoneyInput(this),0)" oninput="clampMoneyInput(this);equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
+    '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" onpaste="setTimeout(()=>clampQtyInput(this),0)" oninput="clampQtyInput(this);equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="eqTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+ 
     '<button class="delete-btn" onclick="removeEquipment('+i+')" style="padding-top:4px">✕</button></div>';
   }).join('');
@@ -820,15 +820,20 @@ var MONEY_LIMIT=99999999;
 var QTY_LIMIT=9999;
 var MONEY_DIGITS=8;
 var QTY_DIGITS=4;
+function digitsToLimitedNumber(v,digits,fallback){
+  var raw=String(v||'').replace(/[^0-9]/g,'');
+  if(raw.length>digits)raw=raw.slice(0,digits);
+  if(raw.length>1)raw=raw.replace(/^0+(?=\d)/,'');
+  if(raw==='')return fallback||0;
+  var n=parseInt(raw,10);
+  return isFinite(n)?n:(fallback||0);
+}
 function clampMoneyValue(v){
-  var n=Math.round(parseFloat(String(v||'').replace(/[^0-9]/g,''))||0);
-  if(!isFinite(n)||n<0)n=0;
-  return Math.min(n,MONEY_LIMIT);
+  return digitsToLimitedNumber(v,MONEY_DIGITS,0);
 }
 function clampQtyValue(v){
-  var n=Math.round(parseFloat(String(v||'').replace(/[^0-9]/g,''))||1);
-  if(!isFinite(n)||n<1)n=1;
-  return Math.min(n,QTY_LIMIT);
+  var n=digitsToLimitedNumber(v,QTY_DIGITS,1);
+  return n<1?1:n;
 }
 function projectedNumericValue(el,e){
   var value=String(el.value||'');
@@ -840,6 +845,7 @@ function projectedNumericValue(el,e){
 function limitNumericBeforeInput(e,el,digits){
   if(!e||!el)return true;
   if(e.inputType&&e.inputType.indexOf('delete')===0)return true;
+  if(typeof e.data==='string' && e.data!=='' && /\D/.test(e.data)){e.preventDefault();return false;}
   var next=projectedNumericValue(el,e);
   if(next.length>digits){e.preventDefault();return false;}
   return true;

@@ -1,4 +1,5 @@
 
+window.KP_APP_VERSION='v55-key-input-and-real-error';
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=null;
@@ -14,7 +15,7 @@ var ALLOWED_TYPES=['image/jpeg','image/jpg','image/png','image/webp'];
 function getStoredKey(){return localStorage.getItem('kp_access_key')||'';}
 function rpcAuthParams(){return{p_key_id:currentKeyId,p_key:getStoredKey(),p_device_id:getDeviceId()};}
 function rpcFailed(res){return res&&res.data&&res.data.ok===false;}
-function rpcMsg(res,def){return(res&&res.data&&res.data.message)||def||'Ошибка';}
+function rpcMsg(res,def){return(res&&res.data&&res.data.message)||(res&&res.error&&res.error.message)||def||'Ошибка';}
 
 
 function daysLeft(exp){if(!exp)return 0;return Math.max(0,Math.ceil((new Date(exp)-new Date())/(864e5)));}
@@ -69,12 +70,12 @@ function scrollToLogin(){
 async function doLogin(){
   try{
     var input=document.getElementById('keyInput');
-    var key=(input?input.value:'').trim().toUpperCase();
+    var key=(input?input.value:'').trim();
     if(!key){setAuthMsg('Введите ключ доступа');return;}
     if(!sb){setAuthMsg('Ошибка соединения. Обновите страницу и попробуйте снова.');return;}
     setAuthMsg('Проверяю...','var(--text2)');
     var res=await sb.rpc('kp_login',{p_key:key,p_device_id:getDeviceId()});
-    if(res.error||rpcFailed(res)){setAuthMsg(rpcMsg(res,'Ключ не найден'));return;}
+    if(res.error||rpcFailed(res)){console.error('kp_login response',res);setAuthMsg(rpcMsg(res,'Ключ не найден'));return;}
     var data=res.data&&res.data.key_data;
     if(!data||!data.id){setAuthMsg('Ошибка входа. Данные ключа не получены.');return;}
     localStorage.setItem('kp_access_key',key);

@@ -2502,14 +2502,26 @@ thead th:nth-child(4){
   }
 }
 
-/* V56: smaller login key placeholder */
+/* V57: normal login key input and readable placeholder */
+#keyInput{
+  text-transform:none !important;
+  letter-spacing:.5px !important;
+  font-size:18px !important;
+  font-weight:700 !important;
+  text-align:left !important;
+}
 #keyInput::placeholder{
-  font-size:13px;
-  line-height:1.2;
-  opacity:.72;
+  text-transform:none !important;
+  letter-spacing:0 !important;
+  font-size:14px !important;
+  font-weight:500 !important;
+  opacity:.72 !important;
 }
 @media(max-width:420px){
+  #keyInput{
+    font-size:17px !important;
+  }
   #keyInput::placeholder{
-    font-size:12px;
+    font-size:13px !important;
   }
 }

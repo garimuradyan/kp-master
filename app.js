@@ -779,7 +779,7 @@ async function loadAdminData(){
     else if(dl===0)st='<span class="status-badge status-blocked">⏰ Истёк</span>';
     else if(dl<=3)st='<span class="status-badge" style="background:rgba(245,158,11,.12);color:var(--warn)">⚠ '+dl+' дн.</span>';
     else st='<span class="status-badge status-active">✓ '+dl+' дн.</span>';
-    var dev=k.device_id?'<span style="font-size:11px;color:var(--text3)">Привязан</span>':'<span style="font-size:11px;color:var(--success)">Свободен</span>';
+    var dev=(k.has_device||k.device_id)?'<span style="font-size:11px;color:var(--text3)">Привязан</span>':'<span style="font-size:11px;color:var(--success)">Свободен</span>';
     var lu=k.last_used?new Date(k.last_used).toLocaleDateString('ru-RU'):'—';
     var act='';
     if(!k.is_admin){
@@ -787,11 +787,11 @@ async function loadAdminData(){
       act+='<button class="btn btn-primary btn-sm" onclick="addDays('+k.id+')">+Дней</button> ';
       if(k.is_active)act+='<button class="btn btn-danger btn-sm" onclick="blockKey('+k.id+')">Блок</button> ';
       else act+='<button class="btn btn-success btn-sm" onclick="unblockKey('+k.id+')">Разблок</button> ';
-      if(k.device_id)act+='<button class="btn btn-warn btn-sm" onclick="resetDevice('+k.id+')">Сброс</button> ';
+      if(k.has_device||k.device_id)act+='<button class="btn btn-warn btn-sm" onclick="resetDevice('+k.id+')">Сброс</button> ';
       act+='<button class="btn btn-ghost btn-sm" onclick="deleteKey('+k.id+')">Удалить</button>';
     } else act+='<button class="btn btn-warn btn-sm" onclick="resetDevice('+k.id+')">Сброс устройства</button>';
     return'<tr>'+ 
-      '<td><code style="font-size:12px;font-weight:700;color:var(--accent)">'+esc(k.key)+'</code></td>'+ 
+      '<td><code style="font-size:12px;font-weight:700;color:var(--accent)">'+esc(k.masked_key||k.key||'••••••')+'</code></td>'+ 
       '<td>'+esc(k.master_name||'—')+'</td>'+ 
       '<td>'+st+'</td><td>'+dev+'</td>'+ 
       '<td style="color:var(--text2);font-size:12px">'+lu+'</td>'+ 

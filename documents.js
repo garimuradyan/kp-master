@@ -47,12 +47,20 @@
     if(!parts.length){toast('Нет шаблонов документов','error');return;}
     var html = buildDocumentPrintHtml(ctx, parts.join(''));
     var w = window.open('','_blank');
-    if(w){w.document.write(html);w.document.close();}
+    if(w){w.document.write(html);w.document.close();try{w.document.title='Документы_'+safeFileName(ctx.client&&ctx.client.name?ctx.client.name:'Клиент')+'_'+ctx.num;}catch(e){}}
     else toast('Разрешите всплывающие окна','error');
   };
 
+  function safeFileName(s){
+    return String(s||'').trim()
+      .replace(/[\\/:*?"<>|]+/g,' ')
+      .replace(/\s+/g,'_')
+      .replace(/^_+|_+$/g,'') || 'Клиент';
+  }
+
   function buildDocumentPrintHtml(ctx, body){
-    return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title></title>'+docStyles(ctx.color)+'</head><body><button class="pbtn" onclick="document.title=\'\';window.print()">💾 Сохранить как PDF</button>'+body+'</body></html>';
+    var docTitle='Документы_'+safeFileName(ctx.client&&ctx.client.name?ctx.client.name:'Клиент')+'_'+ctx.num;
+    return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+ctx.esc(docTitle)+'</title>'+docStyles(ctx.color)+'</head><body><button class="pbtn" onclick="window.print()">💾 Сохранить как PDF</button>'+body+'</body></html>';
   }
 
   function docStyles(color){

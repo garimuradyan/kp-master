@@ -1,9 +1,13 @@
 
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
-var sb=window.supabase.createClient(SURL,SKEY);
+var sb=null;
+try{
+  if(window.supabase&&window.supabase.createClient){sb=window.supabase.createClient(SURL,SKEY);}
+}catch(e){console.error('Supabase init error',e);}
+if(sb) window.sb=sb;
 var currentKeyId=null,currentKeyData=null;
-var services=[],priceItems=[],settings={},historyData=[],logoDataURL=null,quotePhotos=[];
+var services=[],equipment=[],priceItems=[],equipmentItems=[],settings={},historyData=[],logoDataURL=null,quotePhotos=[];
 var MAX_KP=15,MAX_PHOTOS=6,MAX_PHOTO_MB=5;
 var ALLOWED_TYPES=['image/jpeg','image/jpg','image/png','image/webp'];
 
@@ -22,28 +26,50 @@ function getDeviceId(){
 }
 
 window.addEventListener('DOMContentLoaded',function(){
-  var sk=localStorage.getItem('kp_access_key'),sid=localStorage.getItem('kp_key_id');
-  if(sk&&sid) verifyKey(sk,parseInt(sid),true);
-  document.getElementById('keyInput').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
-  document.getElementById('priceModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-  document.getElementById('photoUrlInput').addEventListener('keydown',function(e){if(e.key==='Enter')loadPhotoFromUrl();});
+  try{
+    var sk=localStorage.getItem('kp_access_key'),sid=localStorage.getItem('kp_key_id');
+    if(sk&&sid) verifyKey(sk,parseInt(sid,10),true);
+    var keyInput=document.getElementById('keyInput');
+    if(keyInput) keyInput.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+    var priceModal=document.getElementById('priceModal');
+    if(priceModal) priceModal.addEventListener('click',function(e){if(e.target===this)closeModal();});
+    var photoUrlInput=document.getElementById('photoUrlInput');
+    if(photoUrlInput) photoUrlInput.addEventListener('keydown',function(e){if(e.key==='Enter')loadPhotoFromUrl();});
+    if(typeof setupSignaturePad==='function') setupSignaturePad();
+    var contractBody=document.getElementById('s-contract-body');
+    if(contractBody && window.KP_DEFAULT_CONTRACT_BODY) contractBody.value=window.KP_DEFAULT_CONTRACT_BODY;
+  }catch(e){
+    console.error('Init error',e);
+    setAuthMsg('Ошибка загрузки приложения. Обновите страницу.');
+  }
 });
 
 async function doLogin(){
-  var key=document.getElementById('keyInput').value.trim().toUpperCase();
-  if(!key){setAuthMsg('Введите ключ доступа');return;}
-  setAuthMsg('Проверяю...','var(--text2)');
-  var res=await sb.rpc('kp_login',{p_key:key,p_device_id:getDeviceId()});
-  if(res.error||rpcFailed(res)){setAuthMsg(rpcMsg(res,'Ключ не найден'));return;}
-  var data=res.data.key_data;
-  localStorage.setItem('kp_access_key',key);
-  localStorage.setItem('kp_key_id',data.id);
-  currentKeyId=data.id;currentKeyData=data;
-  showApp();
+  try{
+    var input=document.getElementById('keyInput');
+    var key=(input?input.value:'').trim().toUpperCase();
+    if(!key){setAuthMsg('Введите ключ доступа');return;}
+    if(!sb){setAuthMsg('Ошибка соединения. Обновите страницу и попробуйте снова.');return;}
+    setAuthMsg('Проверяю...','var(--text2)');
+    var res=await sb.rpc('kp_login',{p_key:key,p_device_id:getDeviceId()});
+    if(res.error||rpcFailed(res)){setAuthMsg(rpcMsg(res,'Ключ не найден'));return;}
+    var data=res.data&&res.data.key_data;
+    if(!data||!data.id){setAuthMsg('Ошибка входа. Данные ключа не получены.');return;}
+    localStorage.setItem('kp_access_key',key);
+    localStorage.setItem('kp_key_id',data.id);
+    currentKeyId=data.id;currentKeyData=data;
+    showApp();
+  }catch(e){
+    console.error('Login error',e);
+    setAuthMsg('Ошибка входа. Попробуйте обновить страницу.');
+  }
 }
 
 async function verifyKey(key,keyId,silent){
-  var res=await sb.rpc('kp_verify',{p_key:key,p_key_id:keyId,p_device_id:getDeviceId()});
+  if(!sb){if(!silent)setAuthMsg('Ошибка соединения. Обновите страницу.');return;}
+  var res;
+  try{res=await sb.rpc('kp_verify',{p_key:key,p_key_id:keyId,p_device_id:getDeviceId()});}
+  catch(e){console.error('Verify error',e);if(!silent)setAuthMsg('Ошибка проверки ключа');return;}
   if(res.error||rpcFailed(res)){
     // Не удаляем ключ из localStorage - просто показываем экран входа
     document.getElementById('authWrap').style.display='flex';
@@ -65,7 +91,7 @@ function doLogout(){
   if(demoTimer){clearInterval(demoTimer);demoTimer=null;}
   localStorage.removeItem('kp_access_key');localStorage.removeItem('kp_key_id');
   currentKeyId=null;currentKeyData=null;
-  services=[];priceItems=[];settings={};historyData=[];logoDataURL=null;quotePhotos=[];
+  services=[];equipment=[];priceItems=[];equipmentItems=[];settings={};historyData=[];logoDataURL=null;quotePhotos=[];
   document.getElementById('authWrap').style.display='flex';
   document.getElementById('appWrap').style.display='none';
   document.getElementById('keyInput').value='';
@@ -97,9 +123,14 @@ async function loadUserData(){
   if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка загрузки данных'),'error');return;}
   settings=res.data.settings||{};applySettings();
   priceItems=res.data.price_items||defaultPrices();
+  equipmentItems=(settings&&Array.isArray(settings.equipmentItems))?settings.equipmentItems:defaultEquipmentItems();
   renderPriceList();
+  renderEquipmentList();
   historyData=res.data.quotes||[];
   updateHistoryBadge();
+  if(typeof window.setScheduleJobsFromServer === 'function'){
+    window.setScheduleJobsFromServer(res.data.schedule_jobs || res.data.schedule || []);
+  }
 }
 
 function applySettings(){
@@ -112,6 +143,8 @@ function applySettings(){
   if(settings.warranty)document.getElementById('s-warranty').value=settings.warranty;
   if(settings.color){document.getElementById('s-color').value=settings.color;document.getElementById('colorHex').textContent=settings.color;}
   if(settings.signature)document.getElementById('s-signature').value=settings.signature;
+  if(document.getElementById('s-contract-body')) document.getElementById('s-contract-body').value = settings.contractBody || window.KP_DEFAULT_CONTRACT_BODY || '';
+  if(settings.signatureImage) drawSavedSignature(settings.signatureImage);
   if(settings.logo){logoDataURL=settings.logo;document.getElementById('logoPreviewWrap').innerHTML='<img src="'+logoDataURL+'" class="logo-preview">';}
 }
 
@@ -123,7 +156,8 @@ function showPage(name,el){
   var bnav=document.getElementById('bnav-'+name);
   if(bnav)bnav.classList.add('active');
   if(name==='history')renderHistory();
-  if(name==='settings')renderPriceList();
+  if(name==='schedule'&&typeof renderSchedule==='function')renderSchedule();
+  if(name==='settings'){renderPriceList();renderEquipmentList();setTimeout(resizeSignatureCanvas,50);}
   if(name==='admin')loadAdminData();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -135,6 +169,7 @@ function nextStep(n){
 }
 
 function jumpStep(n){
+  if(n===2){if(typeof renderEquipment==='function')renderEquipment();if(typeof renderServices==='function')renderServices();}
   document.getElementById('section-client').style.display=n===1?'':'none';
   document.getElementById('section-services').style.display=n===2?'':'none';
   document.getElementById('section-preview').style.display=n===3?'':'none';
@@ -155,6 +190,8 @@ function validateClient(){
 
 // SERVICES
 function addServiceRow(name,price,qty){services.push({name:name||'',price:price||0,qty:qty||1});renderServices();}
+function addEquipmentRow(name,price,qty){equipment.push({name:name||'',price:price||0,qty:qty||1});renderEquipment();}
+function removeEquipment(i){equipment.splice(i,1);renderEquipment();}
 function removeService(i){services.splice(i,1);renderServices();}
 function renderServices(){
   var list=document.getElementById('servicesList');
@@ -170,9 +207,28 @@ function renderServices(){
   recalc();
 }
 
+function renderEquipment(){
+  var list=document.getElementById('equipmentList');
+  if(!list)return;
+  if(!equipment.length){list.innerHTML='<div class="empty-state" style="padding:20px"><div class="empty-icon">❄️</div><p>Оборудование не добавлено</p></div>';recalc();return;}
+  list.innerHTML=equipment.map(function(s,i){
+    return'<div class="service-row equipment-row">'+
+    '<textarea class="svc-name" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipment['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+ 
+    '<input type="number" min="0" maxlength="10" value="'+s.price+'" oninput="equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
+    '<input type="number" min="1" maxlength="6" value="'+s.qty+'" oninput="equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
+    '<div class="svc-total" id="eqTotal'+i+'">'+fmt(s.price*s.qty)+'</div>'+ 
+    '<button class="delete-btn" onclick="removeEquipment('+i+')" style="padding-top:4px">✕</button></div>';
+  }).join('');
+  recalc();
+}
+
+
 function recalc(){
-  var sub=services.reduce(function(s,x){return s+x.price*x.qty;},0);
-  services.forEach(function(s,i){var el=document.getElementById('svcTotal'+i);if(el)el.textContent=fmt(s.price*s.qty);});
+  var worksSub=services.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
+  var equipmentSub=equipment.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
+  var sub=worksSub+equipmentSub;
+  services.forEach(function(s,i){var el=document.getElementById('svcTotal'+i);if(el)el.textContent=fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1));});
+  equipment.forEach(function(s,i){var el=document.getElementById('eqTotal'+i);if(el)el.textContent=fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1));});
   var dv=parseFloat(document.getElementById('discountVal').value)||0;
   var dt=document.getElementById('discountType').value;
   var disc=dv>0?(dt==='percent'?sub*dv/100:dv):0;
@@ -181,19 +237,23 @@ function recalc(){
   var prepay=parseFloat(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0;
   if(prepay>0&&document.getElementById('prepayRow')){document.getElementById('prepayRow').style.display='';document.getElementById('prepayDisplay').textContent='−'+fmt(prepay);}
   else if(document.getElementById('prepayRow')){document.getElementById('prepayRow').style.display='none';}
+  var eqRow=document.getElementById('equipmentTotalRow');if(eqRow)eqRow.style.display=equipmentSub>0?'':'none';
+  var eqEl=document.getElementById('equipmentTotalDisplay');if(eqEl)eqEl.textContent=fmt(equipmentSub);
+  var workEl=document.getElementById('worksTotalDisplay');if(workEl)workEl.textContent=fmt(worksSub);
   document.getElementById('subtotalDisplay').textContent=fmt(sub);
   document.getElementById('grandTotalDisplay').textContent=fmt(Math.max(0,sub-disc-prepay));
 }
+
 
 // PRICE LIST
 function renderPriceList(){
   var list=document.getElementById('priceList');if(!list)return;
   list.innerHTML=priceItems.map(function(p,i){
-    return'<div class="service-row">'+
-    '<textarea rows="2" maxlength="120" placeholder="Услуга" oninput="priceItems['+i+'].name=this.value">'+esc(p.name)+'</textarea>'+
-    '<input type="number" min="0" value="'+p.price+'" oninput="priceItems['+i+'].price=parseFloat(this.value)||0">'+
-    '<input type="text" maxlength="10" value="'+esc(p.unit||'шт')+'" oninput="priceItems['+i+'].unit=this.value">'+
-    '<span></span><button class="delete-btn" onclick="removePriceItem('+i+')">✕</button></div>';
+    return'<div class="service-row settings-price-row">'+
+    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Услуга</em><textarea rows="2" maxlength="120" placeholder="Услуга" oninput="priceItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
+    '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="number" min="0" value="'+p.price+'" placeholder="Цена" oninput="priceItems['+i+'].price=parseFloat(this.value)||0"></label>'+
+    '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em><input type="text" maxlength="10" value="'+esc(p.unit||'шт')+'" placeholder="Ед." oninput="priceItems['+i+'].unit=this.value"></label>'+
+    '<button class="delete-btn" onclick="removePriceItem('+i+')">✕</button></div>';
   }).join('');
 }
 function addPriceItem(){priceItems.push({name:'',price:0,unit:'шт'});renderPriceList();}
@@ -210,10 +270,46 @@ function defaultPrices(){return[
   {name:'Выезд мастера',price:500,unit:'шт'}
 ];}
 
+function defaultEquipmentItems(){return[
+  {name:'Кондиционер настенный сплит-система 7 BTU',price:0,unit:'шт'},
+  {name:'Кондиционер настенный сплит-система 9 BTU',price:0,unit:'шт'},
+  {name:'Кондиционер настенный сплит-система 12 BTU',price:0,unit:'шт'},
+  {name:'Кондиционер настенный сплит-система 18 BTU',price:0,unit:'шт'},
+  {name:'Кондиционер настенный сплит-система 24 BTU',price:0,unit:'шт'}
+];}
+function renderEquipmentList(){
+  var list=document.getElementById('equipmentPriceList');if(!list)return;
+  list.innerHTML=equipmentItems.map(function(p,i){
+    return'<div class="service-row settings-price-row">'+
+    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Оборудование</em><textarea rows="2" maxlength="140" placeholder="Оборудование" oninput="equipmentItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
+    '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="number" min="0" value="'+p.price+'" placeholder="Цена" oninput="equipmentItems['+i+'].price=parseFloat(this.value)||0"></label>'+
+    '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em><input type="text" maxlength="10" value="'+esc(p.unit||'шт')+'" placeholder="Ед." oninput="equipmentItems['+i+'].unit=this.value"></label>'+
+    '<button class="delete-btn" onclick="removeEquipmentItem('+i+')">✕</button></div>';
+  }).join('');
+}
+function addEquipmentItem(){equipmentItems.push({name:'',price:0,unit:'шт'});renderEquipmentList();}
+function removeEquipmentItem(i){equipmentItems.splice(i,1);renderEquipmentList();}
+
+
 // MODAL
+var priceModalTarget='services';
 function addFromPriceList(){
+  priceModalTarget='services';
+  var mt=document.getElementById('modalPriceTitle');if(mt)mt.textContent='📋 Выбрать из прайса работ';
   if(!priceItems.length){toast('Прайс пуст','error');return;}
   document.getElementById('modalPriceList').innerHTML=priceItems.map(function(p,i){
+    return'<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;min-width:0">'+
+    '<input type="checkbox" data-idx="'+i+'" style="width:16px;height:16px;flex-shrink:0;margin-top:2px">'+
+    '<span style="flex:1;font-size:14px;word-break:break-word;min-width:0;overflow-wrap:break-word">'+esc(p.name)+'</span>'+
+    '<span style="color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:8px">'+fmt(p.price)+'</span></label>';
+  }).join('');
+  document.getElementById('priceModal').style.display='flex';
+}
+function addFromEquipmentList(){
+  priceModalTarget='equipment';
+  var mt=document.getElementById('modalPriceTitle');if(mt)mt.textContent='❄️ Выбрать оборудование';
+  if(!equipmentItems.length){toast('Список оборудования пуст','error');return;}
+  document.getElementById('modalPriceList').innerHTML=equipmentItems.map(function(p,i){
     return'<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;min-width:0">'+
     '<input type="checkbox" data-idx="'+i+'" style="width:16px;height:16px;flex-shrink:0;margin-top:2px">'+
     '<span style="flex:1;font-size:14px;word-break:break-word;min-width:0;overflow-wrap:break-word">'+esc(p.name)+'</span>'+
@@ -224,10 +320,15 @@ function addFromPriceList(){
 function closeModal(){document.getElementById('priceModal').style.display='none';}
 function applyModalItems(){
   document.querySelectorAll('#modalPriceList input:checked').forEach(function(cb){
-    var p=priceItems[cb.dataset.idx];addServiceRow(p.name,p.price,1);
+    if(priceModalTarget==='equipment'){
+      var e=equipmentItems[cb.dataset.idx];if(e)addEquipmentRow(e.name,e.price,1);
+    }else{
+      var p=priceItems[cb.dataset.idx];if(p)addServiceRow(p.name,p.price,1);
+    }
   });
   closeModal();
 }
+
 
 // SETTINGS
 async function saveSettings(showMsg){
@@ -241,6 +342,9 @@ async function saveSettings(showMsg){
     warranty:document.getElementById('s-warranty').value,
     color:document.getElementById('s-color').value,
     signature:document.getElementById('s-signature').value,
+    signatureImage:(typeof getSignatureImageForSave==='function' ? getSignatureImageForSave() : ((settings && settings.signatureImage) || '')),
+    contractBody:document.getElementById('s-contract-body') ? document.getElementById('s-contract-body').value : '',
+    equipmentItems:JSON.parse(JSON.stringify(equipmentItems||[])),
     logo:logoDataURL
   };
   var args=Object.assign(rpcAuthParams(),{p_settings:settings,p_items:priceItems});
@@ -251,12 +355,99 @@ async function saveSettings(showMsg){
 
 function handleLogo(e){
   var file=e.target.files[0];if(!file)return;
-  if(file.size>2*1024*1024){toast('Файл слишком большой','error');return;}
+  if(file.size>5*1024*1024){toast('Файл слишком большой','error');return;}
   var r=new FileReader();
-  r.onload=function(ev){logoDataURL=ev.target.result;document.getElementById('logoPreviewWrap').innerHTML='<img src="'+logoDataURL+'" class="logo-preview">';toast('Логотип загружен ✓','success');};
+  r.onload=function(ev){
+    var img=new Image();
+    img.onload=function(){
+      var c=document.createElement('canvas'),max=200,w=img.naturalWidth,h=img.naturalHeight;
+      if(w>h){h=Math.round(h*max/w);w=max;}else{w=Math.round(w*max/h);h=max;}
+      c.width=w;c.height=h;
+      var ctx=c.getContext('2d');ctx.clearRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+      logoDataURL=c.toDataURL('image/jpeg',0.6);
+      document.getElementById('logoPreviewWrap').innerHTML='<img src="'+logoDataURL+'" class="logo-preview">';
+      toast('Логотип загружен ✓','success');
+    };
+    img.src=ev.target.result;
+  };
   r.readAsDataURL(file);
 }
 function clearLogo(){logoDataURL=null;document.getElementById('logoPreviewWrap').innerHTML='<div style="color:var(--text3);font-size:13px"><div style="font-size:32px;margin-bottom:8px">🖼</div><p>Нажмите для загрузки</p></div>';}
+
+// SIGNATURE PAD
+var signatureCanvas=null,signatureCtx=null,signatureDrawing=false,signatureHasInk=false;
+function setupSignaturePad(){
+  signatureCanvas=document.getElementById('signatureCanvas');
+  if(!signatureCanvas)return;
+  signatureCtx=signatureCanvas.getContext('2d');
+  resizeSignatureCanvas();
+  ['pointerdown','pointermove','pointerup','pointerleave','pointercancel'].forEach(function(ev){signatureCanvas.addEventListener(ev,handleSignaturePointer);});
+  window.addEventListener('resize',function(){setTimeout(resizeSignatureCanvas,80);});
+}
+function resizeSignatureCanvas(){
+  if(!signatureCanvas)return;
+  var saved = settings && settings.signatureImage ? settings.signatureImage : (signatureHasInk ? signatureCanvas.toDataURL('image/png') : '');
+  var rect=signatureCanvas.getBoundingClientRect();
+  var ratio=Math.max(1,window.devicePixelRatio||1);
+  var w=Math.max(320,Math.round((rect.width||640)*ratio)), h=Math.round(180*ratio);
+  if(signatureCanvas.width!==w || signatureCanvas.height!==h){signatureCanvas.width=w;signatureCanvas.height=h;}
+  signatureCtx=signatureCanvas.getContext('2d');
+  signatureCtx.setTransform(1,0,0,1,0,0);
+  signatureCtx.clearRect(0,0,signatureCanvas.width,signatureCanvas.height);
+  signatureCtx.lineWidth=2.4*ratio;signatureCtx.lineCap='round';signatureCtx.lineJoin='round';signatureCtx.strokeStyle='#2563eb';
+  if(saved) drawSavedSignature(saved);
+}
+function handleSignaturePointer(e){
+  if(!signatureCtx)return;
+  e.preventDefault();
+  var p=getSignaturePoint(e);
+  if(e.type==='pointerdown'){
+    signatureDrawing=true;signatureHasInk=true;signatureCanvas.setPointerCapture&&signatureCanvas.setPointerCapture(e.pointerId);
+    signatureCtx.beginPath();signatureCtx.moveTo(p.x,p.y);return;
+  }
+  if(e.type==='pointermove'&&signatureDrawing){signatureCtx.lineTo(p.x,p.y);signatureCtx.stroke();return;}
+  if(e.type==='pointerup'||e.type==='pointerleave'||e.type==='pointercancel') signatureDrawing=false;
+}
+function getSignaturePoint(e){
+  var rect=signatureCanvas.getBoundingClientRect();
+  return {x:(e.clientX-rect.left)*(signatureCanvas.width/rect.width),y:(e.clientY-rect.top)*(signatureCanvas.height/rect.height)};
+}
+function clearSignaturePad(){
+  if(!signatureCanvas||!signatureCtx)return;
+  signatureCtx.clearRect(0,0,signatureCanvas.width,signatureCanvas.height);
+  signatureHasInk=false;
+  if(settings)settings.signatureImage='';
+  toast('Подпись очищена','success');
+}
+function getSignatureImageForSave(){
+  if(signatureCanvas && signatureHasInk) return signatureCanvas.toDataURL('image/png');
+  return (settings && settings.signatureImage) || '';
+}
+function saveSignaturePad(){
+  if(!signatureCanvas){toast('Поле подписи не найдено','error');return;}
+  if(!signatureHasInk && !(settings&&settings.signatureImage)){toast('Сначала поставьте подпись','error');return;}
+  settings.signatureImage=signatureCanvas.toDataURL('image/png');
+  toast('Подпись сохранена ✓','success');
+}
+function drawSavedSignature(dataURL){
+  if(!signatureCanvas||!signatureCtx||!dataURL)return;
+  var img=new Image();
+  img.onload=function(){
+    signatureCtx.clearRect(0,0,signatureCanvas.width,signatureCanvas.height);
+    var ratio=Math.min(signatureCanvas.width/img.width,signatureCanvas.height/img.height);
+    var w=img.width*ratio,h=img.height*ratio;
+    signatureCtx.drawImage(img,(signatureCanvas.width-w)/2,(signatureCanvas.height-h)/2,w,h);
+    signatureHasInk=true;
+  };
+  img.src=dataURL;
+}
+function resetContractTemplate(){
+  var el=document.getElementById('s-contract-body');
+  if(!el)return;
+  if(!confirm('Вернуть стандартный текст договора?'))return;
+  el.value=window.KP_DEFAULT_CONTRACT_BODY||'';
+  toast('Стандартный договор восстановлен','success');
+}
 
 // PHOTOS
 function renderPhotos(){
@@ -305,7 +496,17 @@ function loadPhotoFromFile(e){
 function buildPreview(){
   var c=getClientData(),t=getTotals();
   var today=new Date().toLocaleDateString('ru-RU'),num=generateQuoteNumber(),color=settings.color||'#0066ff';
-  var rows=services.map(function(s){return'<tr><td>'+esc(s.name)+'</td><td style="text-align:right">'+fmt(s.price)+'</td><td style="text-align:center">'+s.qty+'</td><td style="text-align:right;font-weight:700">'+fmt(s.price*s.qty)+'</td></tr>';}).join('');
+  var workRows=services.map(function(s){return'<tr><td>'+esc(s.name)+'</td><td style="text-align:right">'+fmt(s.price)+'</td><td style="text-align:center">'+s.qty+'</td><td style="text-align:right;font-weight:700">'+fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</td></tr>';}).join('');
+  var eqRows=equipment.map(function(s){return'<tr><td>'+esc(s.name)+'</td><td style="text-align:right">'+fmt(s.price)+'</td><td style="text-align:center">'+s.qty+'</td><td style="text-align:right;font-weight:700">'+fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</td></tr>';}).join('');
+  var tableHead='<table style="table-layout:fixed;width:100%"><thead style="background:'+color+'"><tr><th style="color:#fff;padding:7px">Наименование</th><th style="color:#fff;padding:7px;text-align:right">Цена</th><th style="color:#fff;padding:7px;text-align:center">Кол.</th><th style="color:#fff;padding:7px;text-align:right">Сумма</th></tr></thead><tbody>';
+  var tableEnd='</tbody></table>';
+  var hasEquipment = equipment.length > 0;
+  var hasWorks = services.length > 0;
+  var sectionLabel = function(title,top){return '<div class="quote-section-label" style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:'+color+';margin:'+(top?'10px':'12px')+' 0 6px">'+title+'</div>';};
+  var sections = '';
+  if(hasEquipment) sections += sectionLabel('Оборудование',true)+tableHead+eqRows+tableEnd;
+  if(hasWorks) sections += (hasEquipment?sectionLabel('Работы',false):'')+tableHead+workRows+tableEnd;
+  if(!hasEquipment && !hasWorks) sections = '<div class="empty-state" style="padding:20px"><p>Позиции не добавлены</p></div>';
   var h='<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:3px solid '+color+';margin-bottom:14px">'+
     '<div>'+(logoDataURL?'<img src="'+logoDataURL+'" style="max-height:52px;max-width:150px;object-fit:contain;display:block;margin-bottom:4px">':'')+
     (settings.company?'<div style="font-size:15px;font-weight:800;color:#111">'+esc(settings.company)+'</div>':'')+
@@ -318,10 +519,10 @@ function buildPreview(){
     (c.email?' &nbsp; <b>Email:</b> '+esc(c.email):'')+
     (c.addr?'<br><b>Адрес:</b> '+esc(c.addr):'')+
     '</div>'+
-    '<table style="table-layout:fixed;width:100%"><thead style="background:'+color+'"><tr>'+
-    '<th style="color:#fff;padding:7px">Наименование</th><th style="color:#fff;padding:7px;text-align:right">Цена</th><th style="color:#fff;padding:7px;text-align:center">Кол.</th><th style="color:#fff;padding:7px;text-align:right">Сумма</th>'+
-    '</tr></thead><tbody>'+rows+'</tbody></table>'+
-    '<div style="text-align:right"><div style="display:inline-block;min-width:180px">'+
+    sections+
+    '<div style="text-align:right"><div style="display:inline-block;min-width:210px">'+
+    (t.equipmentSubtotal>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Оборудование:</span><span>'+fmt(t.equipmentSubtotal)+'</span></div>':'')+
+    (t.worksSubtotal>0 && t.equipmentSubtotal>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Работы:</span><span>'+fmt(t.worksSubtotal)+'</span></div>':'')+
     '<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Итого:</span><span>'+fmt(t.subtotal)+'</span></div>'+
     (t.discount>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#c00;padding:3px 0"><span>Скидка:</span><span style="white-space:nowrap">−'+fmt(t.discount)+'</span></div>':'')+
     (t.prepay>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#059669;padding:3px 0"><span>Предоплата:</span><span style="white-space:nowrap">−'+fmt(t.prepay)+'</span></div>':'')+
@@ -341,10 +542,24 @@ function printPDF(){
   var today=new Date().toLocaleDateString('ru-RU'),num=generateQuoteNumber(),color=settings.color||'#0066ff';
   var sRows=services.map(function(s,i){
     return'<tr style="background:'+(i%2===0?'#fff':'#f8fafc')+'">'+
-    '<td style="text-align:center;color:#888">'+(i+1)+'</td><td>'+esc(s.name)+'</td>'+
-    '<td style="text-align:right">'+fmt(s.price)+'</td><td style="text-align:center">'+s.qty+'</td>'+
-    '<td style="text-align:right;font-weight:700;color:'+color+'">'+fmt(s.price*s.qty)+'</td></tr>';
+    '<td style="text-align:center;color:#888">'+(i+1)+'</td><td>'+esc(s.name)+'</td>'+ 
+    '<td style="text-align:right">'+fmt(s.price)+'</td><td style="text-align:center">'+s.qty+'</td>'+ 
+    '<td style="text-align:right;font-weight:700;color:'+color+'">'+fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</td></tr>';
   }).join('');
+  var eqRows=equipment.map(function(s,i){
+    return'<tr style="background:'+(i%2===0?'#fff':'#f8fafc')+'">'+
+    '<td style="text-align:center;color:#888">'+(i+1)+'</td><td>'+esc(s.name)+'</td>'+ 
+    '<td style="text-align:right">'+fmt(s.price)+'</td><td style="text-align:center">'+s.qty+'</td>'+ 
+    '<td style="text-align:right;font-weight:700;color:'+color+'">'+fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</td></tr>';
+  }).join('');
+  var pdfTableHead='<table><thead><tr><th>#</th><th>Наименование</th><th>Цена</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>';
+  var pdfTableEnd='</tbody></table>';
+  var hasPdfEquipment = equipment.length > 0;
+  var hasPdfWorks = services.length > 0;
+  var pdfSections = '';
+  if(hasPdfEquipment) pdfSections += '<div class="sec-title">Оборудование</div>'+pdfTableHead+eqRows+pdfTableEnd;
+  if(hasPdfWorks) pdfSections += (hasPdfEquipment?'<div class="sec-title">Работы</div>':'')+pdfTableHead+sRows+pdfTableEnd;
+  if(!hasPdfEquipment && !hasPdfWorks) pdfSections = '<div style="padding:14px;border:1px solid #eee;border-radius:8px;color:#777">Позиции не добавлены</div>';
   var logoH=logoDataURL?'<img src="'+logoDataURL+'" style="max-height:50px;max-width:140px;object-fit:contain;display:block;margin-bottom:4px">':'';
   var masterH='';
   if(settings.company)masterH+='<div style="font-size:15px;font-weight:800;color:#111;margin-bottom:2px;word-break:normal;overflow-wrap:normal;white-space:normal;hyphens:none;word-break:keep-all;max-width:100%;overflow:hidden">'+esc(settings.company)+'</div>';
@@ -365,6 +580,7 @@ function printPDF(){
     '.hdr>div{min-width:0;word-break:normal;overflow-wrap:normal}'+
     '.kpt{text-align:right;font-size:15px;font-weight:900;color:'+color+';line-height:1.15;white-space:normal;word-break:normal;overflow-wrap:normal;hyphens:none;word-break:keep-all}'+
     '.cb{background:#f8fafc;border-radius:6px;padding:10px 12px;margin-bottom:14px;overflow:hidden}'+
+    '.sec-title{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:'+color+';margin:10px 0 6px}'+
     '.cg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 12px;font-size:10.5px}'+
     '.cg>div{min-width:0;white-space:normal;overflow-wrap:anywhere;word-break:break-word}'+
     'table{width:100%;max-width:100%;border-collapse:collapse;margin-bottom:10px;table-layout:fixed;overflow:hidden}'+
@@ -397,8 +613,11 @@ function printPDF(){
     (c.city?'<div><b>Город:</b> '+esc(c.city)+'</div>':'<div></div>')+
     (c.addr?'<div style="grid-column:1/-1"><b>Адрес:</b> '+esc(c.addr)+'</div>':'')+
     '</div></div>'+
-    '<table><thead><tr><th>#</th><th>Наименование</th><th>Цена</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>'+sRows+'</tbody></table>'+
-    '<div class="tot"><table><tr><td style="color:#888">Итого:</td><td>'+fmt(t.subtotal)+'</td></tr>'+discH+prepayH+'<tr class="grand"><td>К ОПЛАТЕ:</td><td>'+fmt(t.grand)+'</td></tr></table></div>'+
+    pdfSections+
+    '<div class="tot"><table>'+
+    (t.equipmentSubtotal>0?'<tr><td style="color:#888">Оборудование:</td><td>'+fmt(t.equipmentSubtotal)+'</td></tr>':'')+
+    (t.worksSubtotal>0 && t.equipmentSubtotal>0?'<tr><td style="color:#888">Работы:</td><td>'+fmt(t.worksSubtotal)+'</td></tr>':'')+
+    '<tr><td style="color:#888">Итого:</td><td>'+fmt(t.subtotal)+'</td></tr>'+discH+prepayH+'<tr class="grand"><td>К ОПЛАТЕ:</td><td>'+fmt(t.grand)+'</td></tr></table></div>'+
     (c.notes?'<div style="background:#fffbf0;border-left:3px solid #f0a020;padding:8px 12px;border-radius:3px;margin-top:10px;font-size:11px;overflow-wrap:anywhere;word-break:break-word;white-space:normal;max-width:100%;overflow:hidden"><b>Примечание:</b> '+esc(c.notes)+'</div>':'')+
     (settings.warranty?'<div style="background:#f0f8ff;border-left:3px solid '+color+';padding:8px 12px;border-radius:3px;margin-top:10px;font-size:11px;color:#445;overflow-wrap:anywhere;word-break:break-word;white-space:normal">'+esc(settings.warranty)+'</div>':'')+
     photosH+
@@ -417,7 +636,7 @@ async function saveToHistory(){
     showPage('history',null);return;
   }
   var c=getClientData(),t=getTotals(),num=generateQuoteNumber();
-  var entry={num:num,date:new Date().toLocaleDateString('ru-RU'),clientName:c.name,clientPhone:c.phone,total:t.grand,servicesCount:services.length,services:JSON.parse(JSON.stringify(services)),client:Object.assign({},c),discount:{val:parseFloat(document.getElementById('discountVal').value)||0,type:document.getElementById('discountType').value}};
+  var entry={num:num,date:new Date().toLocaleDateString('ru-RU'),clientName:c.name,clientPhone:c.phone,total:t.grand,servicesCount:services.length,services:JSON.parse(JSON.stringify(services)),equipment:JSON.parse(JSON.stringify(equipment)),client:Object.assign({},c),discount:{val:parseFloat(document.getElementById('discountVal').value)||0,type:document.getElementById('discountType').value}};
   var args=Object.assign(rpcAuthParams(),{p_client_name:c.name,p_client_phone:c.phone,p_total:t.grand,p_data:entry});
   var res=await sb.rpc('kp_save_quote',args);
   if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка сохранения'),'error');return;}
@@ -452,10 +671,11 @@ function loadFromHistory(id){
   document.getElementById('c-city').value=h.client.city||'';
   document.getElementById('c-addr').value=h.client.addr||'';
   document.getElementById('c-notes').value=h.client.notes||'';
-  services=JSON.parse(JSON.stringify(h.services));
+  services=JSON.parse(JSON.stringify(h.services||[]));
+  equipment=JSON.parse(JSON.stringify(h.equipment||[]));
   if(h.discount){document.getElementById('discountVal').value=h.discount.val||'';document.getElementById('discountType').value=h.discount.type||'percent';}
   showPage('new',null);
-  jumpStep(2);renderServices();toast('КП загружено ✓','success');
+  jumpStep(2);renderEquipment();renderServices();toast('КП загружено ✓','success');
 }
 
 async function deleteFromHistory(id){
@@ -477,7 +697,8 @@ function resetForm(){
   if(!confirm('Начать новое КП?'))return;
   ['c-name','c-phone','c-email','c-city','c-addr','c-notes'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('discountVal').value='';
-  services=[];quotePhotos=[];renderPhotos();jumpStep(1);renderServices();
+  if(document.getElementById('prepayVal'))document.getElementById('prepayVal').value='';
+  services=[];equipment=[];quotePhotos=[];renderPhotos();jumpStep(1);renderEquipment();renderServices();
 }
 
 // ═══════════════ ADMIN ═══════════════
@@ -578,7 +799,7 @@ async function deleteKey(id){
 
 // UTILS
 function getClientData(){return{name:document.getElementById('c-name').value.trim(),phone:document.getElementById('c-phone').value.trim(),email:document.getElementById('c-email').value.trim(),city:document.getElementById('c-city').value.trim(),addr:document.getElementById('c-addr').value.trim(),notes:document.getElementById('c-notes').value.trim()};}
-function getTotals(){var sub=services.reduce(function(s,x){return s+x.price*x.qty;},0);var dv=parseFloat(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*dv/100:dv):0;var prepay=parseFloat(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0;return{subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}
+function getTotals(){var worksSub=services.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);var equipmentSub=equipment.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);var sub=worksSub+equipmentSub;var dv=parseFloat(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*dv/100:dv):0;var prepay=parseFloat(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0;return{worksSubtotal:worksSub,equipmentSubtotal:equipmentSub,subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}
 function fmt(n){return Number(n).toLocaleString('ru-RU')+' ₽';}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function generateQuoteNumber(){var d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'-'+pad(d.getHours())+pad(d.getMinutes());}

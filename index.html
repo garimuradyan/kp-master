@@ -44,6 +44,9 @@
 <span class="bnav-icon">📋</span>
 <span style="display:flex;align-items:center;gap:3px">История <span class="badge" id="histBadge">0</span></span>
 </button>
+<button class="bottom-nav-btn" id="bnav-schedule" onclick="showPage('schedule',this)">
+<span class="bnav-icon">📅</span>График
+</button>
 <button class="bottom-nav-btn" id="bnav-settings" onclick="showPage('settings',this)">
 <span class="bnav-icon">⚙️</span>Настройки
     </button>
@@ -78,6 +81,15 @@
 </div>
 <div id="section-services" style="display:none">
 <div class="card">
+<div class="card-title"><span class="icon">❄️</span> Оборудование</div>
+<div class="services-header"><span>Наименование</span><span>Цена/ед.</span><span>Кол-во</span><span>Сумма</span><span></span></div>
+<div class="services-list" id="equipmentList"></div>
+<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+<button class="btn btn-ghost btn-sm" onclick="addEquipmentRow()">+ Добавить оборудование</button>
+<button class="btn btn-ghost btn-sm" onclick="addFromEquipmentList()">📋 Из списка оборудования</button>
+</div>
+</div>
+<div class="card">
 <div class="card-title"><span class="icon">🔧</span> Перечень работ</div>
 <div class="services-header"><span>Наименование</span><span>Цена/ед.</span><span>Кол-во</span><span>Сумма</span><span></span></div>
 <div class="services-list" id="servicesList"></div>
@@ -86,6 +98,8 @@
 <button class="btn btn-ghost btn-sm" onclick="addFromPriceList()">📋 Из прайса</button>
 </div>
 <div class="totals-box">
+<div class="totals-row" id="equipmentTotalRow" style="display:none"><span>Оборудование:</span><span id="equipmentTotalDisplay">0 ₽</span></div>
+<div class="totals-row"><span>Работы:</span><span id="worksTotalDisplay">0 ₽</span></div>
 <div class="totals-row"><span>Итого:</span><span id="subtotalDisplay">0 ₽</span></div>
 <div class="discount-row">
 <label>Скидка</label>
@@ -126,7 +140,9 @@
 <div class="preview-panel" id="pdfPreview"></div>
 <div class="action-bar">
 <button class="btn btn-ghost" onclick="nextStep(2)">← Назад</button>
-<button class="btn btn-success" onclick="printPDF()">🖨 Получить PDF</button>
+<button class="btn btn-success" onclick="printPDF()">🖨 Получить КП</button>
+<button class="btn btn-primary" onclick="openDocumentsModal()">🧾 Печать документов</button>
+<button class="btn btn-ghost" onclick="openScheduleModalFromQuote()">📅 В график</button>
 <button class="btn btn-primary" onclick="saveToHistory()">💾 Сохранить</button>
 <button class="btn btn-ghost" onclick="resetForm()">✦ Новое КП</button>
 </div>
@@ -140,6 +156,35 @@
 <div class="page" id="page-history">
 <div class="page-title">История <span>КП</span></div>
 <div class="history-list" id="historyList"></div>
+</div>
+<!-- SCHEDULE -->
+<div class="page" id="page-schedule">
+<div class="page-title">График <span>Монтажей</span></div>
+<div class="card schedule-head-card">
+<div class="card-title"><span class="icon">📅</span> Календарь монтажника</div>
+<p class="schedule-hint">Планируйте выезды монтажника, быстро переносите данные из КП и возвращайтесь к связанному КП для правок.</p>
+<div class="schedule-toolbar">
+<div class="schedule-month-switch">
+<button class="btn btn-ghost btn-sm" onclick="goScheduleMonth(-1)">←</button>
+<button class="btn btn-ghost btn-sm schedule-month-label" id="scheduleMonthLabel" onclick="openScheduleMonthPicker()">Июнь 2026</button>
+<button class="btn btn-ghost btn-sm" onclick="goScheduleMonth(1)">→</button>
+<input id="scheduleMonthInput" onchange="setScheduleMonthFromInput()" type="month"/>
+</div>
+<button class="btn btn-ghost btn-sm" onclick="setScheduleToday()">Сегодня</button>
+<button class="btn btn-primary btn-sm" onclick="openScheduleModal()">+ Добавить выезд</button>
+</div>
+<div class="schedule-stats" id="scheduleStats"></div>
+</div>
+<div class="schedule-layout">
+<div class="card schedule-calendar-card">
+<div class="schedule-weekdays"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+<div class="schedule-month-grid" id="scheduleMonthGrid"></div>
+</div>
+<div class="card schedule-day-card">
+<div class="card-title" id="scheduleDayTitle"><span class="icon">🧰</span> Выезды на день</div>
+<div class="schedule-day-list" id="scheduleDayList"></div>
+</div>
+</div>
 </div>
 <!-- SETTINGS -->
 <div class="page" id="page-settings">
@@ -179,10 +224,32 @@
 </div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">💰</span> Прайс-лист</div>
-<div class="services-header"><span>Услуга</span><span>Цена</span><span>Ед.</span><span></span><span></span></div>
+<div class="card-title"><span class="icon">✍️</span> Подпись мастера</div>
+<p class="settings-note">Расписывайтесь пальцем на телефоне или мышкой на компьютере. Сохранённая подпись автоматически подставится в договор и акт.</p>
+<div class="signature-pad-wrap">
+<canvas id="signatureCanvas" width="640" height="180"></canvas>
+</div>
+<div class="modal-actions" style="justify-content:flex-start;margin-top:10px">
+<button class="btn btn-ghost btn-sm" onclick="clearSignaturePad()">Очистить</button>
+<button class="btn btn-primary btn-sm" onclick="saveSignaturePad()">Сохранить подпись</button>
+</div>
+</div>
+<div class="card">
+<div class="card-title"><span class="icon">📄</span> Шаблон договора</div>
+<p class="settings-note">Редактируется только основной текст договора. Данные клиента, мастера, реквизиты и подписи программа подставляет отдельно, поэтому код и переменные сломать нельзя.</p>
+<div class="field"><label>Текст договора</label><textarea id="s-contract-body" class="contract-template-textarea" spellcheck="true"></textarea></div>
+<div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="resetContractTemplate()">Вернуть стандартный договор</button></div>
+</div>
+<div class="card">
+<div class="card-title"><span class="icon">💰</span> Прайс-лист работ</div>
 <div class="services-list" id="priceList"></div>
 <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="addPriceItem()">+ Добавить</button></div>
+</div>
+<div class="card">
+<div class="card-title"><span class="icon">❄️</span> Оборудование</div>
+<p class="settings-note">Список кондиционеров и оборудования для быстрого добавления в КП. В акт выполненных работ эти позиции не попадают.</p>
+<div class="services-list" id="equipmentPriceList"></div>
+<div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="addEquipmentItem()">+ Добавить</button></div>
 </div>
 <button class="btn btn-primary btn-full" onclick="saveSettings(true)">💾 Сохранить настройки</button>
 </div>
@@ -216,73 +283,222 @@
 </div>
 </div>
 <!-- ABOUT -->
-<div class="page" id="page-about">
-  <div class="about-header">
-    <div class="about-logo">КП МАСТЕР</div>
-    <div class="about-version">Генератор коммерческих предложений</div>
-  </div>
-  <div class="about-section">
-    <div class="about-section-title">✦ Что умеет приложение</div>
-    <ul class="about-list">
-      <li>Создание профессиональных КП за 3 шага</li>
-      <li>Прайс-лист — добавляй услуги одним нажатием</li>
-      <li>Фото оборудования в PDF</li>
-      <li>История КП — до 15 сохранённых предложений</li>
-      <li>Скидка и предоплата в расчёте итоговой суммы</li>
-      <li>Экспорт в PDF прямо в браузере</li>
-      <li>Логотип и фирменный цвет в настройках</li>
-    </ul>
-  </div>
-  <div class="about-section">
-    <div class="about-section-title">📸 Про фотографии</div>
-    <ul class="about-list">
-      <li>Фото добавляются только в PDF — на сервере не хранятся</li>
-      <li>При открытии КП из истории фото нужно добавить заново</li>
-      <li>Форматы: JPG, PNG, WebP — максимум 5 МБ каждое</li>
-      <li>До 6 фото на одно КП</li>
-    </ul>
-  </div>
-  <div class="about-section">
-    <div class="about-section-title">💳 Тарифы</div>
-    <div class="tariff-cards">
-      <div class="tariff-card">
-        <div class="tariff-name">1 месяц</div>
-        <div class="tariff-price">1 490 ₽</div>
+<div class="page about-v21-page" id="page-about">
+  <section class="about-v21-hero">
+    <div class="about-v21-kicker">Сервис для монтажников кондиционеров</div>
+    <div class="about-v21-hero-grid">
+      <div class="about-v21-copy">
+        <h1>КП Мастер</h1>
+        <p class="about-v21-lead">Оформляйте коммерческие предложения, договоры, акты и выезды в одном рабочем кабинете. Быстрее, аккуратнее и без лишней ручной рутины.</p>
+        <div class="about-v21-tags">
+          <span>КП за 3–5 минут</span>
+          <span>Документы в один клик</span>
+          <span>График выездов</span>
+        </div>
       </div>
-      <div class="tariff-card tariff-popular">
-        <div class="tariff-badge">-11%</div>
-        <div class="tariff-name">3 месяца</div>
-        <div class="tariff-price">3 990 ₽</div>
-        <div class="tariff-old">4 470 ₽</div>
-      </div>
-      <div class="tariff-card tariff-best">
-        <div class="tariff-badge tariff-badge-best">-39%</div>
-        <div class="tariff-name">12 месяцев</div>
-        <div class="tariff-price">10 990 ₽</div>
-        <div class="tariff-old">17 880 ₽</div>
+      <div class="about-v21-stats">
+        <div class="about-v21-stat-card">
+          <strong>1 сервис</strong>
+          <span>вместо Excel, заметок и разрозненных шаблонов</span>
+        </div>
+        <div class="about-v21-stat-card">
+          <strong>0 ручных пересчётов</strong>
+          <span>суммы, скидка и предоплата считаются автоматически</span>
+        </div>
+        <div class="about-v21-stat-card">
+          <strong>1 клик</strong>
+          <span>чтобы перенести данные из КП в график монтажа</span>
+        </div>
+        <div class="about-v21-stat-card">
+          <strong>Работает на любом устройстве</strong>
+          <span>Телефон, планшет, компьютер.</span>
+          <em>*Один ключ привязывается к одному браузеру на конкретном устройстве.</em>
+        </div>
       </div>
     </div>
-    <p style="font-size:12px;color:var(--text2);margin-top:12px;text-align:center">Для оплаты напишите в Telegram-бот или @garimuradyan</p>
-  </div>
-  <div class="about-section">
-    <div class="about-section-title">👨‍💻 Разработчик</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:12px">По вопросам, предложениям и поддержке:</p>
-    <a class="contact-link" href="https://t.me/garimuradyan" target="_blank">✉️ @garimuradyan</a>
-  </div>
-</div>
+  </section>
+
+  <section class="about-v21-section">
+    <div class="about-v21-heading-wrap">
+      <div class="about-v21-heading">Что получает мастер</div>
+    </div>
+    <div class="about-v21-feature-grid">
+      <article class="about-v21-feature-card">
+        <h3>Быстрое КП</h3>
+        <p>Быстро оформляйте коммерческое предложение после звонка или осмотра. Все необходимые данные собираются в презентабельный и понятный документ без ручной верстки.</p>
+      </article>
+      <article class="about-v21-feature-card">
+        <h3>Понятно для клиента</h3>
+        <p>Клиент сразу видит, за что платит: состав предложения, стоимость позиций, количество и итоговую сумму. Меньше вопросов, больше прозрачности, быстрее согласование.</p>
+      </article>
+      <article class="about-v21-feature-card">
+        <h3>Свой прайс под рукой</h3>
+        <p>При желании можно сохранить все необходимые услуги и оборудование в настройках один раз. Потом добавлять позиции в КП за секунды, без переписывания прайса вручную.</p>
+      </article>
+      <article class="about-v21-feature-card">
+        <h3>Документы в один клик</h3>
+        <p>Договор на монтаж и акт выполненных работ формируются автоматически по данным клиента, мастера и выбранных работ. Все за несколько секунд.</p>
+      </article>
+      <article class="about-v21-feature-card">
+        <h3>График без хаоса</h3>
+        <p>Все выезды ведутся в календаре. Выезд можно создать сразу из коммерческого предложения — все данные перенесутся автоматически, или можно добавить выезд вручную.</p>
+      </article>
+      <article class="about-v21-feature-card">
+        <h3>Меньше ошибок в суммах</h3>
+        <p>Количество, цены, скидка, предоплата и итог пересчитываются автоматически. Это снижает риск ошибиться в расчётах и отправить клиенту неправильную сумму.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="about-v21-section">
+    <div class="about-v21-heading-wrap">
+      <div class="about-v21-heading">Для кого</div>
+      <p>Сервис подходит тем, кому нужно быстро оформлять клиента и держать всё в одном месте.</p>
+    </div>
+    <div class="about-v21-fit-grid">
+      <article class="about-v21-fit-card">
+        <h3>Частный мастер</h3>
+        <p>Быстро выдавать аккуратное КП после звонка или осмотра и не терять заявки.</p>
+      </article>
+      <article class="about-v21-fit-card">
+        <h3>Монтажная бригада</h3>
+        <p>Держать выезды, цены, работы и документы в одном понятном рабочем процессе.</p>
+      </article>
+      <article class="about-v21-fit-card">
+        <h3>Небольшая компания</h3>
+        <p>Работать аккуратно и быстро без Excel, хаоса в файлах и постоянных ручных правок.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="about-v21-section about-v21-pricing-section">
+    <div class="about-v21-heading-wrap about-v21-heading-row">
+      <div>
+        <div class="about-v21-heading">Тарифы</div>
+        <p>Полный доступ ко всем функциям сервиса.</p>
+      </div>
+    </div>
+    <div class="about-v21-pricing-grid">
+      <article class="about-v21-price-card about-v21-price-basic">
+        <div class="about-v21-price-top">
+          <span class="about-v21-price-period">1 месяц</span>
+        </div>
+        <div class="about-v21-price-value">1 490 ₽</div>
+        <div class="about-v21-price-sub">Полный доступ ко всем функциям</div>
+        <div class="about-v21-price-footer">Удобно начать и протестировать сервис в работе</div>
+      </article>
+
+      <article class="about-v21-price-card about-v21-price-popular">
+        <div class="about-v21-price-top">
+          <span class="about-v21-price-badge">Выгодно</span>
+          <span class="about-v21-price-period">3 месяца</span>
+        </div>
+        <div class="about-v21-price-value">3 990 ₽</div>
+        <div class="about-v21-price-old">4 470 ₽</div>
+        <div class="about-v21-price-sub">Экономия 480 ₽</div>
+        <div class="about-v21-price-footer">Оптимально, если сервис уже нужен на постоянной основе</div>
+      </article>
+
+      <article class="about-v21-price-card about-v21-price-best">
+        <div class="about-v21-price-top">
+          <span class="about-v21-price-badge about-v21-price-badge-best">Лучший выбор</span>
+          <span class="about-v21-price-period">12 месяцев</span>
+        </div>
+        <div class="about-v21-price-value">9 990 ₽</div>
+        <div class="about-v21-price-old">17 880 ₽</div>
+        <div class="about-v21-price-sub">Экономия 7 890 ₽</div>
+        <div class="about-v21-price-footer">Максимальная выгода для регулярной работы в течение года</div>
+      </article>
+    </div>
+    <div class="about-v21-payment-note"><span>Оплата и доступ — через Telegram-бот</span><a class="about-v21-bot-link" href="https://t.me/KPpayment_bot" target="_blank">Открыть Telegram-бот</a></div>
+  </section>
+
+  <section class="about-v21-section about-v21-support-section">
+    <div class="about-v21-support-copy">
+      <div class="about-v21-heading">Поддержка</div>
+      <p>Если нужен доступ, оплата или помощь по работе сервиса — ответим быстро и по делу.</p>
+    </div>
+    <a class="about-v21-support-link" href="https://t.me/garimuradyan" target="_blank">Написать в Telegram</a>
+  </section>
+</div></div>
 </main>
 </div>
 <div id="toast"></div>
 <div id="priceModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;padding:16px">
 <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;padding:24px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-<div class="card-title" style="margin:0">📋 Выбрать из прайса</div>
+<div class="card-title" id="modalPriceTitle" style="margin:0">📋 Выбрать из прайса</div>
 <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
 </div>
 <div id="modalPriceList"></div>
 <div style="margin-top:16px;text-align:right"><button class="btn btn-primary" onclick="applyModalItems()">Добавить выбранное</button></div>
 </div>
 </div>
+<div class="kp-modal-overlay" id="documentsModal" style="display:none">
+<div class="kp-modal-box">
+<div class="kp-modal-head">
+<div class="card-title" style="margin:0"><span class="icon">🧾</span> Печать документов</div>
+<button class="btn btn-ghost btn-sm" onclick="closeDocumentsModal()">✕</button>
+</div>
+<p class="modal-note">Выберите документы. Они откроются одним файлом для печати/сохранения в PDF.</p>
+<div class="doc-checks">
+<label class="doc-check"><input id="docContractCheck" type="checkbox" checked/> <span>Договор</span></label>
+<label class="doc-check"><input id="docActCheck" type="checkbox" checked/> <span>Акт выполненных монтажных работ</span></label>
+</div>
+<div class="modal-actions">
+<button class="btn btn-ghost" onclick="closeDocumentsModal()">Отмена</button>
+<button class="btn btn-primary" onclick="printSelectedDocuments()">Сформировать PDF</button>
+</div>
+</div>
+</div>
+<div class="kp-modal-overlay" id="scheduleModal" style="display:none">
+<div class="kp-modal-box kp-modal-box-wide">
+<div class="kp-modal-head">
+<div class="card-title" style="margin:0"><span class="icon">📅</span> Монтаж</div>
+<button class="btn btn-ghost btn-sm" onclick="closeScheduleModal()">✕</button>
+</div>
+<input id="scheduleEditId" type="hidden"/>
+<input id="schSource" type="hidden"/>
+<div class="form-grid">
+<div class="field"><label>Дата</label><input id="schDate" type="date"/></div>
+<div class="field"><label>Тип выезда</label><select id="schVisitType"><option value="inspection">Осмотр</option><option value="first_stage">Первый этап</option><option value="second_stage">Второй этап</option><option value="one_stage">Монтаж в один этап</option><option value="route">Закладка трассы</option><option value="ready_route">Монтаж на готовую трассу</option><option value="maintenance">Тех. обслуживание (ТО)</option><option value="repair">Ремонт</option></select></div>
+<div class="field"><label>Начало</label><input id="schStart" type="time" value="10:00"/></div>
+<div class="field"><label>Окончание</label><input id="schEnd" type="time" value="13:00"/></div>
+<div class="field"><label>Клиент</label><input id="schClient" maxlength="80" placeholder="ФИО клиента" type="text"/></div>
+<div class="field"><label>Телефон</label><input id="schPhone" maxlength="20" placeholder="+7..." type="tel"/></div>
+<div class="field span2"><label>Адрес</label><input id="schAddress" maxlength="140" placeholder="Адрес объекта" type="text"/></div>
+<div class="field span2"><label>Оборудование</label>
+<div id="schQuoteLockNote" class="schedule-lock-note" style="display:none">Оборудование, работы и сумма перенесены из КП. Для изменения откройте и отредактируйте само КП.</div>
+<div id="schEquipmentPicker" class="schedule-price-picker">
+<select id="schEquipmentSelect"></select>
+<button class="btn btn-ghost btn-sm" type="button" onclick="addScheduleEquipmentFromSelect()">+ Добавить</button>
+</div>
+<div id="schEquipmentList" class="schedule-items-list"></div>
+<textarea id="schEquipment" style="display:none"></textarea>
+</div>
+<div class="field span2"><label>Работы</label>
+<div id="schPricePicker" class="schedule-price-picker">
+<select id="schPriceSelect"></select>
+<button class="btn btn-ghost btn-sm" type="button" onclick="addScheduleItemFromSelect()">+ Добавить</button>
+</div>
+<div id="schItemsList" class="schedule-items-list"></div>
+<textarea id="schWorks" style="display:none"></textarea>
+</div>
+<div class="field"><label>Сумма</label><input id="schTotal" min="0" placeholder="0" type="number" readonly/></div>
+<div class="field"><label>Источник</label><input id="schSourceView" maxlength="80" placeholder="Без КП" type="text" readonly/></div>
+<div class="field span2"><label>Комментарий</label><textarea id="schNotes" maxlength="500" placeholder="Подъезд, этаж, стремянка, перенос, предоплата..."></textarea></div>
+</div>
+<div class="modal-actions">
+<button class="btn btn-danger" id="scheduleDeleteBtn" onclick="deleteScheduleJobFromModal()" style="display:none">Удалить</button>
+<span style="flex:1"></span>
+<button class="btn btn-ghost" onclick="closeScheduleModal()">Отмена</button>
+<button class="btn btn-primary" onclick="saveScheduleJob()">Сохранить</button>
+</div>
+</div>
+</div>
 
-<script defer="True" src="./app.js"></script></body>
+<script defer="True" src="./app.js"></script>
+<script defer="True" src="./documentTemplates.js"></script>
+<script defer="True" src="./documents.js"></script>
+<script defer="True" src="./schedule.js"></script></body>
 </html>

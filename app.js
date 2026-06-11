@@ -191,8 +191,9 @@ function validateClient(){
 }
 
 // SERVICES
-function addServiceRow(name,price,qty){services.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty)});renderServices();}
-function addEquipmentRow(name,price,qty){equipment.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty)});renderEquipment();}
+function normalizeUnit(unit){return String(unit||'шт').trim().slice(0,10)||'шт';}
+function addServiceRow(name,price,qty,unit){services.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty),unit:normalizeUnit(unit)});renderServices();}
+function addEquipmentRow(name,price,qty,unit){equipment.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty),unit:normalizeUnit(unit)});renderEquipment();}
 function removeEquipment(i){equipment.splice(i,1);renderEquipment();}
 function removeService(i){services.splice(i,1);renderServices();}
 function renderServices(){
@@ -309,7 +310,7 @@ function addFromPriceList(){
     return'<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;min-width:0">'+
     '<input type="checkbox" data-idx="'+i+'" style="width:16px;height:16px;flex-shrink:0;margin-top:2px">'+
     '<span style="flex:1;font-size:14px;word-break:break-word;min-width:0;overflow-wrap:break-word">'+esc(p.name)+'</span>'+
-    '<span style="color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:8px">'+fmt(p.price)+'</span></label>';
+    '<span style="color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:8px">'+fmt(p.price)+' / '+esc(p.unit||'шт')+'</span></label>';
   }).join('');
   document.getElementById('priceModal').style.display='flex';
 }
@@ -321,7 +322,7 @@ function addFromEquipmentList(){
     return'<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;min-width:0">'+
     '<input type="checkbox" data-idx="'+i+'" style="width:16px;height:16px;flex-shrink:0;margin-top:2px">'+
     '<span style="flex:1;font-size:14px;word-break:break-word;min-width:0;overflow-wrap:break-word">'+esc(p.name)+'</span>'+
-    '<span style="color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:8px">'+fmt(p.price)+'</span></label>';
+    '<span style="color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:8px">'+fmt(p.price)+' / '+esc(p.unit||'шт')+'</span></label>';
   }).join('');
   document.getElementById('priceModal').style.display='flex';
 }
@@ -329,9 +330,9 @@ function closeModal(){document.getElementById('priceModal').style.display='none'
 function applyModalItems(){
   document.querySelectorAll('#modalPriceList input:checked').forEach(function(cb){
     if(priceModalTarget==='equipment'){
-      var e=equipmentItems[cb.dataset.idx];if(e)addEquipmentRow(e.name,e.price,1);
+      var e=equipmentItems[cb.dataset.idx];if(e)addEquipmentRow(e.name,e.price,1,e.unit||'шт');
     }else{
-      var p=priceItems[cb.dataset.idx];if(p)addServiceRow(p.name,p.price,1);
+      var p=priceItems[cb.dataset.idx];if(p)addServiceRow(p.name,p.price,1,p.unit||'шт');
     }
   });
   closeModal();
@@ -505,9 +506,9 @@ function buildPreview(){
   normalizeLineItems();
   var c=getClientData(),t=getTotals();
   var today=new Date().toLocaleDateString('ru-RU'),num=generateQuoteNumber(),color=settings.color||'#0066ff';
-  var workRows=services.map(function(s){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);return'<tr><td class="qp-name">'+esc(s.name)+'</td><td class="qp-money">'+moneyHtml(s.price)+'</td><td class="qp-qty">'+s.qty+'</td><td class="qp-money qp-total">'+moneyHtml(total)+'</td></tr>';}).join('');
-  var eqRows=equipment.map(function(s){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);return'<tr><td class="qp-name">'+esc(s.name)+'</td><td class="qp-money">'+moneyHtml(s.price)+'</td><td class="qp-qty">'+s.qty+'</td><td class="qp-money qp-total">'+moneyHtml(total)+'</td></tr>';}).join('');
-  var tableHead='<table class="quote-preview-table" style="table-layout:fixed;width:100%"><colgroup><col><col style="width:88px"><col style="width:38px"><col style="width:112px"></colgroup><thead style="background:'+color+'"><tr><th style="color:#fff;padding:7px">Наименование</th><th style="color:#fff;padding:7px;text-align:right">Цена</th><th style="color:#fff;padding:7px;text-align:center">Кол.</th><th style="color:#fff;padding:7px;text-align:right">Сумма</th></tr></thead><tbody>';
+  var workRows=services.map(function(s){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);return'<tr><td class="qp-name">'+esc(s.name)+'</td><td class="qp-money">'+moneyHtml(s.price)+'</td><td class="qp-unit">'+esc(normalizeUnit(s.unit))+'</td><td class="qp-qty">'+s.qty+'</td><td class="qp-money qp-total">'+moneyHtml(total)+'</td></tr>';}).join('');
+  var eqRows=equipment.map(function(s){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);return'<tr><td class="qp-name">'+esc(s.name)+'</td><td class="qp-money">'+moneyHtml(s.price)+'</td><td class="qp-unit">'+esc(normalizeUnit(s.unit))+'</td><td class="qp-qty">'+s.qty+'</td><td class="qp-money qp-total">'+moneyHtml(total)+'</td></tr>';}).join('');
+  var tableHead='<table class="quote-preview-table" style="table-layout:fixed;width:100%"><colgroup><col><col style="width:82px"><col style="width:38px"><col style="width:38px"><col style="width:106px"></colgroup><thead style="background:'+color+'"><tr><th style="color:#fff;padding:7px">Наименование</th><th style="color:#fff;padding:7px;text-align:right">Цена</th><th style="color:#fff;padding:7px;text-align:center">Ед.</th><th style="color:#fff;padding:7px;text-align:center">Кол.</th><th style="color:#fff;padding:7px;text-align:right">Сумма</th></tr></thead><tbody>';
   var tableEnd='</tbody></table>';
   var hasEquipment = equipment.length > 0;
   var hasWorks = services.length > 0;
@@ -553,16 +554,16 @@ function printPDF(){
   var sRows=services.map(function(s,i){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);
     return'<tr style="background:'+(i%2===0?'#fff':'#f8fafc')+'">'+
     '<td class="num-td">'+(i+1)+'</td><td class="name-td"><span class="clip-name">'+esc(s.name)+'</span></td>'+ 
-    '<td class="money-td">'+moneyHtml(s.price)+'</td><td class="qty-td">'+s.qty+'</td>'+ 
+    '<td class="money-td">'+moneyHtml(s.price)+'</td><td class="unit-td">'+esc(normalizeUnit(s.unit))+'</td><td class="qty-td">'+s.qty+'</td>'+ 
     '<td class="money-td sum-td" style="color:'+color+'">'+moneyHtml(total)+'</td></tr>';
   }).join('');
   var eqRows=equipment.map(function(s,i){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);
     return'<tr style="background:'+(i%2===0?'#fff':'#f8fafc')+'">'+
     '<td class="num-td">'+(i+1)+'</td><td class="name-td"><span class="clip-name">'+esc(s.name)+'</span></td>'+ 
-    '<td class="money-td">'+moneyHtml(s.price)+'</td><td class="qty-td">'+s.qty+'</td>'+ 
+    '<td class="money-td">'+moneyHtml(s.price)+'</td><td class="unit-td">'+esc(normalizeUnit(s.unit))+'</td><td class="qty-td">'+s.qty+'</td>'+ 
     '<td class="money-td sum-td" style="color:'+color+'">'+moneyHtml(total)+'</td></tr>';
   }).join('');
-  var pdfTableHead='<table><colgroup><col style="width:22px"><col><col style="width:80px"><col style="width:26px"><col style="width:102px"></colgroup><thead><tr><th>#</th><th>Наименование</th><th>Цена</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>';
+  var pdfTableHead='<table><colgroup><col style="width:22px"><col><col style="width:78px"><col style="width:34px"><col style="width:28px"><col style="width:102px"></colgroup><thead><tr><th>#</th><th>Наименование</th><th>Цена</th><th>Ед.</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>';
   var pdfTableEnd='</tbody></table>';
   var hasPdfEquipment = equipment.length > 0;
   var hasPdfWorks = services.length > 0;
@@ -598,14 +599,14 @@ function printPDF(){
     'thead tr{background:'+color+'}thead th{padding:7px 5px;color:#fff;font-size:9px;text-align:left;white-space:normal;overflow:hidden;vertical-align:middle;line-height:1.15}'+
     'thead th:nth-child(1){width:22px;text-align:center}'+
     'thead th:nth-child(2){width:auto}'+
-    'thead th:nth-child(3){text-align:right;width:82px}'+
-    'thead th:nth-child(4){text-align:center;width:28px;vertical-align:middle;white-space:nowrap;word-break:normal;overflow-wrap:normal}'+
-    'thead th:nth-child(5){text-align:right;width:108px}'+
+    'thead th:nth-child(3){text-align:right;width:78px}'+
+    'thead th:nth-child(4){text-align:center;width:34px;vertical-align:middle;white-space:nowrap;word-break:normal;overflow-wrap:normal}'+
+    'thead th:nth-child(5){text-align:center;width:28px;vertical-align:middle;white-space:nowrap;word-break:normal;overflow-wrap:normal}thead th:nth-child(6){text-align:right;width:108px}'+
     'tbody td{padding:6px 5px;border-bottom:1px solid #eee;font-size:10.5px;white-space:normal;overflow:hidden;text-overflow:clip;vertical-align:top}'+
     '.num-td{text-align:center!important;color:#888;width:22px!important}'+
     '.name-td{word-break:break-word;overflow-wrap:anywhere}'+
     '.clip-name{display:block;max-height:3.75em;line-height:1.25;overflow:hidden}'+
-    '.qty-td{text-align:center!important;font-size:10px;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important}'+
+    '.unit-td,.qty-td{text-align:center!important;font-size:10px;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important}'+
     '.money-td{text-align:right!important;font-weight:700;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;overflow:hidden!important}'+
     '.money-nowrap{display:inline-block;max-width:100%;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;line-height:1.05;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.35px}'+
     '.tot{display:flex;justify-content:flex-end;margin-bottom:12px;width:100%;overflow:hidden}.tot table{width:100%;max-width:330px;min-width:0;table-layout:fixed}'+
@@ -614,7 +615,7 @@ function printPDF(){
     'a{color:inherit;text-decoration:none}'+
     '.ftr{margin-top:18px;padding-top:10px;border-top:1px solid #ddd;display:flex;justify-content:space-between;gap:10px;font-size:9px;color:#aaa;overflow:hidden}.ftr>div{min-width:0}'+
     '.pbtn{display:block;width:100%;padding:14px;margin-bottom:14px;background:'+color+';color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}'+
-    '@media(max-width:520px){body{padding:10px;font-size:10.5px}.hdr{gap:8px}.hdr>div:first-child{max-width:55%}.hdr>div:last-child{flex:0 0 148px;max-width:148px;min-width:148px}.kpt{font-size:12px;word-break:normal;overflow-wrap:normal;hyphens:none;word-break:keep-all}.cg{grid-template-columns:minmax(0,1fr);font-size:10px}thead th{font-size:8.5px;padding:6px 3px}tbody td{font-size:9.5px;padding:5px 3px}thead th:nth-child(3){width:74px}thead th:nth-child(4){width:26px}thead th:nth-child(5){width:100px}.money-nowrap{letter-spacing:-.45px}.tot table{max-width:210px}.grand td{font-size:13px}}'+
+    '@media(max-width:520px){body{padding:10px;font-size:10.5px}.hdr{gap:8px}.hdr>div:first-child{max-width:55%}.hdr>div:last-child{flex:0 0 148px;max-width:148px;min-width:148px}.kpt{font-size:12px;word-break:normal;overflow-wrap:normal;hyphens:none;word-break:keep-all}.cg{grid-template-columns:minmax(0,1fr);font-size:10px}thead th{font-size:8.5px;padding:6px 3px}tbody td{font-size:9.5px;padding:5px 3px}thead th:nth-child(3){width:72px}thead th:nth-child(4){width:32px}thead th:nth-child(5){width:26px}thead th:nth-child(6){width:98px}.money-nowrap{letter-spacing:-.45px}.tot table{max-width:210px}.grand td{font-size:13px}}'+
     '@media print{.pbtn{display:none}@page{size:A4;margin:0}html,body{background:#fff;margin:0!important;padding:0!important;overflow:visible}body::before,body::after{display:none!important}.print-sheet{padding:12mm 14mm}}'+
     '</style></head><body>'+
     '<button class="pbtn" onclick="window.print()">💾 Сохранить как PDF</button><div class="print-sheet">'+
@@ -812,8 +813,8 @@ async function deleteKey(id){
 
 // UTILS
 function normalizeLineItems(){
-  services=(Array.isArray(services)?services:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,120),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty)};});
-  equipment=(Array.isArray(equipment)?equipment:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,140),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty)};});
+  services=(Array.isArray(services)?services:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,120),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit)};});
+  equipment=(Array.isArray(equipment)?equipment:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,140),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit)};});
 }
 function getClientData(){return{name:document.getElementById('c-name').value.trim(),phone:document.getElementById('c-phone').value.trim(),email:document.getElementById('c-email').value.trim(),city:document.getElementById('c-city').value.trim(),addr:document.getElementById('c-addr').value.trim(),notes:document.getElementById('c-notes').value.trim()};}
 function getTotals(){normalizeLineItems();var worksSub=services.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var equipmentSub=equipment.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var sub=worksSub+equipmentSub;var dv=clampMoneyValue(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*Math.min(dv,100)/100:Math.min(dv,sub)):0;var prepay=Math.min(clampMoneyValue(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0,sub);return{worksSubtotal:worksSub,equipmentSubtotal:equipmentSub,subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}

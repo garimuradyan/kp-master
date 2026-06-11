@@ -614,9 +614,9 @@ function printPDF(){
     '.ftr{margin-top:18px;padding-top:10px;border-top:1px solid #ddd;display:flex;justify-content:space-between;gap:10px;font-size:9px;color:#aaa;overflow:hidden}.ftr>div{min-width:0}'+
     '.pbtn{display:block;width:100%;padding:14px;margin-bottom:14px;background:'+color+';color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}'+
     '@media(max-width:520px){body{padding:10px;font-size:10.5px}.hdr{gap:8px}.hdr>div:first-child{max-width:55%}.hdr>div:last-child{flex:0 0 148px;max-width:148px;min-width:148px}.kpt{font-size:12px;word-break:normal;overflow-wrap:normal;hyphens:none;word-break:keep-all}.cg{grid-template-columns:minmax(0,1fr);font-size:10px}thead th{font-size:8.5px;padding:6px 3px}tbody td{font-size:9.5px;padding:5px 3px}thead th:nth-child(3){width:74px}thead th:nth-child(4){width:26px}thead th:nth-child(5){width:100px}.money-nowrap{letter-spacing:-.45px}.tot table{max-width:210px}.grand td{font-size:13px}}'+
-    '@media print{.pbtn{display:none}@page{margin:12mm 14mm}body{padding:0;overflow:visible}}'+
+    '@media print{.pbtn{display:none}@page{size:A4;margin:0}html,body{background:#fff;margin:0!important;padding:0!important;overflow:visible}body::before,body::after{display:none!important}.print-sheet{padding:12mm 14mm}}'+
     '</style></head><body>'+
-    '<button class="pbtn" onclick="document.title=\'\';window.print()">💾 Сохранить как PDF</button>'+
+    '<button class="pbtn" onclick="document.title=\'\';window.print()">💾 Сохранить как PDF</button><div class="print-sheet">'+
     '<div class="hdr"><div>'+logoH+masterH+'</div>'+
     '<div><div class="kpt">КОММЕРЧЕСКОЕ<br/>ПРЕДЛОЖЕНИЕ</div><div style="font-size:10px;color:#888;text-align:right;margin-top:4px">№ '+num+' от '+today+'</div></div></div>'+
     '<div class="cb"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#999;font-weight:700;margin-bottom:6px">Клиент</div>'+
@@ -633,7 +633,7 @@ function printPDF(){
     (c.notes?'<div style="background:#fffbf0;border-left:3px solid #f0a020;padding:8px 12px;border-radius:3px;margin-top:10px;font-size:11px;overflow-wrap:anywhere;word-break:break-word;white-space:normal;max-width:100%;overflow:hidden"><b>Примечание:</b> '+esc(c.notes)+'</div>':'')+
     (settings.warranty?'<div style="background:#f0f8ff;border-left:3px solid '+color+';padding:8px 12px;border-radius:3px;margin-top:10px;font-size:11px;color:#445;overflow-wrap:anywhere;word-break:break-word;white-space:normal">'+esc(settings.warranty)+'</div>':'')+
     photosH+
-    '<div class="ftr"><div>'+footer+'</div><div>'+esc(settings.signature||'')+'</div></div>'+
+    '<div class="ftr"><div>'+footer+'</div><div>'+esc(settings.signature||'')+'</div></div></div>'+
     '</body></html>';
   var w=window.open('','_blank');
   if(w){w.document.write(html);w.document.close();}

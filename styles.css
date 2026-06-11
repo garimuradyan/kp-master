@@ -2527,7 +2527,11 @@ input#keyInput.key-login-input-v58::placeholder,
   opacity:.75 !important;
 }
 
-/* V62: settings rows global alignment — desktop + mobile */
+/* V63: clean full settings lists layout */
+#page-settings .card{
+  overflow:hidden !important;
+}
+
 #priceList,
 #equipmentPriceList{
   width:100% !important;
@@ -2542,30 +2546,32 @@ input#keyInput.key-login-input-v58::placeholder,
 #equipmentPriceList .service-row.settings-price-row,
 #priceList .settings-price-row,
 #equipmentPriceList .settings-price-row{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 160px 116px 42px !important;
+  align-items:start !important;
+  gap:14px !important;
   width:100% !important;
   max-width:100% !important;
+  min-height:96px !important;
   box-sizing:border-box !important;
-  display:grid !important;
-  grid-template-columns:minmax(0,1fr) 140px 92px 38px !important;
-  gap:14px !important;
-  align-items:end !important;
-  padding:14px 16px !important;
-  min-height:88px !important;
-  overflow:hidden !important;
+  padding:16px 18px !important;
+  margin:0 !important;
   background:var(--surface2) !important;
   border:1px solid var(--border) !important;
-  border-radius:10px !important;
+  border-radius:12px !important;
+  overflow:hidden !important;
 }
 
 #priceList .settings-price-cell,
 #equipmentPriceList .settings-price-cell{
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:flex-start !important;
+  align-items:stretch !important;
+  gap:10px !important;
   min-width:0 !important;
   width:100% !important;
-  display:grid !important;
-  grid-template-rows:18px 46px !important;
-  gap:7px !important;
-  align-items:end !important;
-  box-sizing:border-box !important;
+  height:auto !important;
   margin:0 !important;
   padding:0 !important;
 }
@@ -2573,8 +2579,9 @@ input#keyInput.key-login-input-v58::placeholder,
 #priceList .settings-row-label,
 #equipmentPriceList .settings-row-label{
   display:block !important;
-  height:18px !important;
-  line-height:18px !important;
+  height:16px !important;
+  min-height:16px !important;
+  line-height:16px !important;
   margin:0 !important;
   padding:0 !important;
   font-style:normal !important;
@@ -2590,13 +2597,14 @@ input#keyInput.key-login-input-v58::placeholder,
 #equipmentPriceList .settings-price-row input,
 #priceList .settings-price-row select,
 #equipmentPriceList .settings-price-row select{
+  display:block !important;
   width:100% !important;
-  height:46px !important;
-  min-height:46px !important;
-  max-height:46px !important;
+  height:44px !important;
+  min-height:44px !important;
+  max-height:44px !important;
   box-sizing:border-box !important;
   margin:0 !important;
-  border-radius:7px !important;
+  border-radius:8px !important;
 }
 
 #priceList .settings-name-cell input,
@@ -2605,9 +2613,9 @@ input#keyInput.key-login-input-v58::placeholder,
   border:1px solid transparent !important;
   color:var(--text) !important;
   font-size:15px !important;
-  font-weight:700 !important;
+  font-weight:800 !important;
   line-height:20px !important;
-  padding:11px 6px !important;
+  padding:10px 0 !important;
   text-align:left !important;
   white-space:nowrap !important;
   overflow:hidden !important;
@@ -2618,67 +2626,90 @@ input#keyInput.key-login-input-v58::placeholder,
 #equipmentPriceList .settings-name-cell input:focus{
   background:var(--surface) !important;
   border-color:var(--accent) !important;
+  padding-left:8px !important;
+  padding-right:8px !important;
   outline:none !important;
 }
 
 #priceList .settings-price-cell-price input,
 #equipmentPriceList .settings-price-cell-price input{
+  background:transparent !important;
+  border:1px solid transparent !important;
   color:var(--accent) !important;
-  font-size:16px !important;
+  font-size:17px !important;
   font-weight:900 !important;
   line-height:20px !important;
-  padding:11px 6px !important;
+  padding:10px 0 !important;
   text-align:left !important;
   white-space:nowrap !important;
   overflow:hidden !important;
   text-overflow:ellipsis !important;
-  background:transparent !important;
-  border:1px solid transparent !important;
+}
+
+#priceList .settings-price-cell-price input:focus,
+#equipmentPriceList .settings-price-cell-price input:focus{
+  background:var(--surface) !important;
+  border-color:var(--accent) !important;
+  padding-left:8px !important;
+  padding-right:8px !important;
+  outline:none !important;
 }
 
 #priceList .settings-price-cell-unit select,
 #equipmentPriceList .settings-price-cell-unit select{
-  padding:0 10px !important;
-  font-size:14px !important;
-  font-weight:800 !important;
   background:var(--surface) !important;
   border:1px solid var(--border) !important;
   color:var(--text) !important;
+  font-size:14px !important;
+  font-weight:900 !important;
+  padding:0 12px !important;
+  text-align:left !important;
 }
 
 #priceList .settings-price-row .delete-btn,
 #equipmentPriceList .settings-price-row .delete-btn{
-  width:38px !important;
-  min-width:38px !important;
-  height:46px !important;
-  min-height:46px !important;
-  margin:25px 0 0 0 !important;
+  width:42px !important;
+  min-width:42px !important;
+  height:44px !important;
+  min-height:44px !important;
+  margin:26px 0 0 0 !important;
   padding:0 !important;
-  align-self:end !important;
+  align-self:start !important;
   justify-self:center !important;
   display:flex !important;
   align-items:center !important;
   justify-content:center !important;
+  font-size:22px !important;
+  line-height:1 !important;
 }
 
-/* Средние экраны: всё ещё ровная строка */
+/* whole settings page: no accidental horizontal shift */
+#page-settings,
+#page-settings .page-inner,
+#page-settings .card,
+#page-settings .card-body{
+  max-width:100% !important;
+  overflow-x:hidden !important;
+}
+
+/* tablet */
 @media(max-width:900px){
   #priceList .service-row.settings-price-row,
   #equipmentPriceList .service-row.settings-price-row,
   #priceList .settings-price-row,
   #equipmentPriceList .settings-price-row{
-    grid-template-columns:minmax(0,1fr) 118px 82px 36px !important;
+    grid-template-columns:minmax(0,1fr) 128px 96px 38px !important;
     gap:10px !important;
-    padding:13px !important;
+    padding:14px !important;
   }
 
   #priceList .settings-price-cell-price input,
   #equipmentPriceList .settings-price-cell-price input{
-    font-size:15px !important;
+    font-size:16px !important;
   }
 }
 
-/* Малые экраны: 2 строки внутри карточки */
+/* phone: clean 2-column card */
 @media(max-width:640px){
   #priceList .service-row.settings-price-row,
   #equipmentPriceList .service-row.settings-price-row,
@@ -2688,16 +2719,20 @@ input#keyInput.key-login-input-v58::placeholder,
     grid-template-areas:
       "name price"
       "unit del" !important;
-    gap:12px !important;
+    gap:14px 12px !important;
     padding:16px !important;
-    align-items:end !important;
+    min-height:auto !important;
   }
 
   #priceList .settings-name-cell,
-  #equipmentPriceList .settings-name-cell{grid-area:name !important;}
+  #equipmentPriceList .settings-name-cell{
+    grid-area:name !important;
+  }
 
   #priceList .settings-price-cell-price,
-  #equipmentPriceList .settings-price-cell-price{grid-area:price !important;}
+  #equipmentPriceList .settings-price-cell-price{
+    grid-area:price !important;
+  }
 
   #priceList .settings-price-cell-unit,
   #equipmentPriceList .settings-price-cell-unit{
@@ -2715,12 +2750,12 @@ input#keyInput.key-login-input-v58::placeholder,
   #equipmentPriceList .settings-price-row .delete-btn{
     grid-area:del !important;
     justify-self:end !important;
-    align-self:end !important;
+    align-self:start !important;
     width:44px !important;
     min-width:44px !important;
     height:44px !important;
     min-height:44px !important;
-    margin:0 !important;
+    margin:26px 0 0 0 !important;
   }
 }
 
@@ -2730,7 +2765,6 @@ input#keyInput.key-login-input-v58::placeholder,
   #priceList .settings-price-row,
   #equipmentPriceList .settings-price-row{
     grid-template-columns:minmax(0,1fr) 92px !important;
-    gap:10px !important;
     padding:14px !important;
   }
 

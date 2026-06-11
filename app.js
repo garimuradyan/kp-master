@@ -1,5 +1,5 @@
 
-window.KP_APP_VERSION='v55-key-input-and-real-error';
+window.KP_APP_VERSION='v59-default-examples';
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=null;
@@ -146,8 +146,8 @@ async function loadUserData(){
   var res=await sb.rpc('kp_get_user_data',rpcAuthParams());
   if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка загрузки данных'),'error');return;}
   settings=res.data.settings||{};applySettings();
-  priceItems=Array.isArray(res.data.price_items)?res.data.price_items:defaultPrices();
-  equipmentItems=(settings&&Array.isArray(settings.equipmentItems))?settings.equipmentItems:defaultEquipmentItems();
+  priceItems=(Array.isArray(res.data.price_items)&&res.data.price_items.length)?res.data.price_items:defaultPrices();
+  equipmentItems=(settings&&Array.isArray(settings.equipmentItems)&&settings.equipmentItems.length)?settings.equipmentItems:defaultEquipmentItems();
   renderPriceList();
   renderEquipmentList();
   historyData=res.data.quotes||[];
@@ -310,14 +310,15 @@ function defaultQuoteServices(){return[];}
 
 function defaultPrices(){return[
   {name:'Монтаж кондиционера до 2,5 кВт',price:4500,unit:'шт.'},
-  {name:'Монтаж кондиционера 3,5–5 кВт',price:5500,unit:'шт.'},
-  {name:'Демонтаж кондиционера',price:2000,unit:'шт.'},
-  {name:'Прокладка трассы (1 м.п.)',price:350,unit:'п.м.'},
-  {name:'Штробление стены (1 м.п.)',price:800,unit:'п.м.'},
-  {name:'Установка дренажной помпы',price:1800,unit:'шт.'},
-  {name:'Подключение к электросети',price:1200,unit:'шт.'},
-  {name:'Заправка фреоном R-32 (1 кг)',price:1500,unit:'кг'},
-  {name:'Выезд мастера',price:500,unit:'шт.'}
+  {name:'Монтаж кондиционера 3,5 кВт',price:5500,unit:'шт.'},
+  {name:'Монтаж кондиционера 5,0 кВт',price:7500,unit:'шт.'},
+  {name:'Демонтаж кондиционера',price:2500,unit:'шт.'},
+  {name:'Прокладка трассы',price:600,unit:'п.м.'},
+  {name:'Штробление стены',price:1000,unit:'п.м.'},
+  {name:'Установка дренажной помпы',price:2500,unit:'шт.'},
+  {name:'Подключение к электросети',price:1500,unit:'шт.'},
+  {name:'Заправка фреоном R-32',price:1800,unit:'кг'},
+  {name:'Выезд мастера / диагностика',price:1000,unit:'шт.'}
 ];}
 
 function defaultEquipmentItems(){return[
@@ -325,7 +326,12 @@ function defaultEquipmentItems(){return[
   {name:'Кондиционер настенный сплит-система 9 BTU',price:0,unit:'шт.'},
   {name:'Кондиционер настенный сплит-система 12 BTU',price:0,unit:'шт.'},
   {name:'Кондиционер настенный сплит-система 18 BTU',price:0,unit:'шт.'},
-  {name:'Кондиционер настенный сплит-система 24 BTU',price:0,unit:'шт.'}
+  {name:'Кондиционер настенный сплит-система 24 BTU',price:0,unit:'шт.'},
+  {name:'Медная трасса 1/4–3/8 с утеплителем',price:0,unit:'п.м.'},
+  {name:'Кронштейн наружного блока',price:0,unit:'компл.'},
+  {name:'Дренажный шланг',price:0,unit:'п.м.'},
+  {name:'Кабель межблочный',price:0,unit:'п.м.'},
+  {name:'Дренажная помпа',price:0,unit:'шт.'}
 ];}
 function renderEquipmentList(){
   var list=document.getElementById('equipmentPriceList');if(!list)return;

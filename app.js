@@ -202,7 +202,7 @@ function renderServices(){
     return'<div class="service-row">'+
     '<textarea class="svc-name" rows="2" maxlength="120" placeholder="Наименование" oninput="services['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+
     '<input type="number" min="0" max="9999999" step="1" value="'+s.price+'" oninput="clampMoneyInput(this);services['+i+'].price=parseFloat(this.value)||0;recalc()">'+
-    '<input type="number" min="1" max="999" step="1" value="'+s.qty+'" oninput="clampQtyInput(this);services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
+    '<input type="number" min="1" max="99" step="1" value="'+s.qty+'" oninput="clampQtyInput(this);services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="svcTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+
     '<button class="delete-btn" onclick="removeService('+i+')" style="padding-top:4px">✕</button></div>';
   }).join('');
@@ -217,7 +217,7 @@ function renderEquipment(){
     return'<div class="service-row equipment-row">'+
     '<textarea class="svc-name" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipment['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+ 
     '<input type="number" min="0" max="9999999" step="1" value="'+s.price+'" oninput="clampMoneyInput(this);equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
-    '<input type="number" min="1" max="999" step="1" value="'+s.qty+'" oninput="clampQtyInput(this);equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
+    '<input type="number" min="1" max="99" step="1" value="'+s.qty+'" oninput="clampQtyInput(this);equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="eqTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+ 
     '<button class="delete-btn" onclick="removeEquipment('+i+')" style="padding-top:4px">✕</button></div>';
   }).join('');
@@ -502,11 +502,12 @@ function loadPhotoFromFile(e){
 
 // PREVIEW
 function buildPreview(){
+  normalizeLineItems();
   var c=getClientData(),t=getTotals();
   var today=new Date().toLocaleDateString('ru-RU'),num=generateQuoteNumber(),color=settings.color||'#0066ff';
   var workRows=services.map(function(s){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);return'<tr><td class="qp-name">'+esc(s.name)+'</td><td class="qp-money">'+moneyHtml(s.price)+'</td><td class="qp-qty">'+s.qty+'</td><td class="qp-money qp-total">'+moneyHtml(total)+'</td></tr>';}).join('');
   var eqRows=equipment.map(function(s){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);return'<tr><td class="qp-name">'+esc(s.name)+'</td><td class="qp-money">'+moneyHtml(s.price)+'</td><td class="qp-qty">'+s.qty+'</td><td class="qp-money qp-total">'+moneyHtml(total)+'</td></tr>';}).join('');
-  var tableHead='<table class="quote-preview-table" style="table-layout:fixed;width:100%"><colgroup><col><col style="width:96px"><col style="width:44px"><col style="width:124px"></colgroup><thead style="background:'+color+'"><tr><th style="color:#fff;padding:7px">Наименование</th><th style="color:#fff;padding:7px;text-align:right">Цена</th><th style="color:#fff;padding:7px;text-align:center">Кол.</th><th style="color:#fff;padding:7px;text-align:right">Сумма</th></tr></thead><tbody>';
+  var tableHead='<table class="quote-preview-table" style="table-layout:fixed;width:100%"><colgroup><col><col style="width:88px"><col style="width:38px"><col style="width:112px"></colgroup><thead style="background:'+color+'"><tr><th style="color:#fff;padding:7px">Наименование</th><th style="color:#fff;padding:7px;text-align:right">Цена</th><th style="color:#fff;padding:7px;text-align:center">Кол.</th><th style="color:#fff;padding:7px;text-align:right">Сумма</th></tr></thead><tbody>';
   var tableEnd='</tbody></table>';
   var hasEquipment = equipment.length > 0;
   var hasWorks = services.length > 0;
@@ -546,6 +547,7 @@ function buildPreview(){
 
 // PDF
 function printPDF(){
+  normalizeLineItems();
   var c=getClientData(),t=getTotals();
   var today=new Date().toLocaleDateString('ru-RU'),num=generateQuoteNumber(),color=settings.color||'#0066ff';
   var sRows=services.map(function(s,i){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);
@@ -560,7 +562,7 @@ function printPDF(){
     '<td class="money-td">'+moneyHtml(s.price)+'</td><td class="qty-td">'+s.qty+'</td>'+ 
     '<td class="money-td sum-td" style="color:'+color+'">'+moneyHtml(total)+'</td></tr>';
   }).join('');
-  var pdfTableHead='<table><colgroup><col style="width:22px"><col><col style="width:82px"><col style="width:28px"><col style="width:108px"></colgroup><thead><tr><th>#</th><th>Наименование</th><th>Цена</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>';
+  var pdfTableHead='<table><colgroup><col style="width:22px"><col><col style="width:80px"><col style="width:26px"><col style="width:102px"></colgroup><thead><tr><th>#</th><th>Наименование</th><th>Цена</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>';
   var pdfTableEnd='</tbody></table>';
   var hasPdfEquipment = equipment.length > 0;
   var hasPdfWorks = services.length > 0;
@@ -808,8 +810,12 @@ async function deleteKey(id){
 }
 
 // UTILS
+function normalizeLineItems(){
+  services=(Array.isArray(services)?services:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,120),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty)};});
+  equipment=(Array.isArray(equipment)?equipment:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,140),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty)};});
+}
 function getClientData(){return{name:document.getElementById('c-name').value.trim(),phone:document.getElementById('c-phone').value.trim(),email:document.getElementById('c-email').value.trim(),city:document.getElementById('c-city').value.trim(),addr:document.getElementById('c-addr').value.trim(),notes:document.getElementById('c-notes').value.trim()};}
-function getTotals(){var worksSub=services.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);var equipmentSub=equipment.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);var sub=worksSub+equipmentSub;var dv=parseFloat(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*dv/100:dv):0;var prepay=parseFloat(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0;return{worksSubtotal:worksSub,equipmentSubtotal:equipmentSub,subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}
+function getTotals(){normalizeLineItems();var worksSub=services.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var equipmentSub=equipment.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var sub=worksSub+equipmentSub;var dv=clampMoneyValue(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*Math.min(dv,100)/100:Math.min(dv,sub)):0;var prepay=Math.min(clampMoneyValue(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0,sub);return{worksSubtotal:worksSub,equipmentSubtotal:equipmentSub,subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}
 function clampMoneyValue(v){
   var n=Math.round(parseFloat(v)||0);
   if(!isFinite(n)||n<0)n=0;
@@ -818,7 +824,7 @@ function clampMoneyValue(v){
 function clampQtyValue(v){
   var n=Math.round(parseFloat(v)||1);
   if(!isFinite(n)||n<1)n=1;
-  return Math.min(n,999);
+  return Math.min(n,99);
 }
 function clampMoneyInput(el){
   var n=clampMoneyValue(el.value);
@@ -831,10 +837,9 @@ function clampQtyInput(el){
 function fmt(n){var v=Math.round(Number(n)||0);return v.toLocaleString('ru-RU')+' ₽';}
 function moneyFontByText(txt){
   var len=String(txt||'').length;
-  if(len>24)return 7.2;
-  if(len>20)return 8.0;
-  if(len>16)return 8.8;
-  if(len>13)return 9.6;
+  if(len>18)return 8.8;
+  if(len>15)return 9.2;
+  if(len>12)return 9.8;
   return 10.5;
 }
 function moneyHtml(n,cls){
@@ -846,7 +851,7 @@ function appMoneyHtml(n){
   var txt=fmt(n);
   var safe=esc(txt).replace(/ /g,'&nbsp;');
   var fs=moneyFontByText(txt);
-  if(fs<8)fs=8;
+  if(fs<9)fs=9;
   return '<span class="app-money-nowrap" title="'+esc(txt)+'" style="font-size:'+fs+'px">'+safe+'</span>';
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}

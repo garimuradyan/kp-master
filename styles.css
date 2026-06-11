@@ -2501,3 +2501,15 @@ thead th:nth-child(4){
     flex-direction:column!important;
   }
 }
+
+/* V56: smaller login key placeholder */
+#keyInput::placeholder{
+  font-size:13px;
+  line-height:1.2;
+  opacity:.72;
+}
+@media(max-width:420px){
+  #keyInput::placeholder{
+    font-size:12px;
+  }
+}

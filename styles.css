@@ -2773,3 +2773,58 @@ input#keyInput.key-login-input-v58::placeholder,
     font-size:15px !important;
   }
 }
+
+/* V64: restore smaller fonts in settings rows, keep v63 alignment */
+#priceList .settings-row-label,
+#equipmentPriceList .settings-row-label{
+  font-size:9px !important;
+  letter-spacing:.8px !important;
+  font-weight:800 !important;
+}
+
+#priceList .settings-name-cell input,
+#equipmentPriceList .settings-name-cell input{
+  font-size:13px !important;
+  font-weight:700 !important;
+  line-height:18px !important;
+}
+
+#priceList .settings-price-cell-price input,
+#equipmentPriceList .settings-price-cell-price input{
+  font-size:13px !important;
+  font-weight:800 !important;
+  line-height:18px !important;
+}
+
+#priceList .settings-price-cell-unit select,
+#equipmentPriceList .settings-price-cell-unit select{
+  font-size:12px !important;
+  font-weight:800 !important;
+}
+
+#priceList .settings-price-row .delete-btn,
+#equipmentPriceList .settings-price-row .delete-btn{
+  font-size:18px !important;
+}
+
+@media(max-width:900px){
+  #priceList .settings-name-cell input,
+  #equipmentPriceList .settings-name-cell input,
+  #priceList .settings-price-cell-price input,
+  #equipmentPriceList .settings-price-cell-price input{
+    font-size:13px !important;
+  }
+  #priceList .settings-price-cell-unit select,
+  #equipmentPriceList .settings-price-cell-unit select{
+    font-size:12px !important;
+  }
+}
+
+@media(max-width:390px){
+  #priceList .settings-name-cell input,
+  #equipmentPriceList .settings-name-cell input,
+  #priceList .settings-price-cell-price input,
+  #equipmentPriceList .settings-price-cell-price input{
+    font-size:12px !important;
+  }
+}

@@ -131,6 +131,9 @@ async function loadUserData(){
   if(typeof window.setScheduleJobsFromServer === 'function'){
     window.setScheduleJobsFromServer(res.data.schedule_jobs || res.data.schedule || []);
   }
+  if(!services.length){services=defaultQuoteServices();}
+  renderServices();
+  renderEquipment();
 }
 
 function applySettings(){
@@ -258,6 +261,13 @@ function renderPriceList(){
 }
 function addPriceItem(){priceItems.push({name:'',price:0,unit:'шт'});renderPriceList();}
 function removePriceItem(i){priceItems.splice(i,1);renderPriceList();}
+
+function defaultQuoteServices(){return[
+  {name:'Стандартный монтаж настенной сплит-системы',price:4500,qty:1},
+  {name:'Прокладка трассы до 3 метров',price:3500,qty:1},
+  {name:'Подключение и проверка системы',price:1500,qty:1}
+];}
+
 function defaultPrices(){return[
   {name:'Монтаж кондиционера до 2,5 кВт',price:4500,unit:'шт'},
   {name:'Монтаж кондиционера 3,5–5 кВт',price:5500,unit:'шт'},
@@ -698,7 +708,7 @@ function resetForm(){
   ['c-name','c-phone','c-email','c-city','c-addr','c-notes'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('discountVal').value='';
   if(document.getElementById('prepayVal'))document.getElementById('prepayVal').value='';
-  services=[];equipment=[];quotePhotos=[];renderPhotos();jumpStep(1);renderEquipment();renderServices();
+  services=defaultQuoteServices();equipment=[];quotePhotos=[];renderPhotos();jumpStep(1);renderEquipment();renderServices();
 }
 
 // ═══════════════ ADMIN ═══════════════

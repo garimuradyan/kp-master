@@ -2140,3 +2140,102 @@ thead th:nth-child(4){
   }
   #section-services .service-row .svc-total{text-align:left!important;padding-top:2px!important}
 }
+
+
+/* ===== MONEY / ROW LAYOUT FINAL V29 ===== */
+#section-services .services-header,
+#section-services .service-row{
+  grid-template-columns:minmax(0,1fr) 108px 56px 128px 30px!important;
+  column-gap:10px!important;
+  align-items:start!important;
+}
+#section-services .services-header span{
+  min-width:0!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+}
+#section-services .services-header span:nth-child(1),
+#section-services .service-row .svc-name{
+  min-width:0!important;
+  max-width:100%!important;
+}
+#section-services .service-row .svc-name{
+  resize:vertical!important;
+  overflow:auto!important;
+  overflow-wrap:anywhere!important;
+  word-break:break-word!important;
+}
+#section-services .service-row input[type="number"]{
+  min-width:0!important;
+  width:100%!important;
+  max-width:100%!important;
+  text-align:right!important;
+  font-size:13px!important;
+  font-variant-numeric:tabular-nums!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+}
+#section-services .service-row input:nth-of-type(2){text-align:center!important}
+#section-services .svc-total{
+  min-width:0!important;
+  width:100%!important;
+  max-width:100%!important;
+  text-align:right!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:clip!important;
+  line-height:1.15!important;
+  padding-top:7px!important;
+  font-size:13px!important;
+  font-variant-numeric:tabular-nums!important;
+}
+.app-money-nowrap,
+.money-nowrap{
+  display:inline-block!important;
+  white-space:nowrap!important;
+  word-break:normal!important;
+  overflow-wrap:normal!important;
+  max-width:100%!important;
+  font-variant-numeric:tabular-nums!important;
+}
+.quote-preview-table col:nth-child(2){width:auto!important}
+.quote-preview-table col:nth-child(3){width:86px!important}
+.quote-preview-table col:nth-child(4){width:38px!important}
+.quote-preview-table col:nth-child(5){width:112px!important}
+.quote-preview-table .qp-name{
+  overflow:hidden!important;
+  overflow-wrap:anywhere!important;
+  word-break:break-word!important;
+  line-height:1.25!important;
+  max-height:3.75em!important;
+}
+.quote-preview-table .qp-money,
+.quote-preview-table .qp-total,
+.quote-preview-table .qp-qty{
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  word-break:normal!important;
+  overflow-wrap:normal!important;
+  font-variant-numeric:tabular-nums!important;
+}
+@media(max-width:760px){
+  #section-services .services-header{display:none!important}
+  #section-services .service-row{
+    grid-template-columns:minmax(0,1fr) 92px 50px 112px 28px!important;
+    grid-template-areas:"name name name name name" "price qty total total del"!important;
+    row-gap:8px!important;
+  }
+  #section-services .service-row .svc-name{grid-area:name!important}
+  #section-services .service-row input:nth-of-type(1){grid-area:price!important}
+  #section-services .service-row input:nth-of-type(2){grid-area:qty!important}
+  #section-services .service-row .svc-total{grid-area:total!important}
+  #section-services .service-row .delete-btn{grid-area:del!important;align-self:center!important}
+}
+@media(max-width:420px){
+  #section-services .service-row{
+    grid-template-columns:minmax(0,1fr) 64px 28px!important;
+    grid-template-areas:"name name name" "price qty del" "total total total"!important;
+  }
+  #section-services .service-row .svc-total{text-align:left!important;padding-top:2px!important}
+}

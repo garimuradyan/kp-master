@@ -122,7 +122,7 @@ async function loadUserData(){
   var res=await sb.rpc('kp_get_user_data',rpcAuthParams());
   if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка загрузки данных'),'error');return;}
   settings=res.data.settings||{};applySettings();
-  priceItems=res.data.price_items||defaultPrices();
+  priceItems=Array.isArray(res.data.price_items)?res.data.price_items:defaultPrices();
   equipmentItems=(settings&&Array.isArray(settings.equipmentItems))?settings.equipmentItems:defaultEquipmentItems();
   renderPriceList();
   renderEquipmentList();
@@ -131,7 +131,6 @@ async function loadUserData(){
   if(typeof window.setScheduleJobsFromServer === 'function'){
     window.setScheduleJobsFromServer(res.data.schedule_jobs || res.data.schedule || []);
   }
-  if(!services.length){services=defaultQuoteServices();}
   renderServices();
   renderEquipment();
 }
@@ -192,8 +191,8 @@ function validateClient(){
 }
 
 // SERVICES
-function addServiceRow(name,price,qty){services.push({name:name||'',price:price||0,qty:qty||1});renderServices();}
-function addEquipmentRow(name,price,qty){equipment.push({name:name||'',price:price||0,qty:qty||1});renderEquipment();}
+function addServiceRow(name,price,qty){services.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty)});renderServices();}
+function addEquipmentRow(name,price,qty){equipment.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty)});renderEquipment();}
 function removeEquipment(i){equipment.splice(i,1);renderEquipment();}
 function removeService(i){services.splice(i,1);renderServices();}
 function renderServices(){
@@ -202,8 +201,8 @@ function renderServices(){
   list.innerHTML=services.map(function(s,i){
     return'<div class="service-row">'+
     '<textarea class="svc-name" rows="2" maxlength="120" placeholder="Наименование" oninput="services['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+
-    '<input type="number" min="0" maxlength="10" value="'+s.price+'" oninput="services['+i+'].price=parseFloat(this.value)||0;recalc()">'+
-    '<input type="number" min="1" maxlength="6" value="'+s.qty+'" oninput="services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
+    '<input type="number" min="0" max="9999999" step="1" value="'+s.price+'" oninput="clampMoneyInput(this);services['+i+'].price=parseFloat(this.value)||0;recalc()">'+
+    '<input type="number" min="1" max="999" step="1" value="'+s.qty+'" oninput="clampQtyInput(this);services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="svcTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+
     '<button class="delete-btn" onclick="removeService('+i+')" style="padding-top:4px">✕</button></div>';
   }).join('');
@@ -217,8 +216,8 @@ function renderEquipment(){
   list.innerHTML=equipment.map(function(s,i){
     return'<div class="service-row equipment-row">'+
     '<textarea class="svc-name" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipment['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+ 
-    '<input type="number" min="0" maxlength="10" value="'+s.price+'" oninput="equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
-    '<input type="number" min="1" maxlength="6" value="'+s.qty+'" oninput="equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
+    '<input type="number" min="0" max="9999999" step="1" value="'+s.price+'" oninput="clampMoneyInput(this);equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
+    '<input type="number" min="1" max="999" step="1" value="'+s.qty+'" oninput="clampQtyInput(this);equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="eqTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+ 
     '<button class="delete-btn" onclick="removeEquipment('+i+')" style="padding-top:4px">✕</button></div>';
   }).join('');
@@ -257,7 +256,7 @@ function renderPriceList(){
   list.innerHTML=priceItems.map(function(p,i){
     return'<div class="service-row settings-price-row">'+
     '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Услуга</em><textarea rows="2" maxlength="120" placeholder="Услуга" oninput="priceItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
-    '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="number" min="0" value="'+p.price+'" placeholder="Цена" oninput="priceItems['+i+'].price=parseFloat(this.value)||0"></label>'+
+    '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="number" min="0" max="9999999" step="1" value="'+p.price+'" placeholder="Цена" oninput="clampMoneyInput(this);priceItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em><input type="text" maxlength="10" value="'+esc(p.unit||'шт')+'" placeholder="Ед." oninput="priceItems['+i+'].unit=this.value"></label>'+
     '<button class="delete-btn" onclick="removePriceItem('+i+')">✕</button></div>';
   }).join('');
@@ -265,11 +264,7 @@ function renderPriceList(){
 function addPriceItem(){priceItems.push({name:'',price:0,unit:'шт'});renderPriceList();}
 function removePriceItem(i){priceItems.splice(i,1);renderPriceList();}
 
-function defaultQuoteServices(){return[
-  {name:'Стандартный монтаж настенной сплит-системы',price:4500,qty:1},
-  {name:'Прокладка трассы до 3 метров',price:3500,qty:1},
-  {name:'Подключение и проверка системы',price:1500,qty:1}
-];}
+function defaultQuoteServices(){return[];}
 
 function defaultPrices(){return[
   {name:'Монтаж кондиционера до 2,5 кВт',price:4500,unit:'шт'},
@@ -295,7 +290,7 @@ function renderEquipmentList(){
   list.innerHTML=equipmentItems.map(function(p,i){
     return'<div class="service-row settings-price-row">'+
     '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Оборудование</em><textarea rows="2" maxlength="140" placeholder="Оборудование" oninput="equipmentItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
-    '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="number" min="0" value="'+p.price+'" placeholder="Цена" oninput="equipmentItems['+i+'].price=parseFloat(this.value)||0"></label>'+
+    '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="number" min="0" max="9999999" step="1" value="'+p.price+'" placeholder="Цена" oninput="clampMoneyInput(this);equipmentItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em><input type="text" maxlength="10" value="'+esc(p.unit||'шт')+'" placeholder="Ед." oninput="equipmentItems['+i+'].unit=this.value"></label>'+
     '<button class="delete-btn" onclick="removeEquipmentItem('+i+')">✕</button></div>';
   }).join('');
@@ -565,7 +560,7 @@ function printPDF(){
     '<td class="money-td">'+moneyHtml(s.price)+'</td><td class="qty-td">'+s.qty+'</td>'+ 
     '<td class="money-td sum-td" style="color:'+color+'">'+moneyHtml(total)+'</td></tr>';
   }).join('');
-  var pdfTableHead='<table><colgroup><col style="width:22px"><col><col style="width:92px"><col style="width:30px"><col style="width:122px"></colgroup><thead><tr><th>#</th><th>Наименование</th><th>Цена</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>';
+  var pdfTableHead='<table><colgroup><col style="width:22px"><col><col style="width:82px"><col style="width:28px"><col style="width:108px"></colgroup><thead><tr><th>#</th><th>Наименование</th><th>Цена</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>';
   var pdfTableEnd='</tbody></table>';
   var hasPdfEquipment = equipment.length > 0;
   var hasPdfWorks = services.length > 0;
@@ -600,9 +595,9 @@ function printPDF(){
     'thead tr{background:'+color+'}thead th{padding:7px 5px;color:#fff;font-size:9px;text-align:left;white-space:normal;overflow:hidden;vertical-align:middle;line-height:1.15}'+
     'thead th:nth-child(1){width:22px;text-align:center}'+
     'thead th:nth-child(2){width:auto}'+
-    'thead th:nth-child(3){text-align:right;width:92px}'+
-    'thead th:nth-child(4){text-align:center;width:30px;vertical-align:middle;white-space:nowrap;word-break:normal;overflow-wrap:normal}'+
-    'thead th:nth-child(5){text-align:right;width:122px}'+
+    'thead th:nth-child(3){text-align:right;width:82px}'+
+    'thead th:nth-child(4){text-align:center;width:28px;vertical-align:middle;white-space:nowrap;word-break:normal;overflow-wrap:normal}'+
+    'thead th:nth-child(5){text-align:right;width:108px}'+
     'tbody td{padding:6px 5px;border-bottom:1px solid #eee;font-size:10.5px;white-space:normal;overflow:hidden;text-overflow:clip;vertical-align:top}'+
     '.num-td{text-align:center!important;color:#888;width:22px!important}'+
     '.name-td{word-break:break-word;overflow-wrap:anywhere}'+
@@ -616,7 +611,7 @@ function printPDF(){
     'a{color:inherit;text-decoration:none}'+
     '.ftr{margin-top:18px;padding-top:10px;border-top:1px solid #ddd;display:flex;justify-content:space-between;gap:10px;font-size:9px;color:#aaa;overflow:hidden}.ftr>div{min-width:0}'+
     '.pbtn{display:block;width:100%;padding:14px;margin-bottom:14px;background:'+color+';color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}'+
-    '@media(max-width:520px){body{padding:10px;font-size:10.5px}.hdr{gap:8px}.hdr>div:first-child{max-width:55%}.hdr>div:last-child{flex:0 0 148px;max-width:148px;min-width:148px}.kpt{font-size:12px;word-break:normal;overflow-wrap:normal;hyphens:none;word-break:keep-all}.cg{grid-template-columns:minmax(0,1fr);font-size:10px}thead th{font-size:8.5px;padding:6px 3px}tbody td{font-size:9.5px;padding:5px 3px}thead th:nth-child(3){width:82px}thead th:nth-child(4){width:28px}thead th:nth-child(5){width:110px}.money-nowrap{letter-spacing:-.45px}.tot table{max-width:210px}.grand td{font-size:13px}}'+
+    '@media(max-width:520px){body{padding:10px;font-size:10.5px}.hdr{gap:8px}.hdr>div:first-child{max-width:55%}.hdr>div:last-child{flex:0 0 148px;max-width:148px;min-width:148px}.kpt{font-size:12px;word-break:normal;overflow-wrap:normal;hyphens:none;word-break:keep-all}.cg{grid-template-columns:minmax(0,1fr);font-size:10px}thead th{font-size:8.5px;padding:6px 3px}tbody td{font-size:9.5px;padding:5px 3px}thead th:nth-child(3){width:74px}thead th:nth-child(4){width:26px}thead th:nth-child(5){width:100px}.money-nowrap{letter-spacing:-.45px}.tot table{max-width:210px}.grand td{font-size:13px}}'+
     '@media print{.pbtn{display:none}@page{margin:12mm 14mm}body{padding:0;overflow:visible}}'+
     '</style></head><body>'+
     '<button class="pbtn" onclick="window.print()">💾 Сохранить как PDF</button>'+
@@ -713,7 +708,7 @@ function resetForm(){
   ['c-name','c-phone','c-email','c-city','c-addr','c-notes'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('discountVal').value='';
   if(document.getElementById('prepayVal'))document.getElementById('prepayVal').value='';
-  services=defaultQuoteServices();equipment=[];quotePhotos=[];renderPhotos();jumpStep(1);renderEquipment();renderServices();
+  services=[];equipment=[];quotePhotos=[];renderPhotos();jumpStep(1);renderEquipment();renderServices();
 }
 
 // ═══════════════ ADMIN ═══════════════
@@ -815,14 +810,31 @@ async function deleteKey(id){
 // UTILS
 function getClientData(){return{name:document.getElementById('c-name').value.trim(),phone:document.getElementById('c-phone').value.trim(),email:document.getElementById('c-email').value.trim(),city:document.getElementById('c-city').value.trim(),addr:document.getElementById('c-addr').value.trim(),notes:document.getElementById('c-notes').value.trim()};}
 function getTotals(){var worksSub=services.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);var equipmentSub=equipment.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);var sub=worksSub+equipmentSub;var dv=parseFloat(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*dv/100:dv):0;var prepay=parseFloat(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0;return{worksSubtotal:worksSub,equipmentSubtotal:equipmentSub,subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}
-function fmt(n){return Number(n).toLocaleString('ru-RU')+' ₽';}
+function clampMoneyValue(v){
+  var n=Math.round(parseFloat(v)||0);
+  if(!isFinite(n)||n<0)n=0;
+  return Math.min(n,9999999);
+}
+function clampQtyValue(v){
+  var n=Math.round(parseFloat(v)||1);
+  if(!isFinite(n)||n<1)n=1;
+  return Math.min(n,999);
+}
+function clampMoneyInput(el){
+  var n=clampMoneyValue(el.value);
+  if(String(el.value)!==String(n))el.value=n;
+}
+function clampQtyInput(el){
+  var n=clampQtyValue(el.value);
+  if(String(el.value)!==String(n))el.value=n;
+}
+function fmt(n){var v=Math.round(Number(n)||0);return v.toLocaleString('ru-RU')+' ₽';}
 function moneyFontByText(txt){
   var len=String(txt||'').length;
-  if(len>30)return 6.2;
-  if(len>26)return 6.8;
-  if(len>22)return 7.4;
-  if(len>18)return 8.4;
-  if(len>14)return 9.4;
+  if(len>24)return 7.2;
+  if(len>20)return 8.0;
+  if(len>16)return 8.8;
+  if(len>13)return 9.6;
   return 10.5;
 }
 function moneyHtml(n,cls){

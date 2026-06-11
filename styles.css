@@ -2428,3 +2428,15 @@ thead th:nth-child(4){
   .auth-wrap{padding-top:64px}
   .public-about-page{padding:18px 10px 0}
 }
+
+
+/* ABOUT SUPPORT BUTTON V45 */
+.about-v21-support-btn{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  text-decoration:none!important;
+}
+.about-v21-support-section{
+  align-items:center;
+}

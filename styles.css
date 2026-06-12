@@ -565,7 +565,7 @@ thead th:nth-child(4){
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(82px,104px) minmax(48px,62px) 30px;
   gap:8px;
-  align-items:start;
+  align-items:stretch;
   padding:10px;
   overflow:hidden;
 }
@@ -585,16 +585,12 @@ thead th:nth-child(4){
   font-weight:900;
   padding-left:2px;
   white-space:nowrap;
-  height:11px;
 }
 #priceList .settings-price-row textarea,
 #equipmentPriceList .settings-price-row textarea{
-  min-height:72px;
-  max-height:140px;
+  min-height:54px;
+  max-height:96px;
   overflow:auto;
-  font-size:13.5px;
-  line-height:1.4;
-  resize:vertical;
 }
 #priceList .settings-price-row input,
 #equipmentPriceList .settings-price-row input{
@@ -605,16 +601,9 @@ thead th:nth-child(4){
   font-weight:800;
   color:var(--accent);
 }
-.settings-price-cell-unit select,
-.settings-price-cell-unit .unit-select{
-  height:38px;
-  padding:4px 6px;
-  font-size:12px;
-}
 #priceList .settings-price-row .delete-btn,
 #equipmentPriceList .settings-price-row .delete-btn{
-  align-self:start;
-  margin-top:16px;
+  align-self:center;
   width:30px;
   min-width:30px;
   height:34px;
@@ -642,13 +631,11 @@ thead th:nth-child(4){
   .settings-price-cell-price{grid-area:price}
   .settings-price-cell-unit{grid-area:unit}
   #priceList .settings-price-row .delete-btn,
-  #equipmentPriceList .settings-price-row .delete-btn{grid-area:del;align-self:start;margin-top:16px}
+  #equipmentPriceList .settings-price-row .delete-btn{grid-area:del;align-self:center}
   #priceList .settings-price-row textarea,
-  #equipmentPriceList .settings-price-row textarea{min-height:96px;font-size:13px}
+  #equipmentPriceList .settings-price-row textarea{min-height:92px}
   #priceList .settings-price-row input,
   #equipmentPriceList .settings-price-row input{height:34px;padding:5px 6px;font-size:12px}
-  .settings-price-cell-unit select,
-  .settings-price-cell-unit .unit-select{height:34px;font-size:11px;padding:3px 4px}
 }
 
 
@@ -2362,6 +2349,25 @@ thead th:nth-child(4){
   cursor:pointer!important;
 }
 .unit-select:focus{background:var(--surface)!important;border-color:var(--accent)!important}
+.svc-unit-locked{
+  width:100%!important;
+  min-width:0!important;
+  height:32px!important;
+  padding:4px 6px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid transparent!important;
+  border-radius:6px!important;
+  color:var(--text2)!important;
+  font-size:12px!important;
+  font-weight:700!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+#section-services .service-row .svc-unit-locked{text-align:center!important;min-width:0!important;width:100%!important}
 #section-services .services-header{
   display:grid!important;
   grid-template-columns:minmax(0,1fr) 86px 56px 58px 104px 28px!important;

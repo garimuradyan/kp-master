@@ -231,8 +231,8 @@ function unitSelectHtml(value,onchange){
   var current=normalizeUnit(value);
   return '<select class="unit-select" onchange="'+onchange+'">'+UNIT_OPTIONS.map(function(u){return '<option value="'+esc(u)+'" '+(u===current?'selected':'')+'>'+esc(u)+'</option>';}).join('')+'</select>';
 }
-function addServiceRow(name,price,qty,unit){services.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty),unit:normalizeUnit(unit)});renderServices();}
-function addEquipmentRow(name,price,qty,unit){equipment.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty),unit:normalizeUnit(unit)});renderEquipment();}
+function addServiceRow(name,price,qty,unit,locked){services.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty),unit:normalizeUnit(unit),locked:!!locked});renderServices();}
+function addEquipmentRow(name,price,qty,unit,locked){equipment.push({name:name||'',price:clampMoneyValue(price),qty:clampQtyValue(qty),unit:normalizeUnit(unit),locked:!!locked});renderEquipment();}
 function removeEquipment(i){equipment.splice(i,1);renderEquipment();}
 function removeService(i){services.splice(i,1);renderServices();}
 function renderServices(){
@@ -242,7 +242,7 @@ function renderServices(){
     return'<div class="service-row">'+
     '<textarea class="svc-name" rows="2" maxlength="120" placeholder="Наименование" oninput="services['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" onpaste="setTimeout(()=>clampMoneyInput(this),0)" oninput="clampMoneyInput(this);services['+i+'].price=parseFloat(this.value)||0;recalc()">'+
-    unitSelectHtml(s.unit,'services['+i+'].unit=this.value;recalc()')+
+    (s.locked?'<div class="svc-unit-locked" title="Единица задана в прайсе">'+esc(normalizeUnit(s.unit))+'</div>':unitSelectHtml(s.unit,'services['+i+'].unit=this.value;recalc()'))+
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" onpaste="setTimeout(()=>clampQtyInput(this),0)" oninput="clampQtyInput(this);services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="svcTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+
     '<button class="delete-btn" onclick="removeService('+i+')" style="padding-top:4px">✕</button></div>';
@@ -258,7 +258,7 @@ function renderEquipment(){
     return'<div class="service-row equipment-row">'+
     '<textarea class="svc-name" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipment['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+ 
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" onpaste="setTimeout(()=>clampMoneyInput(this),0)" oninput="clampMoneyInput(this);equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
-    unitSelectHtml(s.unit,'equipment['+i+'].unit=this.value;recalc()')+
+    (s.locked?'<div class="svc-unit-locked" title="Единица задана в прайсе">'+esc(normalizeUnit(s.unit))+'</div>':unitSelectHtml(s.unit,'equipment['+i+'].unit=this.value;recalc()'))+
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" onpaste="setTimeout(()=>clampQtyInput(this),0)" oninput="clampQtyInput(this);equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="eqTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+ 
     '<button class="delete-btn" onclick="removeEquipment('+i+')" style="padding-top:4px">✕</button></div>';
@@ -377,9 +377,9 @@ function closeModal(){document.getElementById('priceModal').style.display='none'
 function applyModalItems(){
   document.querySelectorAll('#modalPriceList input:checked').forEach(function(cb){
     if(priceModalTarget==='equipment'){
-      var e=equipmentItems[cb.dataset.idx];if(e)addEquipmentRow(e.name,e.price,1,normalizeUnit(e.unit));
+      var e=equipmentItems[cb.dataset.idx];if(e)addEquipmentRow(e.name,e.price,1,normalizeUnit(e.unit),true);
     }else{
-      var p=priceItems[cb.dataset.idx];if(p)addServiceRow(p.name,p.price,1,normalizeUnit(p.unit));
+      var p=priceItems[cb.dataset.idx];if(p)addServiceRow(p.name,p.price,1,normalizeUnit(p.unit),true);
     }
   });
   closeModal();
@@ -868,8 +868,8 @@ async function deleteKey(id){
 
 // UTILS
 function normalizeLineItems(){
-  services=(Array.isArray(services)?services:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,120),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit)};});
-  equipment=(Array.isArray(equipment)?equipment:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,140),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit)};});
+  services=(Array.isArray(services)?services:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,120),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit),locked:!!(x&&x.locked)};});
+  equipment=(Array.isArray(equipment)?equipment:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,140),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit),locked:!!(x&&x.locked)};});
 }
 function getClientData(){return{name:document.getElementById('c-name').value.trim(),phone:document.getElementById('c-phone').value.trim(),email:document.getElementById('c-email').value.trim(),city:document.getElementById('c-city').value.trim(),addr:document.getElementById('c-addr').value.trim(),notes:document.getElementById('c-notes').value.trim()};}
 function getTotals(){normalizeLineItems();var worksSub=services.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var equipmentSub=equipment.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var sub=worksSub+equipmentSub;var dv=clampMoneyValue(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*Math.min(dv,100)/100:Math.min(dv,sub)):0;var prepay=Math.min(clampMoneyValue(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0,sub);return{worksSubtotal:worksSub,equipmentSubtotal:equipmentSub,subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}

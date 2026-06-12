@@ -1,3 +1,4 @@
+/* График выездов. Сохранение через Supabase RPC, с локальным fallback при недоступной базе. */
 (function(){
   var scheduleJobs = [];
   var scheduleMonth = new Date();

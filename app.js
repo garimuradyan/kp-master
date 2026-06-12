@@ -1,5 +1,5 @@
 
-window.KP_APP_VERSION='v67-mobile-name-drag-compact-unit';
+window.KP_APP_VERSION='v64-settings-font-restore';
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=null;
@@ -296,15 +296,12 @@ function recalc(){
 function renderPriceList(){
   var list=document.getElementById('priceList');if(!list)return;
   list.innerHTML=priceItems.map(function(p,i){
-    return'<div class="service-row settings-price-row" data-list="price" data-index="'+i+'">'+
-    '<button type="button" class="settings-drag-handle" aria-label="Перетащить строку" title="Перетащить строку">⋮⋮</button>'+
-    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Услуга</em><textarea class="settings-name-textarea" rows="2" maxlength="120" placeholder="Услуга" oninput="priceItems['+i+'].name=this.value;autoGrowSettingsTextarea(this)">'+esc(p.name)+'</textarea></label>'+
+    return'<div class="service-row settings-price-row">'+
+    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Услуга</em><textarea rows="2" maxlength="120" placeholder="Услуга" oninput="priceItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
     '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" placeholder="Цена" oninput="clampMoneyInput(this);priceItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em>'+unitSelectHtml(p.unit,'priceItems['+i+'].unit=this.value')+'</label>'+
     '<button class="delete-btn" onclick="removePriceItem('+i+')">✕</button></div>';
   }).join('');
-  bindSettingsDrag(list,'price');
-  setTimeout(autoGrowAllSettingsTextareas,0);
 }
 function addPriceItem(){priceItems.push({name:'',price:0,unit:'шт.'});renderPriceList();}
 function removePriceItem(i){priceItems.splice(i,1);renderPriceList();}
@@ -339,123 +336,15 @@ function defaultEquipmentItems(){return[
 function renderEquipmentList(){
   var list=document.getElementById('equipmentPriceList');if(!list)return;
   list.innerHTML=equipmentItems.map(function(p,i){
-    return'<div class="service-row settings-price-row" data-list="equipment" data-index="'+i+'">'+
-    '<button type="button" class="settings-drag-handle" aria-label="Перетащить строку" title="Перетащить строку">⋮⋮</button>'+
-    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Оборудование</em><textarea class="settings-name-textarea" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipmentItems['+i+'].name=this.value;autoGrowSettingsTextarea(this)">'+esc(p.name)+'</textarea></label>'+
+    return'<div class="service-row settings-price-row">'+
+    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Оборудование</em><textarea rows="2" maxlength="140" placeholder="Оборудование" oninput="equipmentItems['+i+'].name=this.value">'+esc(p.name)+'</textarea></label>'+
     '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" placeholder="Цена" oninput="clampMoneyInput(this);equipmentItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em>'+unitSelectHtml(p.unit,'equipmentItems['+i+'].unit=this.value')+'</label>'+
     '<button class="delete-btn" onclick="removeEquipmentItem('+i+')">✕</button></div>';
   }).join('');
-  bindSettingsDrag(list,'equipment');
-  setTimeout(autoGrowAllSettingsTextareas,0);
 }
 function addEquipmentItem(){equipmentItems.push({name:'',price:0,unit:'шт.'});renderEquipmentList();}
 function removeEquipmentItem(i){equipmentItems.splice(i,1);renderEquipmentList();}
-
-var settingsDragState=null;
-
-function settingsItemsByType(type){
-  return type==='equipment'?equipmentItems:priceItems;
-}
-
-function renderSettingsListByType(type){
-  if(type==='equipment')renderEquipmentList();
-  else renderPriceList();
-}
-
-function reorderSettingsItem(type,from,to){
-  var arr=settingsItemsByType(type);
-  if(!Array.isArray(arr))return;
-  from=parseInt(from,10);to=parseInt(to,10);
-  if(!isFinite(from)||!isFinite(to)||from===to||!arr[from])return;
-  var item=arr.splice(from,1)[0];
-  arr.splice(to,0,item);
-  renderSettingsListByType(type);
-}
-
-function bindSettingsDrag(list,type){
-  if(!list)return;
-  list.querySelectorAll('.settings-price-row').forEach(function(row){
-    row.draggable=true;
-    row.addEventListener('dragstart',function(e){
-      settingsDragState={type:type,index:parseInt(row.dataset.index,10)};
-      row.classList.add('settings-row-dragging');
-      if(e.dataTransfer){
-        e.dataTransfer.effectAllowed='move';
-        e.dataTransfer.setData('text/plain',type+':'+row.dataset.index);
-      }
-    });
-    row.addEventListener('dragover',function(e){
-      if(!settingsDragState||settingsDragState.type!==type)return;
-      e.preventDefault();
-      row.classList.add('settings-row-drag-over');
-      if(e.dataTransfer)e.dataTransfer.dropEffect='move';
-    });
-    row.addEventListener('dragleave',function(){
-      row.classList.remove('settings-row-drag-over');
-    });
-    row.addEventListener('drop',function(e){
-      if(!settingsDragState||settingsDragState.type!==type)return;
-      e.preventDefault();
-      var to=parseInt(row.dataset.index,10);
-      var from=settingsDragState.index;
-      settingsDragEnd();
-      reorderSettingsItem(type,from,to);
-    });
-    row.addEventListener('dragend',settingsDragEnd);
-  });
-
-  list.querySelectorAll('.settings-drag-handle').forEach(function(handle){
-    handle.addEventListener('pointerdown',function(e){
-      settingsPointerDragStart(e,handle,type);
-    });
-  });
-}
-
-function settingsDragEnd(){
-  document.querySelectorAll('.settings-row-dragging,.settings-row-drag-over').forEach(function(el){
-    el.classList.remove('settings-row-dragging','settings-row-drag-over');
-  });
-  settingsDragState=null;
-}
-
-function settingsPointerDragStart(e,handle,type){
-  if(!e||!handle)return;
-  var row=handle.closest('.settings-price-row');
-  if(!row)return;
-  settingsDragState={type:type,index:parseInt(row.dataset.index,10),pointer:true};
-  row.classList.add('settings-row-dragging');
-  try{handle.setPointerCapture&&handle.setPointerCapture(e.pointerId);}catch(_){}
-  var move=function(ev){
-    var el=document.elementFromPoint(ev.clientX,ev.clientY);
-    var over=el&&el.closest?el.closest('.settings-price-row'):null;
-    document.querySelectorAll('.settings-row-drag-over').forEach(function(x){x.classList.remove('settings-row-drag-over');});
-    if(over&&over.dataset.list===type)over.classList.add('settings-row-drag-over');
-  };
-  var up=function(ev){
-    var el=document.elementFromPoint(ev.clientX,ev.clientY);
-    var over=el&&el.closest?el.closest('.settings-price-row'):null;
-    var from=settingsDragState&&settingsDragState.index;
-    var to=over?parseInt(over.dataset.index,10):from;
-    document.removeEventListener('pointermove',move);
-    document.removeEventListener('pointerup',up);
-    settingsDragEnd();
-    if(over&&over.dataset.list===type)reorderSettingsItem(type,from,to);
-  };
-  document.addEventListener('pointermove',move);
-  document.addEventListener('pointerup',up);
-}
-
-function autoGrowSettingsTextarea(el){
-  if(!el)return;
-  el.style.height='auto';
-  var h=Math.min(Math.max(el.scrollHeight,58),132);
-  el.style.height=h+'px';
-}
-
-function autoGrowAllSettingsTextareas(){
-  document.querySelectorAll('.settings-name-textarea').forEach(autoGrowSettingsTextarea);
-}
 
 
 // MODAL

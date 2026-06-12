@@ -7,7 +7,6 @@ body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(
 .header-right{display:flex;align-items:center;gap:8px}
 .master-badge{font-size:12px;color:var(--text2);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .header-nav{display:none}
-/* Bottom nav for mobile */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom)}
 .bottom-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;border:none;background:none;color:var(--text3);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;gap:4px;text-transform:uppercase;letter-spacing:.5px}
 .bottom-nav-btn .bnav-icon{font-size:20px;line-height:1}
@@ -109,7 +108,6 @@ textarea{resize:vertical;min-height:80px}
 #toast.success{border-color:var(--success);color:var(--success)}
 #toast.error{border-color:var(--danger);color:var(--danger)}
 .master-badge{font-size:12px;color:var(--text2);margin-right:4px}
-/* ADMIN */
 .admin-table{width:100%;border-collapse:collapse}
 .admin-table th{padding:10px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);border-bottom:1px solid var(--border)}
 .admin-table td{padding:12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
@@ -127,7 +125,6 @@ textarea{resize:vertical;min-height:80px}
 .stat-label{font-size:11px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:1px}
 
 
-/* Fix: предпросмотр не должен вылезать за рамки */
 .preview-panel{max-width:100%;overflow-x:auto}
 .preview-panel table{width:100%;table-layout:fixed}
 .preview-panel th,.preview-panel td{overflow-wrap:anywhere;word-break:break-word}
@@ -138,7 +135,6 @@ textarea{resize:vertical;min-height:80px}
 @media(max-width:700px){.preview-panel{padding:14px;font-size:12px}.preview-panel table{font-size:11px}.preview-panel th,.preview-panel td{padding:6px 5px}}
 
 
-/* FIX: preview/PDF layout overflow */
 .preview-panel{overflow:hidden;max-width:100%}
 .preview-panel table{table-layout:fixed;width:100%}
 .preview-panel th,.preview-panel td{overflow-wrap:anywhere;word-break:break-word;white-space:normal}
@@ -155,7 +151,6 @@ textarea{resize:vertical;min-height:80px}
 }
 
 
-/* HARD FIX: never let preview content go outside the white page */
 .preview-panel,
 .preview-panel *{
   max-width:100%;
@@ -200,7 +195,6 @@ textarea{resize:vertical;min-height:80px}
 }
 
 
-/* FIX: PDF table header alignment */
 thead th{
   vertical-align:middle!important;
   line-height:1.15!important;
@@ -224,7 +218,6 @@ thead th:nth-child(4){
 }
 
 
-/* FIX: header words should not split in PDF/preview */
 .preview-panel [style*="КОММЕРЧЕСКОЕ"],
 .preview-panel .kpt{
   word-break:normal!important;
@@ -232,7 +225,6 @@ thead th:nth-child(4){
   hyphens:none!important;
 }
 
-/* ═══════════ ABOUT PAGE ═══════════ */
 .about-header{text-align:center;padding:24px 16px 16px;border-bottom:1px solid var(--border);margin-bottom:20px}
 .about-logo{font-size:26px;font-weight:900;letter-spacing:2px;color:#2563eb;margin-bottom:6px}
 .about-version{font-size:13px;color:var(--text2)}
@@ -251,7 +243,6 @@ thead th:nth-child(4){
 .contact-link{display:inline-flex;align-items:center;gap:8px;background:#2563eb;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:10px;text-decoration:none}
 .contact-link:hover{background:#1d4ed8}
 
-/* ═══════════ ABOUT PAGE ═══════════ */
 .about-header{text-align:center;padding:24px 16px 16px;border-bottom:1px solid var(--border);margin-bottom:20px}
 .about-logo{font-size:26px;font-weight:900;letter-spacing:2px;color:#2563eb;margin-bottom:6px}
 .about-version{font-size:13px;color:var(--text2)}
@@ -274,7 +265,6 @@ thead th:nth-child(4){
 .contact-link{display:inline-flex;align-items:center;gap:8px;background:#2563eb;color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:10px;text-decoration:none}
 .contact-link:hover{background:#1d4ed8}
 
-/* === Documents + schedule additions === */
 .kp-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:700;align-items:center;justify-content:center;padding:16px}
 .kp-modal-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 .kp-modal-box-wide{max-width:760px}
@@ -321,13 +311,11 @@ thead th:nth-child(4){
 @media(max-width:850px){.schedule-layout{grid-template-columns:1fr}.schedule-stats{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:560px){.schedule-stats{grid-template-columns:1fr 1fr}.schedule-day{min-height:60px;padding:6px}.day-num{font-size:16px;min-width:28px;min-height:28px}.schedule-day.is-today .day-num{min-width:30px;height:30px}.day-count{top:5px;right:5px;width:20px;height:20px;min-width:20px;font-size:10px}.schedule-job{grid-template-columns:1fr}.schedule-job-time{display:flex;gap:4px;align-items:baseline}.kp-modal-box{padding:18px}.modal-actions .btn{flex:1}.schedule-toolbar .btn{flex:1}.schedule-toolbar input[type=month]{max-width:none}}
 
-/* === Safe contract editing + signature pad === */
 .settings-note{font-size:12px;color:var(--text2);line-height:1.5;margin:0 0 12px}
 .signature-pad-wrap{background:#fff;border:1px dashed var(--border);border-radius:12px;padding:8px;touch-action:none}
 .signature-pad-wrap canvas{display:block;width:100%;height:180px;background:#fff;border-radius:8px;touch-action:none;cursor:crosshair}
 .contract-template-textarea{min-height:420px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.45;white-space:pre-wrap}
 
-/* === Schedule corrections === */
 .schedule-month-switch{display:inline-flex;align-items:center;gap:6px;flex-wrap:nowrap}
 .schedule-month-switch #scheduleMonthInput{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
 .schedule-month-label{min-width:128px;text-align:center;white-space:nowrap}
@@ -343,7 +331,6 @@ thead th:nth-child(4){
 .visit-type-badge{background:rgba(0,200,255,.12);color:var(--accent)}
 @media(max-width:560px){.schedule-month-switch{width:100%}.schedule-month-switch .btn{flex:0 0 auto}.schedule-month-label{flex:1;min-width:0}.schedule-price-picker{flex-direction:column;align-items:stretch}.schedule-item-row{grid-template-columns:1fr 54px 28px}.schedule-item-price{display:none}.schedule-item-total{font-size:11px}.schedule-item-row input{width:100%}}
 
-/* === Schedule mobile/compact corrections v2 === */
 .schedule-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
 .schedule-stats>div,.schedule-stat-chip{padding:7px 6px;border-radius:9px;display:flex;align-items:center;gap:6px;text-align:left;min-width:0}
 .schedule-stats b,.schedule-stat-chip b{font-size:15px;line-height:1;color:var(--accent);flex:0 0 auto;min-width:20px;text-align:center}
@@ -395,7 +382,6 @@ thead th:nth-child(4){
   #scheduleModal .modal-actions .btn{flex:1 1 0;min-width:0;padding-left:10px;padding-right:10px}
 }
 
-/* === Schedule modal mobile fix v4 === */
 #scheduleModal,
 #scheduleModal *{box-sizing:border-box}
 #scheduleModal .kp-modal-box{width:min(760px,100%);overflow-x:hidden}
@@ -441,7 +427,6 @@ thead th:nth-child(4){
   #scheduleModal .schedule-price-picker .btn{width:100%}
 }
 
-/* === v7: точечная адаптация только окна графика, без изменения общего интерфейса === */
 #scheduleModal,
 #scheduleModal *{box-sizing:border-box}
 #scheduleModal{overflow-x:hidden}
@@ -550,7 +535,6 @@ thead th:nth-child(4){
   #scheduleModal .schedule-item-total{grid-column:1/-1;text-align:left}
 }
 
-/* v11: равноправное отображение оборудования и работ в графике */
 .schedule-equipment-view b,
 .schedule-services-view b{display:inline-block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)}
 .schedule-equipment-view{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.22)}
@@ -559,7 +543,6 @@ thead th:nth-child(4){
 #scheduleModal .field.span2{min-width:0}
 
 
-/* v12: settings price/equipment rows — fixed labels, width and mobile layout */
 #priceList .settings-price-row,
 #equipmentPriceList .settings-price-row{
   display:grid;
@@ -639,7 +622,6 @@ thead th:nth-child(4){
 }
 
 
-/* === v13: грамотная аналитика графика === */
 .schedule-stats>div,
 .schedule-stat-chip{
   justify-content:space-between;
@@ -678,7 +660,6 @@ thead th:nth-child(4){
   .schedule-stat-chip b{font-size:15px;min-width:22px}
 }
 
-/* === v14: финальная правка аналитики и строк настроек === */
 #scheduleStats.schedule-stats,
 .schedule-stats{
   display:grid;
@@ -745,7 +726,6 @@ thead th:nth-child(4){
 }
 
 
-/* === v15: настройки — убираем верхнюю шапку, подписи оставляем внутри каждой строки === */
 #section-settings .card .services-header:has(+ #priceList),
 #section-settings .card .services-header:has(+ #equipmentPriceList){display:none!important}
 #priceList .settings-price-cell > span,
@@ -788,7 +768,6 @@ thead th:nth-child(4){
   #equipmentPriceList .settings-price-row .delete-btn{grid-area:del!important;align-self:center!important}
 }
 
-/* === v15: аналитика — название слева, зелёная цифра справа === */
 #scheduleStats.schedule-stats{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
 #scheduleStats .schedule-stat-chip{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;text-align:left!important;min-width:0!important}
 #scheduleStats .schedule-stat-name{order:1!important;flex:1 1 auto!important;min-width:0!important;margin:0!important;color:var(--text2)!important;font-size:10px!important;line-height:1.18!important;font-weight:800!important;text-transform:uppercase!important;letter-spacing:.45px!important;white-space:normal!important;overflow-wrap:anywhere!important}
@@ -800,7 +779,6 @@ thead th:nth-child(4){
   #scheduleStats .schedule-stat-count{font-size:16px!important;min-width:20px!important}
 }
 
-/* === v16: подписи внутри строк настроек — работ и оборудования === */
 #priceList .settings-price-row,
 #equipmentPriceList .settings-price-row{
   display:grid!important;
@@ -876,7 +854,6 @@ thead th:nth-child(4){
   #equipmentPriceList .settings-price-row textarea{min-height:88px!important}
 }
 
-/* ABOUT PAGE UPDATE */
 .about-hero{
   text-align:center;
   background:linear-gradient(180deg,rgba(59,130,246,.12),rgba(16,185,129,.05));
@@ -905,7 +882,6 @@ thead th:nth-child(4){
   .tariff-card{min-height:auto;padding:16px 12px}
 }
 
-/* ABOUT PAGE PREMIUM V18 */
 #page-about{
   max-width:980px;
   margin:0 auto;
@@ -1207,7 +1183,6 @@ thead th:nth-child(4){
   #page-about{max-width:900px;padding-left:22px;padding-right:22px}
 }
 
-/* v20 about page refinements */
 #page-about .about-value-card b,
 #page-about .about-value-card p,
 #page-about .about-fit-row b,
@@ -1269,7 +1244,6 @@ thead th:nth-child(4){
 }
 
 
-/* ===== ABOUT PAGE PREMIUM V21 ===== */
 #page-about.about-v21-page{
   max-width:1140px;
   margin:0 auto;
@@ -1629,7 +1603,6 @@ thead th:nth-child(4){
 }
 
 
-/* ===== ABOUT PAGE TEXT FIXES V23 ===== */
 #page-about .about-v21-feature-num{
   display:none!important;
 }
@@ -1681,7 +1654,6 @@ thead th:nth-child(4){
 }
 
 
-/* ===== ABOUT PAGE PREMIUM V24 FIXES ===== */
 .about-v21-stats{
   align-content:start;
   align-items:stretch;
@@ -1756,7 +1728,6 @@ thead th:nth-child(4){
 }
 
 
-/* ===== ABOUT PAGE BRIGHT COLORFUL V25 ===== */
 #page-about.about-v21-page{
   background:
     radial-gradient(circle at top left, rgba(59,130,246,.10), transparent 18%),
@@ -1929,7 +1900,6 @@ thead th:nth-child(4){
 }
 
 
-/* ===== HARD FIX V27: rows cannot overflow columns ===== */
 #section-services .card{
   overflow:hidden;
 }
@@ -2025,7 +1995,6 @@ thead th:nth-child(4){
   #section-services .service-row .delete-btn{grid-area:del!important;align-self:center!important}
 }
 
-/* ===== ABSOLUTE MONEY / COLUMN LOCK V28 ===== */
 #section-services .services-header,
 #section-services .service-row{
   grid-template-columns:minmax(0,1fr) 120px 64px 158px 32px!important;
@@ -2142,7 +2111,6 @@ thead th:nth-child(4){
 }
 
 
-/* ===== MONEY / ROW LAYOUT FINAL V29 ===== */
 #section-services .services-header,
 #section-services .service-row{
   grid-template-columns:minmax(0,1fr) 108px 56px 128px 30px!important;
@@ -2240,7 +2208,6 @@ thead th:nth-child(4){
   #section-services .service-row .svc-total{text-align:left!important;padding-top:2px!important}
 }
 
-/* ===== MONEY / ROW LAYOUT PROFESSIONAL V30 ===== */
 #section-services .services-header,
 #section-services .service-row{
   grid-template-columns:minmax(0,1fr) 100px 48px 118px 30px!important;
@@ -2332,7 +2299,6 @@ thead th:nth-child(4){
 }
 
 
-/* === V40 fixed unit select controls === */
 .unit-select{
   width:100%!important;
   min-width:0!important;
@@ -2417,7 +2383,6 @@ thead th:nth-child(4){
 }
 
 
-/* PUBLIC ABOUT ACCESS WITHOUT KEY - V43 */
 .auth-wrap{
   min-height:auto;
   padding:42px 16px 24px;
@@ -2449,7 +2414,6 @@ thead th:nth-child(4){
 }
 
 
-/* ABOUT SUPPORT BUTTON V45 */
 .about-v21-support-btn{
   display:inline-flex!important;
   align-items:center;
@@ -2461,7 +2425,6 @@ thead th:nth-child(4){
 }
 
 
-/* ABOUT TELEGRAM BUTTONS RESTORE V46 */
 .about-v21-payment-note{
   display:flex!important;
   align-items:center!important;
@@ -2521,7 +2484,6 @@ thead th:nth-child(4){
   }
 }
 
-/* V58 FORCE login input fix */
 .auth-wrap input#keyInput,
 .auth-box input#keyInput,
 .key-input-wrap input#keyInput,
@@ -2546,7 +2508,6 @@ input#keyInput.key-login-input-v58::placeholder,
   opacity:.75 !important;
 }
 
-/* V63: clean full settings lists layout */
 #page-settings .card{
   overflow:hidden !important;
 }
@@ -2702,7 +2663,6 @@ input#keyInput.key-login-input-v58::placeholder,
   line-height:1 !important;
 }
 
-/* whole settings page: no accidental horizontal shift */
 #page-settings,
 #page-settings .page-inner,
 #page-settings .card,
@@ -2711,7 +2671,6 @@ input#keyInput.key-login-input-v58::placeholder,
   overflow-x:hidden !important;
 }
 
-/* tablet */
 @media(max-width:900px){
   #priceList .service-row.settings-price-row,
   #equipmentPriceList .service-row.settings-price-row,
@@ -2728,7 +2687,6 @@ input#keyInput.key-login-input-v58::placeholder,
   }
 }
 
-/* phone: clean 2-column card */
 @media(max-width:640px){
   #priceList .service-row.settings-price-row,
   #equipmentPriceList .service-row.settings-price-row,
@@ -2793,7 +2751,6 @@ input#keyInput.key-login-input-v58::placeholder,
   }
 }
 
-/* V64: restore smaller fonts in settings rows, keep v63 alignment */
 #priceList .settings-row-label,
 #equipmentPriceList .settings-row-label{
   font-size:9px !important;

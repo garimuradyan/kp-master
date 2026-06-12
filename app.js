@@ -94,7 +94,6 @@ async function verifyKey(key,keyId,silent){
   try{res=await sb.rpc('kp_verify',{p_key:key,p_key_id:keyId,p_device_id:getDeviceId()});}
   catch(e){console.error('Verify error',e);if(!silent)setAuthMsg('Ошибка проверки ключа');return;}
   if(res.error||rpcFailed(res)){
-    // Не удаляем ключ из localStorage - просто показываем экран входа
     showPublicLanding();
     if(!silent){setAuthMsg(rpcMsg(res,'Ошибка входа'));}
     return;
@@ -174,7 +173,6 @@ function applySettings(){
   if(settings.logo){logoDataURL=settings.logo;document.getElementById('logoPreviewWrap').innerHTML='<img src="'+logoDataURL+'" class="logo-preview">';}
 }
 
-// NAV
 function showPage(name,el){
   if(!isLoggedIn()){
     showPublicLanding();
@@ -219,7 +217,6 @@ function validateClient(){
   return true;
 }
 
-// SERVICES
 var UNIT_OPTIONS=['шт.','м','п.м.','кг','л','км'];
 function normalizeUnit(unit){
   var u=String(unit||'шт.').trim();
@@ -292,7 +289,6 @@ function recalc(){
 
 
 
-// PRICE LIST
 function renderPriceList(){
   var list=document.getElementById('priceList');if(!list)return;
   list.innerHTML=priceItems.map(function(p,i){
@@ -347,7 +343,6 @@ function addEquipmentItem(){equipmentItems.push({name:'',price:0,unit:'шт.'});
 function removeEquipmentItem(i){equipmentItems.splice(i,1);renderEquipmentList();}
 
 
-// MODAL
 var priceModalTarget='services';
 function addFromPriceList(){
   priceModalTarget='services';
@@ -386,7 +381,6 @@ function applyModalItems(){
 }
 
 
-// SETTINGS
 async function saveSettings(showMsg){
   if(!isLoggedIn()){showPublicLanding();toast('Введите ключ доступа','error');return;}
 
@@ -432,7 +426,6 @@ function handleLogo(e){
 }
 function clearLogo(){logoDataURL=null;document.getElementById('logoPreviewWrap').innerHTML='<div style="color:var(--text3);font-size:13px"><div style="font-size:32px;margin-bottom:8px">🖼</div><p>Нажмите для загрузки</p></div>';}
 
-// SIGNATURE PAD
 var signatureCanvas=null,signatureCtx=null,signatureDrawing=false,signatureHasInk=false;
 function setupSignaturePad(){
   signatureCanvas=document.getElementById('signatureCanvas');
@@ -507,7 +500,6 @@ function resetContractTemplate(){
   toast('Стандартный договор восстановлен','success');
 }
 
-// PHOTOS
 function renderPhotos(){
   var g=document.getElementById('photoGrid');
   document.getElementById('photoCount').textContent=quotePhotos.length+' / '+MAX_PHOTOS+' фото';
@@ -550,7 +542,6 @@ function loadPhotoFromFile(e){
   e.target.value='';
 }
 
-// PREVIEW
 function buildPreview(){
   normalizeLineItems();
   var c=getClientData(),t=getTotals();
@@ -595,7 +586,6 @@ function buildPreview(){
   document.getElementById('pdfPreview').innerHTML=h;
 }
 
-// PDF
 function printPDF(){
   if(!isLoggedIn()){showPublicLanding();toast('Введите ключ доступа','error');return;}
 
@@ -693,7 +683,6 @@ function printPDF(){
   else toast('Разрешите всплывающие окна','error');
 }
 
-// HISTORY
 async function saveToHistory(){
   if(!isLoggedIn()){showPublicLanding();toast('Введите ключ доступа','error');return;}
 
@@ -768,7 +757,6 @@ function resetForm(){
   services=[];equipment=[];quotePhotos=[];renderPhotos();jumpStep(1);renderEquipment();renderServices();
 }
 
-// ═══════════════ ADMIN ═══════════════
 async function loadAdminData(){
   if(!isLoggedIn()){showPublicLanding();toast('Введите ключ доступа','error');return;}
 
@@ -866,7 +854,6 @@ async function deleteKey(id){
   toast('Ключ удалён','success');loadAdminData();
 }
 
-// UTILS
 function normalizeLineItems(){
   services=(Array.isArray(services)?services:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,120),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit),locked:!!(x&&x.locked)};});
   equipment=(Array.isArray(equipment)?equipment:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,140),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit),locked:!!(x&&x.locked)};});

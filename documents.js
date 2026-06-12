@@ -1,4 +1,3 @@
-/* Документы: договор + акт. Подключается после app.js и documentTemplates.js. */
 (function(){
   var lastDocContext = null;
 

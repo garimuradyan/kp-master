@@ -1,5 +1,5 @@
 
-window.KP_APP_VERSION='v64-settings-font-restore';
+window.KP_APP_VERSION='v65-settings-mobile-redesign';
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=null;

@@ -1,5 +1,5 @@
 
-window.KP_APP_VERSION='v66-drag-settings-textarea';
+window.KP_APP_VERSION='v64-settings-font-restore';
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=null;
@@ -296,14 +296,12 @@ function recalc(){
 function renderPriceList(){
   var list=document.getElementById('priceList');if(!list)return;
   list.innerHTML=priceItems.map(function(p,i){
-    return'<div class="service-row settings-price-row" draggable="true" data-type="price" data-index="'+i+'" ondragstart="settingsDragStart(event)" ondragover="settingsDragOver(event)" ondrop="settingsDrop(event)" ondragend="settingsDragEnd(event)">'+
-    '<button type="button" class="settings-drag-handle" title="Перетащить строку">⋮⋮</button>'+
-    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Услуга</em><textarea class="settings-name-textarea" rows="2" maxlength="120" placeholder="Услуга" oninput="priceItems['+i+'].name=this.value;autoGrowSettingsTextarea(this)">'+esc(p.name)+'</textarea></label>'+
+    return'<div class="service-row settings-price-row">'+
+    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Услуга</em><input type="text" maxlength="120" placeholder="Услуга" value="'+esc(p.name)+'" oninput="priceItems['+i+'].name=this.value"></label>'+
     '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" placeholder="Цена" oninput="clampMoneyInput(this);priceItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em>'+unitSelectHtml(p.unit,'priceItems['+i+'].unit=this.value')+'</label>'+
     '<button class="delete-btn" onclick="removePriceItem('+i+')">✕</button></div>';
   }).join('');
-  setTimeout(autoGrowAllSettingsTextareas,0);
 }
 function addPriceItem(){priceItems.push({name:'',price:0,unit:'шт.'});renderPriceList();}
 function removePriceItem(i){priceItems.splice(i,1);renderPriceList();}
@@ -338,78 +336,15 @@ function defaultEquipmentItems(){return[
 function renderEquipmentList(){
   var list=document.getElementById('equipmentPriceList');if(!list)return;
   list.innerHTML=equipmentItems.map(function(p,i){
-    return'<div class="service-row settings-price-row" draggable="true" data-type="equipment" data-index="'+i+'" ondragstart="settingsDragStart(event)" ondragover="settingsDragOver(event)" ondrop="settingsDrop(event)" ondragend="settingsDragEnd(event)">'+
-    '<button type="button" class="settings-drag-handle" title="Перетащить строку">⋮⋮</button>'+
-    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Оборудование</em><textarea class="settings-name-textarea" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipmentItems['+i+'].name=this.value;autoGrowSettingsTextarea(this)">'+esc(p.name)+'</textarea></label>'+
+    return'<div class="service-row settings-price-row">'+
+    '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Оборудование</em><input type="text" maxlength="140" placeholder="Оборудование" value="'+esc(p.name)+'" oninput="equipmentItems['+i+'].name=this.value"></label>'+
     '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" placeholder="Цена" oninput="clampMoneyInput(this);equipmentItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em>'+unitSelectHtml(p.unit,'equipmentItems['+i+'].unit=this.value')+'</label>'+
     '<button class="delete-btn" onclick="removeEquipmentItem('+i+')">✕</button></div>';
   }).join('');
-  setTimeout(autoGrowAllSettingsTextareas,0);
 }
 function addEquipmentItem(){equipmentItems.push({name:'',price:0,unit:'шт.'});renderEquipmentList();}
 function removeEquipmentItem(i){equipmentItems.splice(i,1);renderEquipmentList();}
-
-var settingsDragState=null;
-
-function settingsDragStart(e){
-  var row=e.currentTarget;
-  if(!row)return;
-  var target=e.target;
-  if(target && (target.tagName==='TEXTAREA'||target.tagName==='INPUT'||target.tagName==='SELECT')){e.preventDefault();return;}
-  settingsDragState={
-    type:row.dataset.type,
-    index:parseInt(row.dataset.index,10)
-  };
-  row.classList.add('settings-row-dragging');
-  if(e.dataTransfer){
-    e.dataTransfer.effectAllowed='move';
-    e.dataTransfer.setData('text/plain',settingsDragState.type+':'+settingsDragState.index);
-  }
-}
-
-function settingsDragOver(e){
-  if(!settingsDragState)return;
-  var row=e.currentTarget;
-  if(!row || row.dataset.type!==settingsDragState.type)return;
-  e.preventDefault();
-  if(e.dataTransfer)e.dataTransfer.dropEffect='move';
-  row.classList.add('settings-row-drag-over');
-}
-
-function settingsDrop(e){
-  if(!settingsDragState)return;
-  e.preventDefault();
-  var row=e.currentTarget;
-  if(!row || row.dataset.type!==settingsDragState.type)return;
-  var from=settingsDragState.index;
-  var to=parseInt(row.dataset.index,10);
-  if(!isFinite(from)||!isFinite(to)||from===to)return settingsDragEnd(e);
-  var arr=settingsDragState.type==='equipment'?equipmentItems:priceItems;
-  if(!Array.isArray(arr)||!arr[from])return settingsDragEnd(e);
-  var moved=arr.splice(from,1)[0];
-  arr.splice(to,0,moved);
-  if(settingsDragState.type==='equipment')renderEquipmentList();
-  else renderPriceList();
-}
-
-function settingsDragEnd(e){
-  document.querySelectorAll('.settings-row-dragging,.settings-row-drag-over').forEach(function(el){
-    el.classList.remove('settings-row-dragging','settings-row-drag-over');
-  });
-  settingsDragState=null;
-}
-
-function autoGrowSettingsTextarea(el){
-  if(!el)return;
-  el.style.height='auto';
-  var h=Math.min(Math.max(el.scrollHeight,48),110);
-  el.style.height=h+'px';
-}
-
-function autoGrowAllSettingsTextareas(){
-  document.querySelectorAll('.settings-name-textarea').forEach(autoGrowSettingsTextarea);
-}
 
 
 // MODAL

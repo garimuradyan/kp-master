@@ -2828,3 +2828,419 @@ input#keyInput.key-login-input-v58::placeholder,
     font-size:12px !important;
   }
 }
+
+
+/* V65: settings rows redesign - compact unit on the right, wider name field */
+#priceList .settings-name-cell input,
+#equipmentPriceList .settings-name-cell input{
+  width:100% !important;
+  max-width:100% !important;
+  height:52px !important;
+  min-height:52px !important;
+  padding:14px 0 !important;
+}
+
+#priceList .settings-price-cell-price input,
+#equipmentPriceList .settings-price-cell-price input{
+  height:44px !important;
+  min-height:44px !important;
+  padding:10px 0 !important;
+}
+
+#priceList .settings-price-cell-unit,
+#equipmentPriceList .settings-price-cell-unit{
+  align-self:start !important;
+}
+
+#priceList .settings-price-cell-unit select,
+#equipmentPriceList .settings-price-cell-unit select{
+  width:88px !important;
+  min-width:88px !important;
+  max-width:88px !important;
+  height:40px !important;
+  min-height:40px !important;
+  padding:0 10px !important;
+  border-radius:10px !important;
+}
+
+#priceList .settings-price-row .delete-btn,
+#equipmentPriceList .settings-price-row .delete-btn{
+  width:32px !important;
+  min-width:32px !important;
+  height:40px !important;
+  min-height:40px !important;
+  margin:20px 0 0 0 !important;
+  font-size:22px !important;
+}
+
+@media(min-width:641px){
+  #priceList .service-row.settings-price-row,
+  #equipmentPriceList .service-row.settings-price-row,
+  #priceList .settings-price-row,
+  #equipmentPriceList .settings-price-row{
+    grid-template-columns:minmax(0,1fr) 112px 88px 32px !important;
+    gap:14px !important;
+    padding:14px 16px !important;
+    min-height:92px !important;
+  }
+
+  #priceList .settings-price-cell-price,
+  #equipmentPriceList .settings-price-cell-price,
+  #priceList .settings-price-cell-unit,
+  #equipmentPriceList .settings-price-cell-unit{
+    justify-self:start !important;
+    width:100% !important;
+  }
+}
+
+@media(max-width:640px){
+  #priceList .service-row.settings-price-row,
+  #equipmentPriceList .service-row.settings-price-row,
+  #priceList .settings-price-row,
+  #equipmentPriceList .settings-price-row{
+    grid-template-columns:minmax(0,1fr) 88px 26px !important;
+    grid-template-areas:
+      "name price del"
+      "name unit del" !important;
+    gap:10px 10px !important;
+    padding:14px !important;
+    min-height:110px !important;
+    align-items:start !important;
+  }
+
+  #priceList .settings-name-cell,
+  #equipmentPriceList .settings-name-cell{
+    grid-area:name !important;
+    align-self:stretch !important;
+  }
+
+  #priceList .settings-price-cell-price,
+  #equipmentPriceList .settings-price-cell-price{
+    grid-area:price !important;
+    width:88px !important;
+    min-width:88px !important;
+    justify-self:start !important;
+  }
+
+  #priceList .settings-price-cell-unit,
+  #equipmentPriceList .settings-price-cell-unit{
+    grid-area:unit !important;
+    width:88px !important;
+    min-width:88px !important;
+    justify-self:start !important;
+  }
+
+  #priceList .settings-name-cell input,
+  #equipmentPriceList .settings-name-cell input{
+    height:64px !important;
+    min-height:64px !important;
+    padding:10px 0 !important;
+    font-size:12px !important;
+    line-height:17px !important;
+  }
+
+  #priceList .settings-price-cell-price input,
+  #equipmentPriceList .settings-price-cell-price input{
+    height:38px !important;
+    min-height:38px !important;
+    font-size:13px !important;
+    line-height:18px !important;
+    padding:8px 0 !important;
+  }
+
+  #priceList .settings-price-cell-unit select,
+  #equipmentPriceList .settings-price-cell-unit select{
+    width:88px !important;
+    min-width:88px !important;
+    max-width:88px !important;
+    height:38px !important;
+    min-height:38px !important;
+    font-size:12px !important;
+    padding:0 8px !important;
+  }
+
+  #priceList .settings-row-label,
+  #equipmentPriceList .settings-row-label{
+    margin-bottom:2px !important;
+  }
+
+  #priceList .settings-price-row .delete-btn,
+  #equipmentPriceList .settings-price-row .delete-btn{
+    grid-area:del !important;
+    justify-self:end !important;
+    align-self:center !important;
+    width:26px !important;
+    min-width:26px !important;
+    height:26px !important;
+    min-height:26px !important;
+    margin:14px 0 0 0 !important;
+    font-size:18px !important;
+  }
+}
+
+@media(max-width:390px){
+  #priceList .service-row.settings-price-row,
+  #equipmentPriceList .service-row.settings-price-row,
+  #priceList .settings-price-row,
+  #equipmentPriceList .settings-price-row{
+    grid-template-columns:minmax(0,1fr) 82px 24px !important;
+    gap:8px 8px !important;
+    padding:12px !important;
+  }
+
+  #priceList .settings-price-cell-price,
+  #equipmentPriceList .settings-price-cell-price,
+  #priceList .settings-price-cell-unit,
+  #equipmentPriceList .settings-price-cell-unit,
+  #priceList .settings-price-cell-unit select,
+  #equipmentPriceList .settings-price-cell-unit select{
+    width:82px !important;
+    min-width:82px !important;
+    max-width:82px !important;
+  }
+}
+
+/* V67: настройки — только перенос наименования, компактный список ед. и перетаскивание */
+#priceList .settings-price-row,
+#equipmentPriceList .settings-price-row{
+  position:relative !important;
+  display:grid !important;
+  grid-template-columns:18px minmax(0,1fr) 104px 76px 28px !important;
+  grid-template-areas:"drag name price unit del" !important;
+  gap:8px !important;
+  align-items:start !important;
+  padding:12px 14px !important;
+  min-height:96px !important;
+  overflow:hidden !important;
+}
+
+.settings-drag-handle{
+  grid-area:drag !important;
+  width:18px !important;
+  min-width:18px !important;
+  height:48px !important;
+  margin:24px 0 0 -2px !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  color:var(--accent) !important;
+  opacity:.75 !important;
+  cursor:grab !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-size:16px !important;
+  line-height:1 !important;
+  letter-spacing:-5px !important;
+  touch-action:none !important;
+}
+.settings-drag-handle:active{cursor:grabbing !important}
+.settings-row-dragging{opacity:.55 !important}
+.settings-row-drag-over{border-color:var(--accent) !important;box-shadow:0 0 0 2px rgba(59,130,246,.20) inset !important}
+
+#priceList .settings-name-cell,
+#equipmentPriceList .settings-name-cell{grid-area:name !important}
+#priceList .settings-price-cell-price,
+#equipmentPriceList .settings-price-cell-price{grid-area:price !important}
+#priceList .settings-price-cell-unit,
+#equipmentPriceList .settings-price-cell-unit{grid-area:unit !important}
+#priceList .settings-price-row .delete-btn,
+#equipmentPriceList .settings-price-row .delete-btn{grid-area:del !important}
+
+#priceList .settings-name-textarea,
+#equipmentPriceList .settings-name-textarea{
+  width:100% !important;
+  min-height:58px !important;
+  max-height:132px !important;
+  height:auto !important;
+  resize:vertical !important;
+  overflow:auto !important;
+  white-space:pre-wrap !important;
+  overflow-wrap:anywhere !important;
+  word-break:break-word !important;
+  line-height:1.35 !important;
+  padding:8px 6px !important;
+  font-size:13px !important;
+  font-weight:700 !important;
+  background:transparent !important;
+  border:1px solid transparent !important;
+  color:var(--text) !important;
+  border-radius:7px !important;
+}
+#priceList .settings-name-textarea:focus,
+#equipmentPriceList .settings-name-textarea:focus{
+  background:var(--surface) !important;
+  border-color:var(--accent) !important;
+  outline:none !important;
+}
+
+#priceList .settings-price-cell-price input,
+#equipmentPriceList .settings-price-cell-price input{
+  height:38px !important;
+  min-height:38px !important;
+  max-height:38px !important;
+  padding:7px 4px !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+}
+
+#priceList .settings-price-cell-unit,
+#equipmentPriceList .settings-price-cell-unit{
+  width:76px !important;
+  min-width:76px !important;
+  max-width:76px !important;
+  justify-self:center !important;
+}
+#priceList .settings-price-cell-unit .settings-row-label,
+#equipmentPriceList .settings-price-cell-unit .settings-row-label{
+  text-align:center !important;
+  padding-left:0 !important;
+}
+#priceList .settings-price-cell-unit .unit-select,
+#equipmentPriceList .settings-price-cell-unit .unit-select,
+#priceList .settings-price-cell-unit select,
+#equipmentPriceList .settings-price-cell-unit select{
+  width:76px !important;
+  min-width:76px !important;
+  max-width:76px !important;
+  height:38px !important;
+  min-height:38px !important;
+  max-height:38px !important;
+  padding:0 7px !important;
+  border-radius:8px !important;
+  font-size:12px !important;
+  font-weight:800 !important;
+  background:var(--surface) !important;
+  border:1px solid var(--border) !important;
+}
+
+#priceList .settings-price-row .delete-btn,
+#equipmentPriceList .settings-price-row .delete-btn{
+  width:28px !important;
+  min-width:28px !important;
+  height:38px !important;
+  min-height:38px !important;
+  margin:22px 0 0 0 !important;
+  padding:0 !important;
+  align-self:start !important;
+  justify-self:end !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-size:18px !important;
+}
+
+/* телефон: оставляем вид как на твоём скрине, но даём больше высоты наименованию и делаем ед. компактнее */
+@media(max-width:640px){
+  #priceList .settings-price-row,
+  #equipmentPriceList .settings-price-row{
+    grid-template-columns:minmax(0,1fr) 96px 28px !important;
+    grid-template-areas:
+      "name price del"
+      "unit unit del" !important;
+    gap:12px 10px !important;
+    padding:16px !important;
+    min-height:176px !important;
+  }
+
+  #priceList .settings-drag-handle,
+  #equipmentPriceList .settings-drag-handle{
+    position:absolute !important;
+    left:8px !important;
+    top:74px !important;
+    width:18px !important;
+    height:42px !important;
+    margin:0 !important;
+    z-index:2 !important;
+  }
+
+  #priceList .settings-name-cell,
+  #equipmentPriceList .settings-name-cell{
+    padding-left:18px !important;
+  }
+
+  #priceList .settings-name-textarea,
+  #equipmentPriceList .settings-name-textarea{
+    min-height:82px !important;
+    max-height:150px !important;
+    padding:9px 6px !important;
+    font-size:13px !important;
+    line-height:1.32 !important;
+  }
+
+  #priceList .settings-price-cell-price,
+  #equipmentPriceList .settings-price-cell-price{
+    width:96px !important;
+    min-width:96px !important;
+  }
+
+  #priceList .settings-price-cell-price input,
+  #equipmentPriceList .settings-price-cell-price input{
+    height:38px !important;
+    min-height:38px !important;
+    font-size:13px !important;
+  }
+
+  #priceList .settings-price-cell-unit,
+  #equipmentPriceList .settings-price-cell-unit{
+    width:86px !important;
+    min-width:86px !important;
+    max-width:86px !important;
+    padding-left:18px !important;
+  }
+
+  #priceList .settings-price-cell-unit .settings-row-label,
+  #equipmentPriceList .settings-price-cell-unit .settings-row-label{
+    text-align:left !important;
+    padding-left:0 !important;
+  }
+
+  #priceList .settings-price-cell-unit .unit-select,
+  #equipmentPriceList .settings-price-cell-unit .unit-select,
+  #priceList .settings-price-cell-unit select,
+  #equipmentPriceList .settings-price-cell-unit select{
+    width:86px !important;
+    min-width:86px !important;
+    max-width:86px !important;
+    height:36px !important;
+    min-height:36px !important;
+    max-height:36px !important;
+    padding:0 7px !important;
+    font-size:12px !important;
+  }
+
+  #priceList .settings-price-row .delete-btn,
+  #equipmentPriceList .settings-price-row .delete-btn{
+    width:28px !important;
+    min-width:28px !important;
+    height:36px !important;
+    min-height:36px !important;
+    margin:24px 0 0 0 !important;
+  }
+}
+
+@media(max-width:390px){
+  #priceList .settings-price-row,
+  #equipmentPriceList .settings-price-row{
+    grid-template-columns:minmax(0,1fr) 86px 26px !important;
+    padding:14px !important;
+    gap:10px 8px !important;
+  }
+
+  #priceList .settings-price-cell-price,
+  #equipmentPriceList .settings-price-cell-price{
+    width:86px !important;
+    min-width:86px !important;
+  }
+
+  #priceList .settings-price-cell-unit,
+  #equipmentPriceList .settings-price-cell-unit,
+  #priceList .settings-price-cell-unit .unit-select,
+  #equipmentPriceList .settings-price-cell-unit .unit-select,
+  #priceList .settings-price-cell-unit select,
+  #equipmentPriceList .settings-price-cell-unit select{
+    width:82px !important;
+    min-width:82px !important;
+    max-width:82px !important;
+  }
+}

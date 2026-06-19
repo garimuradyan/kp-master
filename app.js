@@ -169,6 +169,7 @@ function applySettings(){
   if(settings.color){document.getElementById('s-color').value=settings.color;document.getElementById('colorHex').textContent=settings.color;}
   if(settings.signature)document.getElementById('s-signature').value=settings.signature;
   if(document.getElementById('s-contract-body')) document.getElementById('s-contract-body').value = settings.contractBody || window.KP_DEFAULT_CONTRACT_BODY || '';
+  if(document.getElementById('s-supply-contract-body')) document.getElementById('s-supply-contract-body').value = settings.supplyContractBody || window.KP_DEFAULT_SUPPLY_CONTRACT_BODY || '';
   if(settings.signatureImage) drawSavedSignature(settings.signatureImage);
   if(settings.logo){logoDataURL=settings.logo;document.getElementById('logoPreviewWrap').innerHTML='<img src="'+logoDataURL+'" class="logo-preview">';}
 }
@@ -396,6 +397,7 @@ async function saveSettings(showMsg){
     signature:document.getElementById('s-signature').value,
     signatureImage:(typeof getSignatureImageForSave==='function' ? getSignatureImageForSave() : ((settings && settings.signatureImage) || '')),
     contractBody:document.getElementById('s-contract-body') ? document.getElementById('s-contract-body').value : '',
+    supplyContractBody:document.getElementById('s-supply-contract-body') ? document.getElementById('s-supply-contract-body').value : '',
     equipmentItems:JSON.parse(JSON.stringify(equipmentItems||[])),
     logo:logoDataURL
   };
@@ -498,6 +500,13 @@ function resetContractTemplate(){
   if(!confirm('Вернуть стандартный текст договора?'))return;
   el.value=window.KP_DEFAULT_CONTRACT_BODY||'';
   toast('Стандартный договор восстановлен','success');
+}
+function resetSupplyContractTemplate(){
+  var el=document.getElementById('s-supply-contract-body');
+  if(!el)return;
+  if(!confirm('Вернуть стандартный текст договора на поставку?'))return;
+  el.value=window.KP_DEFAULT_SUPPLY_CONTRACT_BODY||'';
+  toast('Стандартный договор на поставку восстановлен','success');
 }
 
 function renderPhotos(){

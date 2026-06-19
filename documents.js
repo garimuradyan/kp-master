@@ -17,9 +17,10 @@
   window.printSelectedDocuments = function(){
     var contract = document.getElementById('docContractCheck') && document.getElementById('docContractCheck').checked;
     var act = document.getElementById('docActCheck') && document.getElementById('docActCheck').checked;
-    if(!contract && !act){toast('Выберите договор или акт','error');return;}
+    var supply = document.getElementById('docSupplyCheck') && document.getElementById('docSupplyCheck').checked;
+    if(!contract && !act && !supply){toast('Выберите договор или акт','error');return;}
     var ctx = lastDocContext || buildDocumentContextFromCurrentQuote();
-    printDocumentsByTypes(ctx,{contract:contract,act:act});
+    printDocumentsByTypes(ctx,{contract:contract,act:act,supply:supply});
     closeDocumentsModal();
   };
 
@@ -45,6 +46,7 @@
     var parts = [];
     if(types.contract && window.KP_DOCUMENT_TEMPLATES && KP_DOCUMENT_TEMPLATES.contract) parts.push(KP_DOCUMENT_TEMPLATES.contract(ctx));
     if(types.act && window.KP_DOCUMENT_TEMPLATES && KP_DOCUMENT_TEMPLATES.act) parts.push(KP_DOCUMENT_TEMPLATES.act(ctx));
+    if(types.supply && window.KP_DOCUMENT_TEMPLATES && KP_DOCUMENT_TEMPLATES.supplyContract) parts.push(KP_DOCUMENT_TEMPLATES.supplyContract(ctx));
     if(!parts.length){toast('Нет шаблонов документов','error');return;}
     var html = buildDocumentPrintHtml(ctx, parts.join(''));
     var w = window.open('','_blank');

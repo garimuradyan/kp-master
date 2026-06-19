@@ -1,5 +1,5 @@
 
-window.KP_APP_VERSION='v73-documents-money-like-kp';
+window.KP_APP_VERSION='v76-v74-plus-clear-contract-names';
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=null;

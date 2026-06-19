@@ -1,5 +1,5 @@
 
-window.KP_APP_VERSION='v72-cache-and-money-final';
+window.KP_APP_VERSION='v73-documents-money-like-kp';
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=null;

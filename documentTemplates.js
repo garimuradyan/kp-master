@@ -148,20 +148,15 @@
 
 
   function docMoney(ctx, value){
-    var n = Math.round(Number(value)||0);
-    var text = n.toLocaleString('ru-RU') + ' ₽';
-    var digitsOnly = String(Math.abs(n));
-    var compact = digitsOnly + '&nbsp;₽';
-    var len = digitsOnly.length;
-    var fs = 10.0;
-    if(len >= 13) fs = 5.2;
-    else if(len >= 12) fs = 5.6;
-    else if(len >= 11) fs = 6.0;
-    else if(len >= 10) fs = 6.5;
-    else if(len >= 9) fs = 7.1;
-    else if(len >= 8) fs = 7.8;
-    else if(len >= 7) fs = 8.5;
-    return '<span class="doc-money-nowrap" data-full="'+ctx.esc(text)+'" title="'+ctx.esc(text)+'" style="display:inline-block!important;max-width:100%!important;white-space:nowrap!important;word-break:keep-all!important;overflow-wrap:normal!important;line-height:1!important;font-size:'+fs+'px!important;letter-spacing:-.7px!important;font-weight:850!important;color:#111!important;text-decoration:none!important;font-variant-numeric:tabular-nums!important;-webkit-text-size-adjust:none!important;">'+compact+'</span>';
+    var text = ctx.fmt ? ctx.fmt(value) : String(value || 0) + ' ₽';
+    text = String(text || '0 ₽').replace(/\s+/g,' ').trim();
+    var safe = ctx.esc(text).replace(/ /g,'&nbsp;');
+    var len = text.length;
+    var fs = 10.5;
+    if(len > 22) fs = 8.8;
+    else if(len > 18) fs = 9.2;
+    else if(len > 15) fs = 9.8;
+    return '<span class="doc-money-nowrap" title="'+ctx.esc(text)+'" style="font-size:'+fs+'px">'+safe+'</span>';
   }
 
   window.KP_DOCUMENT_TEMPLATES = {

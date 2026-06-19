@@ -148,16 +148,20 @@
 
 
   function docMoney(ctx, value){
-    var text = ctx.fmt ? ctx.fmt(value) : String(value || 0) + ' ₽';
-    text = String(text || '0 ₽').replace(/\s+/g,' ').trim();
-    var noBreakText = ctx.esc(text).replace(/ /g,'&nbsp;');
-    var digits = text.replace(/\D/g,'').length;
+    var n = Math.round(Number(value)||0);
+    var text = n.toLocaleString('ru-RU') + ' ₽';
+    var digitsOnly = String(Math.abs(n));
+    var compact = digitsOnly + '&nbsp;₽';
+    var len = digitsOnly.length;
     var fs = 10.0;
-    if(digits >= 12) fs = 5.8;
-    else if(digits >= 10) fs = 6.6;
-    else if(digits >= 8) fs = 7.4;
-    else if(digits >= 6) fs = 8.4;
-    return '<span class="doc-money-nowrap" title="'+ctx.esc(text)+'" style="display:inline-block!important;max-width:100%!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;line-height:1!important;font-size:'+fs+'px!important;letter-spacing:-.65px!important;font-weight:850!important;color:#111!important;text-decoration:none!important;font-variant-numeric:tabular-nums!important;-webkit-text-size-adjust:none!important;">'+noBreakText+'</span>';
+    if(len >= 13) fs = 5.2;
+    else if(len >= 12) fs = 5.6;
+    else if(len >= 11) fs = 6.0;
+    else if(len >= 10) fs = 6.5;
+    else if(len >= 9) fs = 7.1;
+    else if(len >= 8) fs = 7.8;
+    else if(len >= 7) fs = 8.5;
+    return '<span class="doc-money-nowrap" data-full="'+ctx.esc(text)+'" title="'+ctx.esc(text)+'" style="display:inline-block!important;max-width:100%!important;white-space:nowrap!important;word-break:keep-all!important;overflow-wrap:normal!important;line-height:1!important;font-size:'+fs+'px!important;letter-spacing:-.7px!important;font-weight:850!important;color:#111!important;text-decoration:none!important;font-variant-numeric:tabular-nums!important;-webkit-text-size-adjust:none!important;">'+compact+'</span>';
   }
 
   window.KP_DOCUMENT_TEMPLATES = {

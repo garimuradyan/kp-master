@@ -3,7 +3,7 @@
 
   window.openDocumentsModal = function(){
     if(typeof validateClient === 'function' && !validateClient()) return;
-    if(!window.services || !services.length){toast('Добавьте хотя бы одну работу для документов','error');return;}
+    if((!window.services || !services.length) && (!window.equipment || !equipment.length)){toast('Добавьте работы или оборудование для документов','error');return;}
     lastDocContext = buildDocumentContextFromCurrentQuote();
     var modal = document.getElementById('documentsModal');
     if(modal) modal.style.display = 'flex';
@@ -17,10 +17,12 @@
   window.printSelectedDocuments = function(){
     var contract = document.getElementById('docContractCheck') && document.getElementById('docContractCheck').checked;
     var act = document.getElementById('docActCheck') && document.getElementById('docActCheck').checked;
-    var supply = document.getElementById('docSupplyCheck') && document.getElementById('docSupplyCheck').checked;
-    if(!contract && !act && !supply){toast('Выберите договор или акт','error');return;}
+    var supplyContract = document.getElementById('docSupplyContractCheck') && document.getElementById('docSupplyContractCheck').checked;
+    if(!contract && !act && !supplyContract){toast('Выберите договор или акт','error');return;}
     var ctx = lastDocContext || buildDocumentContextFromCurrentQuote();
-    printDocumentsByTypes(ctx,{contract:contract,act:act,supply:supply});
+    if(act && (!ctx.services || !ctx.services.length)){toast('Для акта добавьте хотя бы одну работу','error');return;}
+    if(supplyContract && (!ctx.equipment || !ctx.equipment.length)){toast('Для договора поставки добавьте оборудование','error');return;}
+    printDocumentsByTypes(ctx,{contract:contract,act:act,supplyContract:supplyContract});
     closeDocumentsModal();
   };
 
@@ -33,6 +35,7 @@
       client: c,
       master: Object.assign({address:(window.settings && (settings.address || settings.city)) || ''}, window.settings || {}),
       services: JSON.parse(JSON.stringify(window.services || [])),
+      equipment: JSON.parse(JSON.stringify(window.equipment || [])),
       totals: Object.assign({}, t),
       today: new Date().toLocaleDateString('ru-RU'),
       num: typeof generateQuoteNumber === 'function' ? generateQuoteNumber() : String(Date.now()),
@@ -46,7 +49,7 @@
     var parts = [];
     if(types.contract && window.KP_DOCUMENT_TEMPLATES && KP_DOCUMENT_TEMPLATES.contract) parts.push(KP_DOCUMENT_TEMPLATES.contract(ctx));
     if(types.act && window.KP_DOCUMENT_TEMPLATES && KP_DOCUMENT_TEMPLATES.act) parts.push(KP_DOCUMENT_TEMPLATES.act(ctx));
-    if(types.supply && window.KP_DOCUMENT_TEMPLATES && KP_DOCUMENT_TEMPLATES.supplyContract) parts.push(KP_DOCUMENT_TEMPLATES.supplyContract(ctx));
+    if(types.supplyContract && window.KP_DOCUMENT_TEMPLATES && KP_DOCUMENT_TEMPLATES.supplyContract) parts.push(KP_DOCUMENT_TEMPLATES.supplyContract(ctx));
     if(!parts.length){toast('Нет шаблонов документов','error');return;}
     var html = buildDocumentPrintHtml(ctx, parts.join(''));
     var w = window.open('','_blank');

@@ -386,10 +386,10 @@
 <div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="resetContractTemplate()">Вернуть стандартный договор</button></div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">📦</span> Шаблон договора на поставку оборудования</div>
-<p class="settings-note">Редактируется только основной текст договора. Данные клиента, мастера, спецификация товаров, реквизиты и подписи программа подставляет отдельно, поэтому код и переменные сломать нельзя.</p>
-<div class="field"><label>Текст договора на поставку</label><textarea id="s-supply-contract-body" class="contract-template-textarea" spellcheck="true"></textarea></div>
-<div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="resetSupplyContractTemplate()">Вернуть стандартный договор на поставку</button></div>
+<div class="card-title"><span class="icon">📦</span> Шаблон договора поставки оборудования</div>
+<p class="settings-note">Редактируется только нейтральный текст договора поставки. Данные клиента, мастера, реквизиты, подписи и список оборудования программа подставляет отдельно.</p>
+<div class="field"><label>Текст договора поставки оборудования</label><textarea id="s-supply-contract-body" class="contract-template-textarea" spellcheck="true"></textarea></div>
+<div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="resetSupplyContractTemplate()">Вернуть стандартный договор поставки</button></div>
 </div>
 <div class="card">
 <div class="card-title"><span class="icon">💰</span> Прайс-лист работ</div>
@@ -595,7 +595,7 @@
 <div class="doc-checks">
 <label class="doc-check"><input id="docContractCheck" type="checkbox" checked/> <span>Договор</span></label>
 <label class="doc-check"><input id="docActCheck" type="checkbox" checked/> <span>Акт выполненных монтажных работ</span></label>
-<label class="doc-check"><input id="docSupplyCheck" type="checkbox"/> <span>Договор на поставку оборудования</span></label>
+<label class="doc-check"><input id="docSupplyContractCheck" type="checkbox"/> <span>Договор поставки оборудования</span></label>
 </div>
 <div class="modal-actions">
 <button class="btn btn-ghost" onclick="closeDocumentsModal()">Отмена</button>

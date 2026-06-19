@@ -1,5 +1,5 @@
 
-window.KP_APP_VERSION='v64-settings-font-restore';
+window.KP_APP_VERSION='v69-supply-equipment-contract';
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=null;
@@ -40,6 +40,8 @@ window.addEventListener('DOMContentLoaded',function(){
     if(typeof setupSignaturePad==='function') setupSignaturePad();
     var contractBody=document.getElementById('s-contract-body');
     if(contractBody && window.KP_DEFAULT_CONTRACT_BODY) contractBody.value=window.KP_DEFAULT_CONTRACT_BODY;
+    var supplyContractBody=document.getElementById('s-supply-contract-body');
+    if(supplyContractBody && window.KP_DEFAULT_SUPPLY_CONTRACT_BODY) supplyContractBody.value=window.KP_DEFAULT_SUPPLY_CONTRACT_BODY;
   }catch(e){
     console.error('Init error',e);
     setAuthMsg('Ошибка загрузки приложения. Обновите страницу.');
@@ -504,9 +506,9 @@ function resetContractTemplate(){
 function resetSupplyContractTemplate(){
   var el=document.getElementById('s-supply-contract-body');
   if(!el)return;
-  if(!confirm('Вернуть стандартный текст договора на поставку?'))return;
+  if(!confirm('Вернуть стандартный текст договора поставки оборудования?'))return;
   el.value=window.KP_DEFAULT_SUPPLY_CONTRACT_BODY||'';
-  toast('Стандартный договор на поставку восстановлен','success');
+  toast('Стандартный договор поставки восстановлен','success');
 }
 
 function renderPhotos(){

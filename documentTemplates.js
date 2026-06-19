@@ -149,10 +149,15 @@
 
   function docMoney(ctx, value){
     var text = ctx.fmt ? ctx.fmt(value) : String(value || 0) + ' ₽';
-    var safe = ctx.esc(text).replace(/\s+/g,'&nbsp;');
-    var len = String(text).length;
-    var fs = len > 14 ? 8.4 : (len > 11 ? 9.0 : 10.0);
-    return '<span class="doc-money-nowrap" title="'+ctx.esc(text)+'" style="font-size:'+fs+'px">'+safe+'</span>';
+    text = String(text || '0 ₽').replace(/\s+/g,' ').trim();
+    var noBreakText = ctx.esc(text).replace(/ /g,'&nbsp;');
+    var digits = text.replace(/\D/g,'').length;
+    var fs = 10.0;
+    if(digits >= 12) fs = 5.8;
+    else if(digits >= 10) fs = 6.6;
+    else if(digits >= 8) fs = 7.4;
+    else if(digits >= 6) fs = 8.4;
+    return '<span class="doc-money-nowrap" title="'+ctx.esc(text)+'" style="display:inline-block!important;max-width:100%!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;line-height:1!important;font-size:'+fs+'px!important;letter-spacing:-.65px!important;font-weight:850!important;color:#111!important;text-decoration:none!important;font-variant-numeric:tabular-nums!important;-webkit-text-size-adjust:none!important;">'+noBreakText+'</span>';
   }
 
   window.KP_DOCUMENT_TEMPLATES = {

@@ -146,6 +146,15 @@
       : '<div class="doc-sign-placeholder">_______________________</div>';
   }
 
+
+  function docMoney(ctx, value){
+    var text = ctx.fmt ? ctx.fmt(value) : String(value || 0) + ' ₽';
+    var safe = ctx.esc(text).replace(/\s+/g,'&nbsp;');
+    var len = String(text).length;
+    var fs = len > 14 ? 8.4 : (len > 11 ? 9.0 : 10.0);
+    return '<span class="doc-money-nowrap" title="'+ctx.esc(text)+'" style="font-size:'+fs+'px">'+safe+'</span>';
+  }
+
   window.KP_DOCUMENT_TEMPLATES = {
     contract: function(ctx){
       var c = ctx.client;
@@ -175,7 +184,7 @@
       var worksTotal = (t && typeof t.worksSubtotal !== 'undefined') ? t.worksSubtotal : ctx.services.reduce(function(sum,s){return sum+(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);},0);
       var rows = ctx.services.map(function(s,i){
         var unit = (typeof normalizeUnit === 'function') ? normalizeUnit(s.unit) : String(s.unit || 'шт.').trim() || 'шт.';
-        return '<tr><td>'+(i+1)+'</td><td>'+ctx.esc(s.name)+'</td><td>'+ctx.fmt(s.price)+'</td><td>'+ctx.esc(unit)+'</td><td>'+ctx.esc(s.qty)+'</td><td>'+ctx.fmt(s.price*s.qty)+'</td></tr>';
+        return '<tr><td>'+(i+1)+'</td><td>'+ctx.esc(s.name)+'</td><td class="doc-money-cell">'+docMoney(ctx,s.price)+'</td><td>'+ctx.esc(unit)+'</td><td>'+ctx.esc(s.qty)+'</td><td class="doc-money-cell">'+docMoney(ctx,(parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</td></tr>';
       }).join('');
 
       return ''+
@@ -185,7 +194,7 @@
         '<p>'+ctx.esc(c.name || '____________________________')+', именуемый/ая в дальнейшем «Заказчик», с одной стороны, и '+ctx.esc(m.company || '____________________________')+', именуемый/ая в дальнейшем «Подрядчик», с другой стороны, составили настоящий акт о нижеследующем:</p>'+
         '<p>Подрядчик выполнил, а Заказчик принял работы на объекте по адресу: '+ctx.esc(c.addr || '____________________________')+'.</p>'+
         '<table><thead><tr><th>№</th><th>Наименование работ</th><th>Цена</th><th>Ед.</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-        '<div class="doc-total"><span>Итого по акту:</span><b>'+ctx.fmt(worksTotal)+'</b></div>'+
+        '<div class="doc-total"><span>Итого по акту:</span><b>'+docMoney(ctx,worksTotal)+'</b></div>'+
         '<p>Работы выполнены в полном объёме. Заказчик результат работ принял. Претензий по объёму и качеству выполненных работ на момент подписания акта стороны не имеют.</p>'+
         '<div class="doc-sign-grid compact">'+
           '<div><b>ПОДРЯДЧИК:</b><br>'+ctx.esc(m.company || '')+'<div class="doc-sign-title">Подпись Подрядчика:</div>'+signatureBlock(ctx)+'</div>'+
@@ -206,7 +215,7 @@
         var unit = (typeof normalizeUnit === 'function') ? normalizeUnit(s.unit) : String(s.unit || 'шт.').trim() || 'шт.';
         var qty = parseFloat(s.qty)||1;
         var price = parseFloat(s.price)||0;
-        return '<tr><td>'+(i+1)+'</td><td>'+ctx.esc(s.name)+'</td><td>'+ctx.fmt(price)+'</td><td>'+ctx.esc(unit)+'</td><td>'+ctx.esc(qty)+'</td><td>'+ctx.fmt(price*qty)+'</td></tr>';
+        return '<tr><td>'+(i+1)+'</td><td>'+ctx.esc(s.name)+'</td><td class="doc-money-cell">'+docMoney(ctx,price)+'</td><td>'+ctx.esc(unit)+'</td><td>'+ctx.esc(qty)+'</td><td class="doc-money-cell">'+docMoney(ctx,price*qty)+'</td></tr>';
       }).join('');
 
       return ''+
@@ -216,7 +225,7 @@
         '<p>'+ctx.esc(m.company || '____________________________')+', именуемый/ая в дальнейшем «Поставщик», с одной стороны, и '+ctx.esc(c.name || '____________________________')+', именуемый/ая в дальнейшем «Покупатель», с другой стороны, далее совместно именуемые «Стороны», заключили настоящий Договор о нижеследующем:</p>'+
         '<h2>Перечень поставляемого оборудования</h2>'+
         '<table><thead><tr><th>№</th><th>Наименование оборудования</th><th>Цена</th><th>Ед.</th><th>Кол.</th><th>Сумма</th></tr></thead><tbody>'+rows+'</tbody></table>'+
-        '<div class="doc-total"><span>Итого по оборудованию:</span><b>'+ctx.fmt(equipmentTotal)+'</b></div>'+
+        '<div class="doc-total"><span>Итого по оборудованию:</span><b>'+docMoney(ctx,equipmentTotal)+'</b></div>'+
         '<div class="doc-contract-body">'+ctx.esc(supplyBody)+'</div>'+
         '<h2>Реквизиты и подписи сторон</h2>'+
         '<div class="doc-sign-grid compact">'+

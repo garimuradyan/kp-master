@@ -1,5 +1,5 @@
 
-window.KP_APP_VERSION='v69-supply-equipment-contract';
+window.KP_APP_VERSION='v70-supply-money-columns-fix';
 var SURL='https://jjfkkvjkjnenwyuiznzv.supabase.co';
 var SKEY='sb_publishable_GH0SGWZlueuHL_jWB4zY5Q_Z8BXdfpI';
 var sb=null;

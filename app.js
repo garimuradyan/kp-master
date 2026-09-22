@@ -651,7 +651,7 @@ function buildPreview(){
   var h='<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:3px solid '+color+';margin-bottom:14px">'+
     '<div>'+(logoDataURL?'<img src="'+logoDataURL+'" style="max-height:52px;max-width:150px;object-fit:contain;display:block;margin-bottom:4px">':'')+
     (settings.company?'<div style="font-size:15px;font-weight:800;color:#111">'+esc(settings.company)+'</div>':'')+
-    '<div style="font-size:11px;color:#666">'+[settings.phone,settings.email].filter(Boolean).join(' · ')+'</div>'+
+    '<div style="font-size:11px;color:#666">'+[getPhoneWithDialCode('s-phone')||settings.phone,settings.email].filter(Boolean).join(' · ')+'</div>'+
     ([settings.city,settings.inn?'ИНН '+settings.inn:''].filter(Boolean).length?'<div style="font-size:10px;color:#999">'+[settings.city,settings.inn?'ИНН '+settings.inn:''].filter(Boolean).join(' · ')+'</div>':'')+
     '</div><div style="text-align:right"><div style="font-size:16px;font-weight:900;color:'+color+';line-height:1.2">КОММЕРЧЕСКОЕ<br/>ПРЕДЛОЖЕНИЕ</div><div style="font-size:10px;color:#888;margin-top:4px">№ '+num+' от '+today+'</div></div></div>'+
     '<div style="background:#f8fafc;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12px;max-width:100%;overflow:hidden;overflow-wrap:anywhere;word-break:break-word">'+
@@ -709,7 +709,7 @@ function printPDF(){
   var logoH=logoDataURL?'<img src="'+logoDataURL+'" style="max-height:50px;max-width:140px;object-fit:contain;display:block;margin-bottom:4px">':'';
   var masterH='';
   if(settings.company)masterH+='<div style="font-size:15px;font-weight:800;color:#111;margin-bottom:2px;word-break:normal;overflow-wrap:normal;white-space:normal;hyphens:none;word-break:keep-all;max-width:100%;overflow:hidden">'+esc(settings.company)+'</div>';
-  var ct=[settings.phone,settings.email].filter(Boolean).join(' · ');if(ct)masterH+='<div style="font-size:11px;color:#555;word-break:normal;overflow-wrap:normal;white-space:normal;hyphens:none;word-break:keep-all;max-width:100%;overflow:hidden">'+ct+'</div>';
+  var ct=[getPhoneWithDialCode('s-phone')||settings.phone,settings.email].filter(Boolean).join(' · ');if(ct)masterH+='<div style="font-size:11px;color:#555;word-break:normal;overflow-wrap:normal;white-space:normal;hyphens:none;word-break:keep-all;max-width:100%;overflow:hidden">'+ct+'</div>';
   var dt=[settings.city,settings.inn?'ИНН '+settings.inn:''].filter(Boolean).join(' · ');if(dt)masterH+='<div style="font-size:10px;color:#888;word-break:normal;overflow-wrap:normal;white-space:normal;hyphens:none;word-break:keep-all;max-width:100%;overflow:hidden">'+dt+'</div>';
   var discH=t.discount>0?'<tr><td style="color:#444">Скидка:</td><td class="money-td" style="color:#c00">−'+moneyHtml(t.discount)+'</td></tr>':'';
   var prepayH=t.prepay>0?'<tr><td style="color:#059669">Предоплата:</td><td class="money-td" style="color:#059669">−'+moneyHtml(t.prepay)+'</td></tr>':'';

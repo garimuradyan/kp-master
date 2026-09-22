@@ -165,7 +165,7 @@ async function loadUserData(){
 
 function applySettings(){
   if(settings.company)document.getElementById('s-company').value=settings.company;
-  if(settings.phone)document.getElementById('s-phone').value=settings.phone;
+  if(settings.phone)document.getElementById('s-phone').value=stripDialCodeForInput(settings.phone);
   if(settings.email)document.getElementById('s-email').value=settings.email;
   if(settings.city)document.getElementById('s-city').value=settings.city;
   if(settings.inn)document.getElementById('s-inn').value=settings.inn;
@@ -467,7 +467,7 @@ async function saveSettings(showMsg){
 
   settings={
     company:document.getElementById('s-company').value,
-    phone:document.getElementById('s-phone').value,
+    phone:getPhoneWithDialCode('s-phone'),
     email:document.getElementById('s-email').value,
     city:document.getElementById('s-city').value,
     inn:document.getElementById('s-inn').value,
@@ -808,7 +808,7 @@ function renderHistory(){
 function loadFromHistory(id){
   var h=historyData.find(function(x){return x.id===id;});if(!h)return;
   document.getElementById('c-name').value=h.client.name||'';
-  document.getElementById('c-phone').value=h.client.phone||'';
+  document.getElementById('c-phone').value=stripDialCodeForInput(h.client.phone||'');
   document.getElementById('c-email').value=h.client.email||'';
   document.getElementById('c-city').value=h.client.city||'';
   document.getElementById('c-addr').value=h.client.addr||'';
@@ -946,7 +946,7 @@ function normalizeLineItems(){
   equipment=(Array.isArray(equipment)?equipment:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,140),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit),locked:!!(x&&x.locked)};});
   extraStages=(Array.isArray(extraStages)?extraStages:[]).map(function(st){return{title:String((st&&st.title)||'').slice(0,60),items:(Array.isArray(st&&st.items)?st.items:[]).map(function(x){return{name:String((x&&x.name)||'').slice(0,120),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit),locked:!!(x&&x.locked)};})};});
 }
-function getClientData(){return{name:document.getElementById('c-name').value.trim(),phone:document.getElementById('c-phone').value.trim(),email:document.getElementById('c-email').value.trim(),city:document.getElementById('c-city').value.trim(),addr:document.getElementById('c-addr').value.trim(),notes:document.getElementById('c-notes').value.trim()};}
+function getClientData(){return{name:document.getElementById('c-name').value.trim(),phone:getPhoneWithDialCode('c-phone'),email:document.getElementById('c-email').value.trim(),city:document.getElementById('c-city').value.trim(),addr:document.getElementById('c-addr').value.trim(),notes:document.getElementById('c-notes').value.trim()};}
 function getTotals(){normalizeLineItems();var worksSub=services.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);extraStages.forEach(function(stage){stage.items.forEach(function(x){worksSub+=clampMoneyValue(x.price)*clampQtyValue(x.qty);});});var equipmentSub=equipment.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var sub=worksSub+equipmentSub;var dv=clampMoneyValue(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*Math.min(dv,100)/100:Math.min(dv,sub)):0;var prepay=Math.min(clampMoneyValue(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0,sub);return{worksSubtotal:worksSub,equipmentSubtotal:equipmentSub,subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}
 var MONEY_LIMIT=99999999;
 var QTY_LIMIT=9999;
@@ -1321,6 +1321,20 @@ function reformatPhoneField(id){
   var mask=iti?PHONE_MASKS[(iti.getSelectedCountryData()||{}).iso2]||PHONE_MASKS._:PHONE_MASKS._;
   var d=inp.value.replace(/\D/g,'').slice(0,_pmaxd(mask));
   inp.value=_pmask(d,mask);
+}
+function getPhoneWithDialCode(id){
+  var inp=document.getElementById(id);
+  if(!inp)return'';
+  var v=inp.value.trim();
+  if(!v)return'';
+  var iti=phoneItiMap[id];
+  if(!iti)return v;
+  var dc=(iti.getSelectedCountryData()||{}).dialCode||'';
+  return dc?'+'+dc+' '+v:v;
+}
+function stripDialCodeForInput(phone){
+  if(!phone)return'';
+  return phone.replace(/^\+\d+\s/,'');
 }
 
 function initPhoneMask(id){

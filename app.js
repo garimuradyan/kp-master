@@ -8,8 +8,8 @@ try{
 }catch(e){console.error('Supabase init error',e);}
 if(sb) window.sb=sb;
 var currentKeyId=null,currentKeyData=null;
-var services=[],equipment=[],priceItems=[],equipmentItems=[],settings={},historyData=[],logoDataURL=null,quotePhotos=[];
-var MAX_KP=15,MAX_PHOTOS=6,MAX_PHOTO_MB=5;
+var services=[],equipment=[],extraStages=[],priceItems=[],equipmentItems=[],settings={},historyData=[],contactsData=[],logoDataURL=null,quotePhotos=[];
+var MAX_PHOTOS=6,MAX_PHOTO_MB=5;
 var ALLOWED_TYPES=['image/jpeg','image/jpg','image/png','image/webp'];
 
 function getStoredKey(){return localStorage.getItem('kp_access_key')||'';}
@@ -42,6 +42,7 @@ window.addEventListener('DOMContentLoaded',function(){
     if(contractBody && window.KP_DEFAULT_CONTRACT_BODY) contractBody.value=window.KP_DEFAULT_CONTRACT_BODY;
     var supplyContractBody=document.getElementById('s-supply-contract-body');
     if(supplyContractBody && window.KP_DEFAULT_SUPPLY_CONTRACT_BODY) supplyContractBody.value=window.KP_DEFAULT_SUPPLY_CONTRACT_BODY;
+    if(typeof initPhoneMasks==='function') initPhoneMasks();
   }catch(e){
     console.error('Init error',e);
     setAuthMsg('Ошибка загрузки приложения. Обновите страницу.');
@@ -114,7 +115,7 @@ function doLogout(){
   if(demoTimer){clearInterval(demoTimer);demoTimer=null;}
   localStorage.removeItem('kp_access_key');localStorage.removeItem('kp_key_id');
   currentKeyId=null;currentKeyData=null;
-  services=[];equipment=[];priceItems=[];equipmentItems=[];settings={};historyData=[];logoDataURL=null;quotePhotos=[];
+  services=[];equipment=[];priceItems=[];equipmentItems=[];settings={};historyData=[];contactsData=[];logoDataURL=null;quotePhotos=[];
   showPublicLanding();
   document.getElementById('keyInput').value='';
   setAuthMsg('');
@@ -153,6 +154,8 @@ async function loadUserData(){
   renderEquipmentList();
   historyData=res.data.quotes||[];
   updateHistoryBadge();
+  contactsData=res.data.contacts||[];
+  renderContacts();
   if(typeof window.setScheduleJobsFromServer === 'function'){
     window.setScheduleJobsFromServer(res.data.schedule_jobs || res.data.schedule || []);
   }
@@ -237,7 +240,9 @@ function removeEquipment(i){equipment.splice(i,1);renderEquipment();}
 function removeService(i){services.splice(i,1);renderServices();}
 function renderServices(){
   var list=document.getElementById('servicesList');
-  if(!services.length){list.innerHTML='<div class="empty-state" style="padding:24px"><div class="empty-icon">🔧</div><p>Добавьте услуги</p></div>';recalc();return;}
+  var titleEl=document.getElementById('worksCardTitleText');
+  if(titleEl)titleEl.textContent=extraStages.length>0?' Этап 1':' Перечень работ';
+  if(!services.length){list.innerHTML='<div class="empty-state" style="padding:24px"><div class="empty-icon">🔧</div><p>Добавьте услуги</p></div>';renderExtraStages();return;}
   list.innerHTML=services.map(function(s,i){
     return'<div class="service-row">'+
     '<textarea class="svc-name" rows="2" maxlength="120" placeholder="Наименование" oninput="services['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+
@@ -247,7 +252,7 @@ function renderServices(){
     '<div class="svc-total" id="svcTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+
     '<button class="delete-btn" onclick="removeService('+i+')" style="padding-top:4px">✕</button></div>';
   }).join('');
-  recalc();
+  renderExtraStages();
 }
 
 function renderEquipment(){
@@ -267,8 +272,53 @@ function renderEquipment(){
 }
 
 
+function renderExtraStages(){
+  var container=document.getElementById('extraStagesContainer');
+  if(!container)return;
+  if(!extraStages.length){container.innerHTML='';recalc();return;}
+  container.innerHTML=extraStages.map(function(stage,si){
+    var stageNum=si+2;
+    var rowsHtml=stage.items.length?stage.items.map(function(s,ri){
+      var v=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);
+      return'<div class="service-row">'+
+      '<textarea class="svc-name" rows="2" maxlength="120" placeholder="Наименование" oninput="extraStages['+si+'].items['+ri+'].name=this.value">'+esc(s.name)+'</textarea>'+
+      '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" onpaste="setTimeout(()=>clampMoneyInput(this),0)" oninput="clampMoneyInput(this);extraStages['+si+'].items['+ri+'].price=parseFloat(this.value)||0;recalc()">'+
+      unitSelectHtml(s.unit,'extraStages['+si+'].items['+ri+'].unit=this.value;recalc()')+
+      '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" onpaste="setTimeout(()=>clampQtyInput(this),0)" oninput="clampQtyInput(this);extraStages['+si+'].items['+ri+'].qty=parseFloat(this.value)||1;recalc()">'+
+      '<div class="svc-total" id="stg'+si+'r'+ri+'Total" title="'+esc(fmt(v))+'">'+appMoneyHtml(v)+'</div>'+
+      '<button class="delete-btn" onclick="removeStageRow('+si+','+ri+')" style="padding-top:4px">✕</button></div>';
+    }).join(''):'<div class="empty-state" style="padding:24px"><div class="empty-icon">🔧</div><p>Добавьте услуги</p></div>';
+    return'<div class="stage-block">'+
+    '<div class="stage-header">'+
+    '<span class="stage-num">Этап '+stageNum+'</span>'+
+    '<input class="stage-title-input" type="text" maxlength="60" placeholder="Название этапа" value="'+esc(stage.title)+'" oninput="extraStages['+si+'].title=this.value">'+
+    '<button class="delete-btn stage-remove-btn" onclick="removeExtraStage('+si+')" title="Удалить этап">✕</button>'+
+    '</div>'+
+    '<div class="services-header"><span>Наименование</span><span>Цена</span><span>Ед.</span><span>Кол-во</span><span>Сумма</span><span></span></div>'+
+    '<div class="services-list">'+rowsHtml+'</div>'+
+    '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="addStageRow('+si+')">+ Добавить строку</button><button class="btn btn-ghost btn-sm" onclick="addFromPriceListToStage('+si+')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="10" height="13" rx="1"/><path d="M6 2V1h4v1"/><line x1="5" y1="7" x2="11" y2="7"/><line x1="5" y1="10" x2="9" y2="10"/></svg> Из прайса</button></div>'+
+    '</div>';
+  }).join('');
+  recalc();
+}
+function addExtraStage(){
+  extraStages.push({title:'',items:[]});
+  var titleEl=document.getElementById('worksCardTitleText');
+  if(titleEl)titleEl.textContent=' Этап 1';
+  renderExtraStages();
+}
+function removeExtraStage(si){
+  extraStages.splice(si,1);
+  var titleEl=document.getElementById('worksCardTitleText');
+  if(titleEl)titleEl.textContent=extraStages.length>0?' Этап 1':' Перечень работ';
+  renderExtraStages();
+}
+function addStageRow(si){extraStages[si].items.push({name:'',price:0,qty:1,unit:'шт.',locked:false});renderExtraStages();}
+function removeStageRow(si,ri){extraStages[si].items.splice(ri,1);renderExtraStages();}
+
 function recalc(){
   var worksSub=services.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
+  extraStages.forEach(function(stage,si){stage.items.forEach(function(x,ri){var v=(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);worksSub+=v;var el=document.getElementById('stg'+si+'r'+ri+'Total');if(el){el.innerHTML=appMoneyHtml(v);el.title=fmt(v);}});});
   var equipmentSub=equipment.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
   var sub=worksSub+equipmentSub;
   services.forEach(function(s,i){var el=document.getElementById('svcTotal'+i);var v=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);if(el){el.innerHTML=appMoneyHtml(v);el.title=fmt(v);}});
@@ -285,6 +335,17 @@ function recalc(){
   else if(document.getElementById('prepayRow')){document.getElementById('prepayRow').style.display='none';}
   var eqRow=document.getElementById('equipmentTotalRow');if(eqRow)eqRow.style.display=equipmentSub>0?'':'none';
   var eqEl=document.getElementById('equipmentTotalDisplay');if(eqEl){eqEl.innerHTML=appMoneyHtml(equipmentSub);eqEl.title=fmt(equipmentSub);}
+  var stageCont=document.getElementById('stageSubtotalsContainer');
+  var worksLabelEl=document.getElementById('worksTotalLabel');
+  if(stageCont){
+    if(extraStages.length>0){
+      var s1sub=services.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
+      var sh='<div class="totals-row stage-subtotal-row"><span>Этап 1:</span><span>'+appMoneyHtml(s1sub)+'</span></div>';
+      extraStages.forEach(function(stage,si){var stSub=stage.items.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);sh+='<div class="totals-row stage-subtotal-row"><span>Этап '+(si+2)+(stage.title?' — '+stage.title:'')+':</span><span>'+appMoneyHtml(stSub)+'</span></div>';});
+      stageCont.innerHTML=sh;
+      if(worksLabelEl)worksLabelEl.textContent='Работы итого:';
+    }else{stageCont.innerHTML='';if(worksLabelEl)worksLabelEl.textContent='Работы:';}
+  }
   var workEl=document.getElementById('worksTotalDisplay');if(workEl){workEl.innerHTML=appMoneyHtml(worksSub);workEl.title=fmt(worksSub);}
   var subEl=document.getElementById('subtotalDisplay');if(subEl){subEl.innerHTML=appMoneyHtml(sub);subEl.title=fmt(sub);}
   var grandEl=document.getElementById('grandTotalDisplay');if(grandEl){var gv=Math.max(0,sub-disc-prepay);grandEl.innerHTML=appMoneyHtml(gv);grandEl.title=fmt(gv);}
@@ -372,14 +433,31 @@ function addFromEquipmentList(){
   document.getElementById('priceModal').style.display='flex';
 }
 function closeModal(){document.getElementById('priceModal').style.display='none';}
+function addFromPriceListToStage(si){
+  priceModalTarget='stage_'+si;
+  var mt=document.getElementById('modalPriceTitle');if(mt)mt.textContent='📋 Выбрать из прайса работ';
+  if(!priceItems.length){toast('Прайс пуст','error');return;}
+  document.getElementById('modalPriceList').innerHTML=priceItems.map(function(p,i){
+    return'<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;min-width:0">'+
+    '<input type="checkbox" data-idx="'+i+'" style="width:16px;height:16px;flex-shrink:0;margin-top:2px">'+
+    '<span style="flex:1;font-size:14px;word-break:break-word;min-width:0;overflow-wrap:break-word">'+esc(p.name)+'</span>'+
+    '<span style="color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:8px">'+fmt(p.price)+' / '+esc(normalizeUnit(p.unit))+'</span></label>';
+  }).join('');
+  document.getElementById('priceModal').style.display='flex';
+}
 function applyModalItems(){
+  var isStage=priceModalTarget.indexOf('stage_')===0;
+  var stageIdx=isStage?parseInt(priceModalTarget.slice(6),10):-1;
   document.querySelectorAll('#modalPriceList input:checked').forEach(function(cb){
     if(priceModalTarget==='equipment'){
       var e=equipmentItems[cb.dataset.idx];if(e)addEquipmentRow(e.name,e.price,1,normalizeUnit(e.unit),true);
+    }else if(isStage){
+      var p=priceItems[cb.dataset.idx];if(p&&extraStages[stageIdx])extraStages[stageIdx].items.push({name:p.name,price:clampMoneyValue(p.price),qty:1,unit:normalizeUnit(p.unit),locked:true});
     }else{
       var p=priceItems[cb.dataset.idx];if(p)addServiceRow(p.name,p.price,1,normalizeUnit(p.unit),true);
     }
   });
+  if(isStage)renderExtraStages();
   closeModal();
 }
 
@@ -563,11 +641,13 @@ function buildPreview(){
   var tableEnd='</tbody></table>';
   var hasEquipment = equipment.length > 0;
   var hasWorks = services.length > 0;
+  var useStageLabels = extraStages.length > 0;
   var sectionLabel = function(title,top){return '<div class="quote-section-label" style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:'+color+';margin:'+(top?'10px':'12px')+' 0 6px">'+title+'</div>';};
   var sections = '';
   if(hasEquipment) sections += sectionLabel('Оборудование',true)+tableHead+eqRows+tableEnd;
-  if(hasWorks) sections += (hasEquipment?sectionLabel('Работы',false):'')+tableHead+workRows+tableEnd;
-  if(!hasEquipment && !hasWorks) sections = '<div class="empty-state" style="padding:20px"><p>Позиции не добавлены</p></div>';
+  if(hasWorks){var wl=useStageLabels?'Этап 1':(hasEquipment?'Работы':'');sections+=(wl?sectionLabel(wl,!hasEquipment):'')+tableHead+workRows+tableEnd;}
+  extraStages.forEach(function(stage,si){if(!stage.items.length)return;var stLabel='Этап '+(si+2)+(stage.title?' — '+stage.title:'');var stRows=stage.items.map(function(s){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);return'<tr><td class="qp-name">'+esc(s.name)+'</td><td class="qp-money">'+moneyHtml(s.price)+'</td><td class="qp-unit">'+esc(normalizeUnit(s.unit))+'</td><td class="qp-qty">'+s.qty+'</td><td class="qp-money qp-total">'+moneyHtml(total)+'</td></tr>';}).join('');sections+=sectionLabel(stLabel,false)+tableHead+stRows+tableEnd;});
+  if(!hasEquipment&&!hasWorks&&!extraStages.some(function(s){return s.items.length>0;})) sections = '<div class="empty-state" style="padding:20px"><p>Позиции не добавлены</p></div>';
   var h='<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:3px solid '+color+';margin-bottom:14px">'+
     '<div>'+(logoDataURL?'<img src="'+logoDataURL+'" style="max-height:52px;max-width:150px;object-fit:contain;display:block;margin-bottom:4px">':'')+
     (settings.company?'<div style="font-size:15px;font-weight:800;color:#111">'+esc(settings.company)+'</div>':'')+
@@ -583,7 +663,8 @@ function buildPreview(){
     sections+
     '<div style="text-align:right"><div style="display:inline-block;min-width:210px">'+
     (t.equipmentSubtotal>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Оборудование:</span><span class="qp-money">'+moneyHtml(t.equipmentSubtotal)+'</span></div>':'')+
-    (t.worksSubtotal>0 && t.equipmentSubtotal>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Работы:</span><span class="qp-money">'+moneyHtml(t.worksSubtotal)+'</span></div>':'')+
+    (function(){if(!extraStages.length)return'';var s1s=services.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);var r='<div style="display:flex;justify-content:space-between;font-size:11px;color:#888;padding:2px 0 2px 6px"><span>Этап 1:</span><span class="qp-money">'+moneyHtml(s1s)+'</span></div>';extraStages.forEach(function(stage,si){var ss=stage.items.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);r+='<div style="display:flex;justify-content:space-between;font-size:11px;color:#888;padding:2px 0 2px 6px"><span>Этап '+(si+2)+(stage.title?' — '+stage.title:'')+':</span><span class="qp-money">'+moneyHtml(ss)+'</span></div>';});return r;})()+
+    (t.worksSubtotal>0&&(t.equipmentSubtotal>0||extraStages.length>0)?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>'+(extraStages.length>0?'Работы итого:':'Работы:')+'</span><span class="qp-money">'+moneyHtml(t.worksSubtotal)+'</span></div>':'')+
     '<div style="display:flex;justify-content:space-between;font-size:12px;color:#666;padding:3px 0"><span>Итого:</span><span class="qp-money">'+moneyHtml(t.subtotal)+'</span></div>'+
     (t.discount>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#c00;padding:3px 0"><span>Скидка:</span><span class="qp-money">−'+moneyHtml(t.discount)+'</span></div>':'')+
     (t.prepay>0?'<div style="display:flex;justify-content:space-between;font-size:12px;color:#059669;padding:3px 0"><span>Предоплата:</span><span class="qp-money">−'+moneyHtml(t.prepay)+'</span></div>':'')+
@@ -619,16 +700,18 @@ function printPDF(){
   var pdfTableEnd='</tbody></table>';
   var hasPdfEquipment = equipment.length > 0;
   var hasPdfWorks = services.length > 0;
+  var usePdfStageLabels = extraStages.length > 0;
   var pdfSections = '';
   if(hasPdfEquipment) pdfSections += '<div class="sec-title">Оборудование</div>'+pdfTableHead+eqRows+pdfTableEnd;
-  if(hasPdfWorks) pdfSections += (hasPdfEquipment?'<div class="sec-title">Работы</div>':'')+pdfTableHead+sRows+pdfTableEnd;
-  if(!hasPdfEquipment && !hasPdfWorks) pdfSections = '<div style="padding:14px;border:1px solid #eee;border-radius:8px;color:#777">Позиции не добавлены</div>';
+  if(hasPdfWorks){var pwl=usePdfStageLabels?'Этап 1':(hasPdfEquipment?'Работы':'');pdfSections+=(pwl?'<div class="sec-title">'+pwl+'</div>':'')+pdfTableHead+sRows+pdfTableEnd;}
+  extraStages.forEach(function(stage,si){if(!stage.items.length)return;var stLabel='Этап '+(si+2)+(stage.title?' — '+stage.title:'');var stRows=stage.items.map(function(s,i){var total=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);return'<tr style="background:'+(i%2===0?'#fff':'#f8fafc')+'"><td class="num-td">'+(i+1)+'</td><td class="name-td"><span class="clip-name">'+esc(s.name)+'</span></td><td class="money-td">'+moneyHtml(s.price)+'</td><td class="unit-td">'+esc(normalizeUnit(s.unit))+'</td><td class="qty-td">'+s.qty+'</td><td class="money-td sum-td" style="color:'+color+'">'+moneyHtml(total)+'</td></tr>';}).join('');pdfSections+='<div class="sec-title">'+stLabel+'</div>'+pdfTableHead+stRows+pdfTableEnd;});
+  if(!hasPdfEquipment&&!hasPdfWorks&&!extraStages.some(function(s){return s.items.length>0;})) pdfSections = '<div style="padding:14px;border:1px solid #eee;border-radius:8px;color:#777">Позиции не добавлены</div>';
   var logoH=logoDataURL?'<img src="'+logoDataURL+'" style="max-height:50px;max-width:140px;object-fit:contain;display:block;margin-bottom:4px">':'';
   var masterH='';
   if(settings.company)masterH+='<div style="font-size:15px;font-weight:800;color:#111;margin-bottom:2px;word-break:normal;overflow-wrap:normal;white-space:normal;hyphens:none;word-break:keep-all;max-width:100%;overflow:hidden">'+esc(settings.company)+'</div>';
   var ct=[settings.phone,settings.email].filter(Boolean).join(' · ');if(ct)masterH+='<div style="font-size:11px;color:#555;word-break:normal;overflow-wrap:normal;white-space:normal;hyphens:none;word-break:keep-all;max-width:100%;overflow:hidden">'+ct+'</div>';
   var dt=[settings.city,settings.inn?'ИНН '+settings.inn:''].filter(Boolean).join(' · ');if(dt)masterH+='<div style="font-size:10px;color:#888;word-break:normal;overflow-wrap:normal;white-space:normal;hyphens:none;word-break:keep-all;max-width:100%;overflow:hidden">'+dt+'</div>';
-  var discH=t.discount>0?'<tr><td style="color:#888">Скидка:</td><td class="money-td" style="color:#c00">−'+moneyHtml(t.discount)+'</td></tr>':'';
+  var discH=t.discount>0?'<tr><td style="color:#444">Скидка:</td><td class="money-td" style="color:#c00">−'+moneyHtml(t.discount)+'</td></tr>':'';
   var prepayH=t.prepay>0?'<tr><td style="color:#059669">Предоплата:</td><td class="money-td" style="color:#059669">−'+moneyHtml(t.prepay)+'</td></tr>':'';
   var photosH='';
   if(quotePhotos.length){photosH='<div style="margin-top:18px;padding-top:12px;border-top:2px solid '+color+'"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:'+color+';margin-bottom:8px">Фото оборудования</div><div style="display:grid;grid-template-columns:repeat('+Math.min(quotePhotos.length,3)+',1fr);gap:6px">'+quotePhotos.map(function(p){return'<img src="'+p.dataURL+'" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;border:1px solid #ddd">';}).join('')+'</div></div>';}
@@ -681,9 +764,10 @@ function printPDF(){
     '</div></div>'+
     pdfSections+
     '<div class="tot"><table>'+
-    (t.equipmentSubtotal>0?'<tr><td style="color:#888">Оборудование:</td><td class="money-td">'+moneyHtml(t.equipmentSubtotal)+'</td></tr>':'')+
-    (t.worksSubtotal>0 && t.equipmentSubtotal>0?'<tr><td style="color:#888">Работы:</td><td class="money-td">'+moneyHtml(t.worksSubtotal)+'</td></tr>':'')+
-    '<tr><td style="color:#888">Итого:</td><td class="money-td">'+moneyHtml(t.subtotal)+'</td></tr>'+discH+prepayH+'<tr class="grand"><td>К ОПЛАТЕ:</td><td class="money-td">'+moneyHtml(t.grand,'grand-money')+'</td></tr></table></div>'+
+    (t.equipmentSubtotal>0?'<tr><td style="color:#444">Оборудование:</td><td class="money-td">'+moneyHtml(t.equipmentSubtotal)+'</td></tr>':'')+
+    (function(){if(!extraStages.length)return'';var s1s=services.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);var r='<tr><td style="color:#444">Этап 1:</td><td class="money-td">'+moneyHtml(s1s)+'</td></tr>';extraStages.forEach(function(stage,si){var ss=stage.items.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);r+='<tr><td style="color:#444">Этап '+(si+2)+(stage.title?' — '+stage.title:'')+':</td><td class="money-td">'+moneyHtml(ss)+'</td></tr>';});return r;})()+
+    (t.worksSubtotal>0&&(t.equipmentSubtotal>0||extraStages.length>0)?'<tr><td style="color:#444">'+(extraStages.length>0?'Работы итого:':'Работы:')+'</td><td class="money-td">'+moneyHtml(t.worksSubtotal)+'</td></tr>':'')+
+    '<tr><td style="color:#444">Итого:</td><td class="money-td">'+moneyHtml(t.subtotal)+'</td></tr>'+discH+prepayH+'<tr class="grand"><td>К ОПЛАТЕ:</td><td class="money-td">'+moneyHtml(t.grand,'grand-money')+'</td></tr></table></div>'+
     (c.notes?'<div style="background:#fffbf0;border-left:3px solid #f0a020;padding:8px 12px;border-radius:3px;margin-top:10px;font-size:11px;overflow-wrap:anywhere;word-break:break-word;white-space:normal;max-width:100%;overflow:hidden"><b>Примечание:</b> '+esc(c.notes)+'</div>':'')+
     (settings.warranty?'<div style="background:#f0f8ff;border-left:3px solid '+color+';padding:8px 12px;border-radius:3px;margin-top:10px;font-size:11px;color:#445;overflow-wrap:anywhere;word-break:break-word;white-space:normal">'+esc(settings.warranty)+'</div>':'')+
     photosH+
@@ -698,12 +782,8 @@ async function saveToHistory(){
   if(!isLoggedIn()){showPublicLanding();toast('Введите ключ доступа','error');return;}
 
   if(!validateClient()){nextStep(1);return;}
-  if(!currentKeyData.is_admin&&historyData.length>=MAX_KP){
-    toast('Память заполнена ('+MAX_KP+' КП). Удалите хотя бы одно.','error');
-    showPage('history',null);return;
-  }
   var c=getClientData(),t=getTotals(),num=generateQuoteNumber();
-  var entry={num:num,date:new Date().toLocaleDateString('ru-RU'),clientName:c.name,clientPhone:c.phone,total:t.grand,servicesCount:services.length,services:JSON.parse(JSON.stringify(services)),equipment:JSON.parse(JSON.stringify(equipment)),client:Object.assign({},c),discount:{val:parseFloat(document.getElementById('discountVal').value)||0,type:document.getElementById('discountType').value}};
+  var entry={num:num,date:new Date().toLocaleDateString('ru-RU'),clientName:c.name,clientPhone:c.phone,total:t.grand,servicesCount:services.length,services:JSON.parse(JSON.stringify(services)),equipment:JSON.parse(JSON.stringify(equipment)),extraStages:JSON.parse(JSON.stringify(extraStages)),client:Object.assign({},c),discount:{val:parseFloat(document.getElementById('discountVal').value)||0,type:document.getElementById('discountType').value}};
   var args=Object.assign(rpcAuthParams(),{p_client_name:c.name,p_client_phone:c.phone,p_total:t.grand,p_data:entry});
   var res=await sb.rpc('kp_save_quote',args);
   if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка сохранения'),'error');return;}
@@ -713,13 +793,8 @@ async function saveToHistory(){
 function renderHistory(){
   var list=document.getElementById('historyList');
   if(!historyData.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📂</div><p>История пуста</p></div>';return;}
-  var used=historyData.length,pct=Math.round(used/MAX_KP*100);
-  var bc=used>=MAX_KP?'var(--danger)':used>=MAX_KP*0.8?'var(--warn)':'var(--success)';
-  var counter=!currentKeyData.is_admin?'<div style="margin-bottom:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 16px">'+
-    '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:8px"><span>КП в памяти</span><span style="font-weight:700;color:'+bc+'">'+used+' / '+MAX_KP+'</span></div>'+
-    '<div style="background:var(--border);border-radius:4px;height:5px"><div style="width:'+pct+'%;height:5px;border-radius:4px;background:'+bc+'"></div></div>'+
-    (used>=MAX_KP?'<div style="margin-top:8px;font-size:12px;color:var(--danger)">⚠ Удалите хотя бы одно КП</div>':'')+
-    '</div>':'';
+  var used=historyData.length;
+  var counter=!currentKeyData.is_admin&&used?'<div style="margin-bottom:12px;font-size:12px;color:var(--text2);padding:4px 0">КП сохранено: <strong>'+used+'</strong></div>':'';
   list.innerHTML=counter+historyData.map(function(h){
     return'<div class="history-item">'+
     '<div class="history-info"><div class="history-name">'+esc(h.clientName)+'</div>'+
@@ -740,6 +815,7 @@ function loadFromHistory(id){
   document.getElementById('c-notes').value=h.client.notes||'';
   services=JSON.parse(JSON.stringify(h.services||[]));
   equipment=JSON.parse(JSON.stringify(h.equipment||[]));
+  extraStages=JSON.parse(JSON.stringify(h.extraStages||[]));
   if(h.discount){document.getElementById('discountVal').value=h.discount.val||'';document.getElementById('discountType').value=h.discount.type||'percent';}
   showPage('new',null);
   jumpStep(2);renderEquipment();renderServices();toast('КП загружено ✓','success');
@@ -757,7 +833,7 @@ async function deleteFromHistory(id){
 function updateHistoryBadge(){
   var el=document.getElementById('histBadge');
   el.textContent=historyData.length;
-  el.style.background=(!currentKeyData.is_admin&&historyData.length>=MAX_KP)?'var(--danger)':'var(--accent)';
+  el.style.background='var(--accent)';
 }
 
 function resetForm(){
@@ -765,7 +841,7 @@ function resetForm(){
   ['c-name','c-phone','c-email','c-city','c-addr','c-notes'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('discountVal').value='';
   if(document.getElementById('prepayVal'))document.getElementById('prepayVal').value='';
-  services=[];equipment=[];quotePhotos=[];renderPhotos();jumpStep(1);renderEquipment();renderServices();
+  services=[];equipment=[];extraStages=[];quotePhotos=[];renderPhotos();jumpStep(1);renderEquipment();renderServices();
 }
 
 async function loadAdminData(){
@@ -868,9 +944,10 @@ async function deleteKey(id){
 function normalizeLineItems(){
   services=(Array.isArray(services)?services:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,120),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit),locked:!!(x&&x.locked)};});
   equipment=(Array.isArray(equipment)?equipment:[]).map(function(x){return {name:String((x&&x.name)||'').slice(0,140),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit),locked:!!(x&&x.locked)};});
+  extraStages=(Array.isArray(extraStages)?extraStages:[]).map(function(st){return{title:String((st&&st.title)||'').slice(0,60),items:(Array.isArray(st&&st.items)?st.items:[]).map(function(x){return{name:String((x&&x.name)||'').slice(0,120),price:clampMoneyValue(x&&x.price),qty:clampQtyValue(x&&x.qty),unit:normalizeUnit(x&&x.unit),locked:!!(x&&x.locked)};})};});
 }
 function getClientData(){return{name:document.getElementById('c-name').value.trim(),phone:document.getElementById('c-phone').value.trim(),email:document.getElementById('c-email').value.trim(),city:document.getElementById('c-city').value.trim(),addr:document.getElementById('c-addr').value.trim(),notes:document.getElementById('c-notes').value.trim()};}
-function getTotals(){normalizeLineItems();var worksSub=services.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var equipmentSub=equipment.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var sub=worksSub+equipmentSub;var dv=clampMoneyValue(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*Math.min(dv,100)/100:Math.min(dv,sub)):0;var prepay=Math.min(clampMoneyValue(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0,sub);return{worksSubtotal:worksSub,equipmentSubtotal:equipmentSub,subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}
+function getTotals(){normalizeLineItems();var worksSub=services.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);extraStages.forEach(function(stage){stage.items.forEach(function(x){worksSub+=clampMoneyValue(x.price)*clampQtyValue(x.qty);});});var equipmentSub=equipment.reduce(function(s,x){return s+clampMoneyValue(x.price)*clampQtyValue(x.qty);},0);var sub=worksSub+equipmentSub;var dv=clampMoneyValue(document.getElementById('discountVal').value)||0;var dt=document.getElementById('discountType').value;var disc=dv>0?(dt==='percent'?sub*Math.min(dv,100)/100:Math.min(dv,sub)):0;var prepay=Math.min(clampMoneyValue(document.getElementById('prepayVal')?document.getElementById('prepayVal').value:0)||0,sub);return{worksSubtotal:worksSub,equipmentSubtotal:equipmentSub,subtotal:sub,discount:disc,prepay:prepay,grand:Math.max(0,sub-disc-prepay)};}
 var MONEY_LIMIT=99999999;
 var QTY_LIMIT=9999;
 var MONEY_DIGITS=8;
@@ -949,3 +1026,371 @@ function generateQuoteNumber(){var d=new Date();return d.getFullYear()+pad(d.get
 function pad(n){return String(n).padStart(2,'0');}
 var toastTimer;
 function toast(msg,type){var el=document.getElementById('toast');el.textContent=msg;el.className='show '+(type||'success');clearTimeout(toastTimer);toastTimer=setTimeout(function(){el.classList.remove('show');},3000);}
+
+// ── КОНТАКТЫ ─────────────────────────────────────────────────
+
+function renderContacts(query){
+  var tbody=document.getElementById('contactsTbody');
+  var emptyRow=document.getElementById('contactsEmptyRow');
+  var badge=document.getElementById('contactsBadge');
+  if(!tbody)return;
+
+  var q=(query||'').toLowerCase().trim();
+  var list=q?contactsData.filter(function(c){
+    return (c.name||'').toLowerCase().indexOf(q)>-1||
+           (c.phone||'').toLowerCase().indexOf(q)>-1||
+           (c.email||'').toLowerCase().indexOf(q)>-1||
+           (c.address||'').toLowerCase().indexOf(q)>-1;
+  }):contactsData;
+
+  var n=contactsData.length;
+  if(badge)badge.textContent=n+' '+(n===1?'клиент':(n>=2&&n<=4?'клиента':'клиентов'));
+
+  Array.from(tbody.querySelectorAll('tr.contact-row')).forEach(function(r){r.remove();});
+
+  if(!list.length){
+    if(emptyRow){
+      emptyRow.style.display='';
+      var hint=emptyRow.querySelector('span:last-child');
+      if(hint)hint.textContent=q?'Ничего не найдено':'Нажмите «Добавить клиента» чтобы начать';
+    }
+    return;
+  }
+  if(emptyRow)emptyRow.style.display='none';
+
+  var kpCountMap={};
+  contactsData.forEach(function(c){
+    kpCountMap[c.id]=historyData.filter(function(h){return linkedToContact(h,c);}).length;
+  });
+
+  list.forEach(function(c){
+    var tr=document.createElement('tr');
+    tr.className='contact-row';
+    var kpCnt=kpCountMap[c.id]||0;
+    var kpBadge=kpCnt?'<span class="contact-kp-badge" onclick="openContactKpModal('+c.id+')" title="Связанные КП">'+kpCnt+' КП</span>':'';
+    tr.innerHTML=
+      '<td><span class="contact-name">'+esc(c.name)+'</span>'+kpBadge+'</td>'+
+      '<td>'+(c.phone?'<a href="tel:'+esc(c.phone)+'" class="contact-link">'+esc(c.phone)+'</a>':'<span class="contact-empty">—</span>')+'</td>'+
+      '<td>'+(c.email?'<a href="mailto:'+esc(c.email)+'" class="contact-link">'+esc(c.email)+'</a>':'<span class="contact-empty">—</span>')+'</td>'+
+      '<td><span class="contact-addr">'+(c.address?esc(c.address):'<span class="contact-empty">—</span>')+'</span></td>'+
+      '<td class="contact-actions">'+
+        '<button class="btn btn-ghost btn-sm" title="Создать КП" onclick="newKpFromContact('+c.id+')">'+
+          '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/><polyline points="9 1 9 5 13 5"/><line x1="5" y1="9" x2="11" y2="9"/></svg>'+
+          ' КП'+
+        '</button>'+
+        '<button class="btn btn-ghost btn-sm" title="Редактировать" onclick="openContactModal('+c.id+')">'+
+          '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2l3 3-9 9H2v-3L11 2z"/></svg>'+
+        '</button>'+
+        '<button class="btn btn-ghost btn-sm contact-delete-btn" title="Удалить" onclick="deleteContact('+c.id+')">'+
+          '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 4 14 4"/><path d="M5 4V2h6v2"/><path d="M3 4l1 10a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-10"/></svg>'+
+        '</button>'+
+      '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function linkedToContact(h,c){
+  var hn=(h.clientName||h.client&&h.client.name||'').toLowerCase().trim();
+  var hp=(h.clientPhone||h.client&&h.client.phone||'').replace(/\D/g,'');
+  var cn=(c.name||'').toLowerCase().trim();
+  var cp=(c.phone||'').replace(/\D/g,'');
+  if(cn&&hn===cn)return true;
+  if(cp&&hp&&hp===cp)return true;
+  return false;
+}
+
+function filterContacts(q){renderContacts(q);}
+
+function openContactModal(idArg){
+  var id=typeof idArg==='number'?idArg:null;
+  var modal=document.getElementById('contactModal');
+  var title=document.getElementById('contactModalTitle');
+  document.getElementById('contactId').value=id||'';
+  var c=id?contactsData.find(function(x){return x.id===id;}):null;
+  if(title)title.textContent=c?'Редактировать клиента':'Новый клиент';
+  document.getElementById('c-contact-name').value=c?c.name:'';
+  document.getElementById('c-contact-phone').value=c?c.phone:'';
+  document.getElementById('c-contact-email').value=c?c.email:'';
+  document.getElementById('c-contact-address').value=c?c.address:'';
+  document.getElementById('c-contact-notes').value=c?c.notes:'';
+  modal.style.display='flex';
+  setTimeout(function(){document.getElementById('c-contact-name').focus();},50);
+}
+
+function closeContactModal(){
+  document.getElementById('contactModal').style.display='none';
+}
+
+async function saveContact(){
+  var name=document.getElementById('c-contact-name').value.trim();
+  if(!name){toast('Введите ФИО клиента','error');return;}
+  var cid=parseInt(document.getElementById('contactId').value)||0;
+  var data={
+    name:name,
+    phone:document.getElementById('c-contact-phone').value.trim(),
+    email:document.getElementById('c-contact-email').value.trim(),
+    address:document.getElementById('c-contact-address').value.trim(),
+    notes:document.getElementById('c-contact-notes').value.trim()
+  };
+  var args=Object.assign(rpcAuthParams(),{p_contact_id:cid||null,p_data:data});
+  var res=await sb.rpc('kp_save_contact',args);
+  if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка сохранения'),'error');return;}
+  var newId=res.data.id;
+  if(cid){
+    var idx=contactsData.findIndex(function(x){return x.id===cid;});
+    if(idx>-1)contactsData[idx]=Object.assign({id:cid},data);
+  }else{
+    contactsData.unshift(Object.assign({id:newId,created_at:new Date().toISOString()},data));
+  }
+  closeContactModal();
+  renderContacts(document.getElementById('contactsSearch').value);
+  toast(cid?'Клиент обновлён':'Клиент добавлен','success');
+}
+
+async function deleteContact(id){
+  if(!confirm('Удалить этого клиента? Связанные КП не удаляются.'))return;
+  var args=Object.assign(rpcAuthParams(),{p_contact_id:id});
+  var res=await sb.rpc('kp_delete_contact',args);
+  if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка удаления'),'error');return;}
+  contactsData=contactsData.filter(function(c){return c.id!==id;});
+  renderContacts(document.getElementById('contactsSearch').value);
+  toast('Клиент удалён','success');
+}
+
+function openContactKpModal(contactId){
+  var c=contactsData.find(function(x){return x.id===contactId;});
+  if(!c)return;
+  var modal=document.getElementById('contactKpModal');
+  var title=document.getElementById('contactKpTitle');
+  var list=document.getElementById('contactKpList');
+  if(title)title.textContent='КП клиента: '+c.name;
+  var linked=historyData.filter(function(h){return linkedToContact(h,c);});
+  if(!linked.length){
+    list.innerHTML='<div style="color:var(--text3);font-size:14px;padding:12px 0;text-align:center">Нет сохранённых КП для этого клиента</div>';
+  }else{
+    list.innerHTML=linked.map(function(h){
+      return '<div class="contact-kp-item" onclick="openKpFromContact(\''+esc(String(h.id||''))+'\')" style="cursor:pointer">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px">'+
+          '<div>'+
+            '<div style="font-weight:600;font-size:14px">'+esc(h.clientName||h.num||'КП')+'</div>'+
+            '<div style="font-size:12px;color:var(--text3);margin-top:2px">'+esc(h.date||'')+(h.num?' &nbsp;·&nbsp; №'+esc(h.num):'')+'</div>'+
+          '</div>'+
+          '<div style="font-weight:700;font-size:14px;white-space:nowrap">'+fmt(h.total||0)+' ₽</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+  modal.style.display='flex';
+}
+
+function openKpFromContact(id){
+  closeContactKpModal();
+  var idx=historyData.findIndex(function(h){return String(h.id)===String(id);});
+  if(idx>-1){
+    var bnav=document.getElementById('bnav-history');
+    if(typeof showPage==='function')showPage('history',bnav||null);
+    setTimeout(function(){
+      var el=document.getElementById('historyList');
+      if(el){var item=el.querySelectorAll('.history-item')[idx];if(item)item.scrollIntoView({behavior:'smooth',block:'center'});}
+    },150);
+  }
+}
+
+function closeContactKpModal(){
+  document.getElementById('contactKpModal').style.display='none';
+}
+
+function newKpFromContact(id){
+  var c=contactsData.find(function(x){return x.id===id;});
+  if(!c)return;
+  var bnav=document.getElementById('bnav-new');
+  if(typeof showPage==='function')showPage('new',bnav||null);
+  if(typeof resetForm==='function')resetForm();
+  setTimeout(function(){
+    var fn=document.getElementById('c-name');
+    var fp=document.getElementById('c-phone');
+    var fe=document.getElementById('c-email');
+    var fa=document.getElementById('c-address');
+    if(fn)fn.value=c.name||'';
+    if(fp){fp.value=c.phone||'';reformatPhoneField('c-phone');}
+    if(fe)fe.value=c.email||'';
+    if(fa)fa.value=c.address||'';
+  },50);
+}
+
+function openContactModalFromQuote(){
+  openContactModal(null);
+  setTimeout(function(){
+    var name=document.getElementById('c-name');
+    var phone=document.getElementById('c-phone');
+    var email=document.getElementById('c-email');
+    var addr=document.getElementById('c-addr');
+    if(name)document.getElementById('c-contact-name').value=name.value.trim();
+    if(phone){document.getElementById('c-contact-phone').value=phone.value.trim();reformatPhoneField('c-contact-phone');}
+    if(email)document.getElementById('c-contact-email').value=email.value.trim();
+    if(addr)document.getElementById('c-contact-address').value=addr.value.trim();
+  },60);
+}
+
+function exportContacts(){
+  if(!contactsData.length){toast('Нет контактов для экспорта','error');return;}
+  var rows=[['ФИО','Телефон','Email','Адрес','Заметки']];
+  contactsData.forEach(function(c){
+    rows.push([c.name||'',c.phone||'',c.email||'',c.address||'',c.notes||'']);
+  });
+  var csv=rows.map(function(r){
+    return r.map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(',');
+  }).join('\r\n');
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='контакты.csv';
+  a.click();
+}
+
+
+// ── PHONE MASKING ─────────────────────────────────────────────
+var PHONE_MASKS={
+  ru:'(###) ###-##-##',kz:'(###) ###-##-##',
+  by:'(##) ###-##-##', ua:'(##) ###-##-##',
+  us:'(###) ###-####', ca:'(###) ###-####',
+  gb:'#### ######',    de:'### #######',
+  fr:'# ## ## ## ##',  it:'### #### ###',
+  es:'### ## ## ##',   pl:'## ### ## ##',
+  tr:'### ### ## ##',  az:'## ### ## ##',
+  ge:'## ### ####',    am:'## ### ###',
+  _: '### ### ####'
+};
+var phoneItiMap={};
+
+function _pmaxd(m){return (m.match(/#/g)||[]).length;}
+
+function _pmask(digs,m){
+  var r='',di=0;
+  for(var i=0;i<m.length;i++){
+    if(di>=digs.length)break;
+    if(m[i]==='#'){r+=digs[di++];}else{r+=m[i];}
+  }
+  return r;
+}
+
+// Count digits in str before position pos
+function _pdigbefore(str,pos){return str.slice(0,pos).replace(/\D/g,'').length;}
+
+// Position in formatted string after n-th digit (1-based)
+function _pposafter(fmt,n){
+  if(n<=0)return 0;
+  var c=0;
+  for(var i=0;i<fmt.length;i++){if(/\d/.test(fmt[i])&&++c===n)return i+1;}
+  return fmt.length;
+}
+
+function reformatPhoneField(id){
+  var inp=document.getElementById(id);
+  if(!inp)return;
+  var iti=phoneItiMap[id];
+  var mask=iti?PHONE_MASKS[(iti.getSelectedCountryData()||{}).iso2]||PHONE_MASKS._:PHONE_MASKS._;
+  var d=inp.value.replace(/\D/g,'').slice(0,_pmaxd(mask));
+  inp.value=_pmask(d,mask);
+}
+
+function initPhoneMask(id){
+  if(!window.intlTelInput)return;
+  var inp=document.getElementById(id);
+  if(!inp||inp._phInit)return;
+  inp._phInit=true;
+
+  var iti=window.intlTelInput(inp,{
+    initialCountry:'ru',
+    preferredCountries:['ru','by','kz','ua'],
+    separateDialCode:true,
+    autoPlaceholder:'off'
+  });
+  phoneItiMap[id]=iti;
+  var mask=PHONE_MASKS.ru;
+
+  function curMask(){return PHONE_MASKS[(iti.getSelectedCountryData()||{}).iso2]||PHONE_MASKS._;}
+  function fmt(digits){return _pmask(digits.slice(0,_pmaxd(mask)),mask);}
+  function digits(){return inp.value.replace(/\D/g,'');}
+
+  inp.placeholder=mask.replace(/#/g,'0');
+
+  inp.addEventListener('countrychange',function(){
+    mask=curMask();inp.value='';
+    inp.placeholder=mask.replace(/#/g,'0');
+  });
+
+  inp.addEventListener('keydown',function(e){
+    var s=inp.selectionStart,end=inp.selectionEnd;
+    var digs=digits(),maxd=_pmaxd(mask);
+    var db=_pdigbefore(inp.value,s),de=_pdigbefore(inp.value,end);
+
+    if(e.key==='Backspace'){
+      e.preventDefault();
+      var nd;
+      if(s!==end){nd=digs.slice(0,db)+digs.slice(de);}
+      else if(db>0){nd=digs.slice(0,db-1)+digs.slice(db);}
+      else return;
+      var f=fmt(nd);inp.value=f;
+      var p=_pposafter(f,s!==end?db:db-1);
+      inp.setSelectionRange(p,p);
+      return;
+    }
+    if(e.key==='Delete'){
+      e.preventDefault();
+      var nd;
+      if(s!==end){nd=digs.slice(0,db)+digs.slice(de);}
+      else if(db<digs.length){nd=digs.slice(0,db)+digs.slice(db+1);}
+      else return;
+      var f=fmt(nd);inp.value=f;
+      var p=_pposafter(f,db);
+      inp.setSelectionRange(p,p);
+      return;
+    }
+    if(['ArrowLeft','ArrowRight','Tab','Home','End'].indexOf(e.key)>-1)return;
+    if(e.ctrlKey||e.metaKey)return;
+    if(!/^\d$/.test(e.key)){e.preventDefault();return;}
+    // digit key — handle manually so cursor is always correct
+    e.preventDefault();
+    if(digs.length>=maxd&&s===end)return;
+    var nd=(digs.slice(0,db)+e.key+digs.slice(de)).slice(0,maxd);
+    var f=fmt(nd);inp.value=f;
+    var p=_pposafter(f,db+1);
+    inp.setSelectionRange(p,p);
+  });
+
+  inp.addEventListener('paste',function(e){
+    e.preventDefault();
+    var s=inp.selectionStart,end=inp.selectionEnd;
+    var digs=digits();
+    var db=_pdigbefore(inp.value,s),de=_pdigbefore(inp.value,end);
+    var pasted=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+    var nd=(digs.slice(0,db)+pasted+digs.slice(de)).slice(0,_pmaxd(mask));
+    var f=fmt(nd);inp.value=f;
+    var p=_pposafter(f,Math.min(db+pasted.length,_pmaxd(mask)));
+    inp.setSelectionRange(p,p);
+  });
+
+  // fallback for mobile/IME
+  inp.addEventListener('input',function(){
+    var cur=inp.selectionStart;
+    var db=_pdigbefore(inp.value,cur);
+    var nd=digits().slice(0,_pmaxd(mask));
+    var f=fmt(nd);
+    if(inp.value!==f){inp.value=f;var p=_pposafter(f,db);inp.setSelectionRange(p,p);}
+  });
+
+  inp.addEventListener('focus',function(){
+    var nd=digits().slice(0,_pmaxd(mask));
+    inp.value=fmt(nd);
+    inp.placeholder=mask.replace(/#/g,'0');
+    var w=inp.closest('.iti');if(w)w.classList.add('phone-focused');
+  });
+  inp.addEventListener('blur',function(){
+    var w=inp.closest('.iti');if(w)w.classList.remove('phone-focused');
+  });
+}
+
+function initPhoneMasks(){
+  ['c-phone','s-phone','schPhone','c-contact-phone'].forEach(initPhoneMask);
+}

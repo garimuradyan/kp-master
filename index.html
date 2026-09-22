@@ -5,23 +5,40 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0" name="viewport"/>
 <title>КП Мастер</title>
-<meta content="#111827" name="theme-color"/>
+<meta content="#ffffff" name="theme-color"/>
+<script>!function(){var t=localStorage.getItem('kpmaster-theme')||'light';document.documentElement.setAttribute('data-theme',t)}();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/js/intlTelInput.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/css/intlTelInput.css"/>
 <link href="./styles.css" rel="stylesheet"/></head>
 <body>
 
 <div class="auth-wrap" id="authWrap">
 <div class="auth-box">
-<div class="auth-logo">КП МАСТЕР</div>
-<div class="auth-sub">Введите ключ доступа выданный администратором</div>
-<div class="key-input-wrap">
-<input autocapitalize="characters" autocomplete="off" autocorrect="off" id="keyInput" maxlength="120" placeholder="Введите ключ доступа" spellcheck="false" type="text"/ class="key-login-input-v58" style="text-transform:none!important;letter-spacing:0!important;font-size:14px!important;font-weight:500!important;text-align:left!important;">
+<div class="auth-logo">КП Мастер</div>
+<div class="auth-sub">Инструмент для монтажников кондиционеров</div>
+<div class="auth-form-block">
+<div>
+<label class="auth-field-label">Ключ доступа</label>
+<input autocapitalize="characters" autocomplete="off" autocorrect="off" id="keyInput" maxlength="120" placeholder="KLIM-2025-XXX" spellcheck="false" type="text" class="key-login-input-v58" style="text-transform:none!important;letter-spacing:0!important;font-size:14px!important;font-weight:500!important;text-align:left!important;width:100%;border:1px solid #000;border-radius:6px;padding:9px 12px;outline:none;font-family:inherit;background:#fff;color:#171717;"/>
 </div>
 <button class="btn btn-primary btn-full" onclick="doLogin()">Войти →</button>
-<div style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:8px;text-align:center;font-size:13px;color:var(--text2)">
-  Нет ключа? Получите доступ в нашем боте:<br>
-  <a href="https://t.me/KPpayment_bot" target="_blank" style="color:var(--accent);font-weight:700;text-decoration:none;display:inline-block;margin-top:6px">✈️ Открыть Telegram бот</a>
+</div>
+<div class="auth-divider-line"></div>
+<p class="auth-tg-note">Нет ключа? Получите доступ в&nbsp;<a href="https://t.me/KPpayment_bot" target="_blank">Telegram-боте</a></p>
+<div class="auth-features-list">
+<div class="auth-feature-row">
+<div style="flex-shrink:0;margin-top:1px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg></div>
+<div class="auth-feature-text">КП за 3-5 минут: заполни данные клиента, выбери работы</div>
+</div>
+<div class="auth-feature-row">
+<div style="flex-shrink:0;margin-top:1px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg></div>
+<div class="auth-feature-text">График выездов: все монтажи в одном календаре</div>
+</div>
+<div class="auth-feature-row">
+<div style="flex-shrink:0;margin-top:1px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+<div class="auth-feature-text">Сохраняй контакты клиентов: до 999 записей</div>
+</div>
 </div>
 <div id="authMsg" style="margin-top:12px;font-size:13px;text-align:center;color:var(--danger)"></div>
 </div>
@@ -32,34 +49,14 @@
   <div class="public-about-page about-v21-page">
 
   <section class="about-v21-hero">
-    <div class="about-v21-kicker">Сервис для монтажников кондиционеров</div>
     <div class="about-v21-hero-grid">
       <div class="about-v21-copy">
         <h1>КП Мастер</h1>
-        <p class="about-v21-lead">Оформляйте коммерческие предложения, договоры, акты и выезды в одном рабочем кабинете. Быстрее, аккуратнее и без лишней ручной рутины.</p>
+        <p class="about-v21-lead">Оформляйте КП, договоры и акты в одном месте. Все расчёты автоматически, без Excel и ручной рутины.</p>
         <div class="about-v21-tags">
-          <span>КП за 3–5 минут</span>
+          <span>КП за 3-5 минут</span>
           <span>Документы в один клик</span>
           <span>График выездов</span>
-        </div>
-      </div>
-      <div class="about-v21-stats">
-        <div class="about-v21-stat-card">
-          <strong>1 сервис</strong>
-          <span>вместо Excel, заметок и разрозненных шаблонов</span>
-        </div>
-        <div class="about-v21-stat-card">
-          <strong>0 ручных пересчётов</strong>
-          <span>суммы, скидка и предоплата считаются автоматически</span>
-        </div>
-        <div class="about-v21-stat-card">
-          <strong>1 клик</strong>
-          <span>чтобы перенести данные из КП в график монтажа</span>
-        </div>
-        <div class="about-v21-stat-card">
-          <strong>Работает на любом устройстве</strong>
-          <span>Телефон, планшет, компьютер.</span>
-          <em>*Один ключ привязывается к одному браузеру на конкретном устройстве.</em>
         </div>
       </div>
     </div>
@@ -67,32 +64,32 @@
 
   <section class="about-v21-section">
     <div class="about-v21-heading-wrap">
-      <div class="about-v21-heading">Что получает мастер</div>
+      <div class="about-v21-heading">Что умеет</div>
     </div>
     <div class="about-v21-feature-grid">
       <article class="about-v21-feature-card">
         <h3>Быстрое КП</h3>
-        <p>Быстро оформляйте коммерческое предложение после звонка или осмотра. Все необходимые данные собираются в презентабельный и понятный документ без ручной верстки.</p>
-      </article>
-      <article class="about-v21-feature-card">
-        <h3>Понятно для клиента</h3>
-        <p>Клиент сразу видит, за что платит: состав предложения, стоимость позиций, количество и итоговую сумму. Меньше вопросов, больше прозрачности, быстрее согласование.</p>
-      </article>
-      <article class="about-v21-feature-card">
-        <h3>Свой прайс под рукой</h3>
-        <p>При желании можно сохранить все необходимые услуги и оборудование в настройках один раз. Потом добавлять позиции в КП за секунды, без переписывания прайса вручную.</p>
+        <p>Выбрал работы из прайса, заполнил данные клиента. КП готово.</p>
       </article>
       <article class="about-v21-feature-card">
         <h3>Документы в один клик</h3>
-        <p>Договор на монтаж и акт выполненных работ формируются автоматически по данным клиента, мастера и выбранных работ. Все за несколько секунд.</p>
+        <p>Договор и акт формируются автоматически из данных КП.</p>
       </article>
       <article class="about-v21-feature-card">
-        <h3>График без хаоса</h3>
-        <p>Все выезды ведутся в календаре. Выезд можно создать сразу из коммерческого предложения — все данные перенесутся автоматически, или можно добавить выезд вручную.</p>
+        <h3>График выездов</h3>
+        <p>Все монтажи в календаре. Выезд создаётся прямо из КП.</p>
       </article>
       <article class="about-v21-feature-card">
-        <h3>Меньше ошибок в суммах</h3>
-        <p>Количество, цены, скидка, предоплата и итог пересчитываются автоматически. Это снижает риск ошибиться в расчётах и отправить клиенту неправильную сумму.</p>
+        <h3>0 ручных пересчётов</h3>
+        <p>Сумма, скидка и предоплата считаются автоматически.</p>
+      </article>
+      <article class="about-v21-feature-card">
+        <h3>База клиентов</h3>
+        <p>Сохраняй контакты клиентов: до 999 записей</p>
+      </article>
+      <article class="about-v21-feature-card">
+        <h3>Любое устройство</h3>
+        <p>Телефон, планшет, компьютер. Один ключ на одно устройство.</p>
       </article>
     </div>
   </section>
@@ -100,20 +97,19 @@
   <section class="about-v21-section">
     <div class="about-v21-heading-wrap">
       <div class="about-v21-heading">Для кого</div>
-      <p>Сервис подходит тем, кому нужно быстро оформлять клиента и держать всё в одном месте.</p>
     </div>
     <div class="about-v21-fit-grid">
       <article class="about-v21-fit-card">
         <h3>Частный мастер</h3>
-        <p>Быстро выдавать аккуратное КП после звонка или осмотра и не терять заявки.</p>
+        <p>Быстро оформить КП после звонка и не потерять заявку.</p>
       </article>
       <article class="about-v21-fit-card">
         <h3>Монтажная бригада</h3>
-        <p>Держать выезды, цены, работы и документы в одном понятном рабочем процессе.</p>
+        <p>Выезды, цены и документы в одном рабочем месте.</p>
       </article>
       <article class="about-v21-fit-card">
         <h3>Небольшая компания</h3>
-        <p>Работать аккуратно и быстро без Excel, хаоса в файлах и постоянных ручных правок.</p>
+        <p>Работать без Excel и хаоса в файлах.</p>
       </article>
     </div>
   </section>
@@ -122,7 +118,6 @@
     <div class="about-v21-heading-wrap about-v21-heading-row">
       <div>
         <div class="about-v21-heading">Тарифы</div>
-        <p>Полный доступ ко всем функциям сервиса.</p>
       </div>
     </div>
     <div class="about-v21-pricing-grid">
@@ -131,8 +126,7 @@
           <span class="about-v21-price-period">1 месяц</span>
         </div>
         <div class="about-v21-price-value">1 490 ₽</div>
-        <div class="about-v21-price-sub">Полный доступ ко всем функциям</div>
-        <div class="about-v21-price-footer">Удобно начать и протестировать сервис в работе</div>
+        <div class="about-v21-price-footer">Попробовать сервис в работе</div>
       </article>
 
       <article class="about-v21-price-card about-v21-price-popular">
@@ -143,7 +137,7 @@
         <div class="about-v21-price-value">3 990 ₽</div>
         <div class="about-v21-price-old">4 470 ₽</div>
         <div class="about-v21-price-sub">Экономия 480 ₽</div>
-        <div class="about-v21-price-footer">Оптимально, если сервис уже нужен на постоянной основе</div>
+        <div class="about-v21-price-footer">Оптимально для постоянной работы</div>
       </article>
 
       <article class="about-v21-price-card about-v21-price-best">
@@ -154,10 +148,10 @@
         <div class="about-v21-price-value">9 990 ₽</div>
         <div class="about-v21-price-old">17 880 ₽</div>
         <div class="about-v21-price-sub">Экономия 7 890 ₽</div>
-        <div class="about-v21-price-footer">Максимальная выгода для регулярной работы в течение года</div>
+        <div class="about-v21-price-footer">Максимальная выгода</div>
       </article>
     </div>
-    <div class="about-v21-payment-note"><span>Оплата и доступ — через Telegram-бот</span><a class="about-v21-bot-link about-v21-telegram-button" href="https://t.me/KPpayment_bot" target="_blank">Открыть Telegram-бот</a></div>
+    <div class="about-v21-payment-note"><span>Оплата и доступ через Telegram бот</span><a class="about-v21-bot-link about-v21-telegram-button" href="https://t.me/KPpayment_bot" target="_blank">Открыть Telegram бот</a></div>
   </section>
 
   <section class="about-v21-section about-v21-support-section">
@@ -173,12 +167,63 @@
 
 
 <div id="appWrap" style="display:none">
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<aside class="app-sidebar" id="appSidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">КП МАСТЕР</div>
+    <button class="sidebar-close" onclick="closeSidebar()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
+    </button>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="sidebar-nav-item" data-page="dashboard" onclick="navTo('dashboard')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+      Дашборд
+    </button>
+    <button class="sidebar-nav-item active" data-page="new" onclick="navTo('new')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/><polyline points="9 1 9 5 13 5"/><line x1="5" y1="9" x2="11" y2="9"/><line x1="5" y1="12" x2="8" y2="12"/></svg>
+      Новое КП
+    </button>
+    <button class="sidebar-nav-item" data-page="history" onclick="navTo('history')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><polyline points="8 4 8 8 11 10"/></svg>
+      История
+    </button>
+    <button class="sidebar-nav-item" data-page="contacts" onclick="navTo('contacts')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.761 2.239-5 5-5s5 2.239 5 5"/><line x1="11" y1="4" x2="15" y2="4"/><line x1="11" y1="7" x2="15" y2="7"/><line x1="11" y1="10" x2="13" y2="10"/></svg>
+      Контакты
+    </button>
+    <button class="sidebar-nav-item" data-page="schedule" onclick="navTo('schedule')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="12" rx="1.5"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="1" x2="5" y2="5"/><line x1="11" y1="1" x2="11" y2="5"/></svg>
+      График
+    </button>
+    <button class="sidebar-nav-item" data-page="settings" onclick="navTo('settings')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M2.93 2.93l1.06 1.06M12.01 12.01l1.06 1.06M12.01 2.93l-1.06 1.06M3.99 12.01l-1.06 1.06"/></svg>
+      Настройки
+    </button>
+    <button class="sidebar-nav-item" data-page="about" onclick="navTo('about')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5" r="0.5" fill="currentColor" stroke="none"/></svg>
+      О сервисе
+    </button>
+    <button class="sidebar-nav-item sidebar-admin-item" data-page="admin" id="sidebar-bnav-admin" onclick="navTo('admin')" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1l2 4 4.5.65-3.25 3.17.77 4.47L8 11.1l-4.02 2.19.77-4.47L1.5 5.65 6 5z"/></svg>
+      Админ
+    </button>
+  </nav>
+</aside>
 <header class="app-header">
+<div class="header-left">
+<button class="hamburger-btn" id="sidebarToggle" onclick="toggleSidebar()">
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="2" y1="5" x2="18" y2="5"/><line x1="2" y1="10" x2="18" y2="10"/><line x1="2" y1="15" x2="18" y2="15"/></svg>
+</button>
 <div class="app-logo">КП МАСТЕР</div>
+</div>
 <div class="header-right">
-<span id="daysCounter" style="display:none;font-size:12px;font-weight:700;padding:3px 8px;border-radius:20px;background:rgba(16,185,129,.12);color:var(--success)"></span>
+<span class="days-counter-badge" id="daysCounter" style="display:none"></span>
 <span class="master-badge" id="masterName"></span>
-<button class="logout-btn" onclick="doLogout()" style="background:none;border:1px solid rgba(239,68,68,.3);color:var(--danger);font-family:inherit;font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer">Выйти</button>
+<button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()" title="Сменить тему">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3.5"/><line x1="8" y1="0.5" x2="8" y2="2"/><line x1="8" y1="14" x2="8" y2="15.5"/><line x1="0.5" y1="8" x2="2" y2="8"/><line x1="14" y1="8" x2="15.5" y2="8"/><line x1="2.93" y1="2.93" x2="3.99" y2="3.99"/><line x1="12.01" y1="12.01" x2="13.07" y2="13.07"/><line x1="13.07" y1="2.93" x2="12.01" y2="3.99"/><line x1="3.99" y1="12.01" x2="2.93" y2="13.07"/></svg>
+</button>
+<button class="logout-btn" onclick="doLogout()">Выйти</button>
 </div>
 </header>
 <nav class="bottom-nav">
@@ -204,6 +249,82 @@
 </nav>
 <main class="app-body">
 
+<div class="page" id="page-dashboard">
+<div class="page-title">Дашборд</div>
+<div class="dash-grid">
+  <div class="dash-card">
+    <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg></div>
+    <div class="dash-num" id="dash-clients">0</div>
+    <div class="dash-label">Клиентов</div>
+  </div>
+  <div class="dash-card">
+    <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="14" height="10" rx="1.5"/><path d="M5 4V3a2 2 0 0 1 4 0v1"/><line x1="8" y1="9" x2="8" y2="11"/></svg></div>
+    <div class="dash-num" id="dash-budget">0 ₽</div>
+    <div class="dash-label">Общий бюджет</div>
+  </div>
+  <div class="dash-card">
+    <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5C5.515 1.5 3.5 3.515 3.5 6c0 3.75 4.5 8.5 4.5 8.5s4.5-4.75 4.5-8.5C12.5 3.515 10.485 1.5 8 1.5z"/><circle cx="8" cy="6" r="1.5"/></svg></div>
+    <div class="dash-num" id="dash-addresses">0</div>
+    <div class="dash-label">Адресов</div>
+  </div>
+  <div class="dash-card">
+    <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/><polyline points="9 1 9 5 13 5"/><line x1="5" y1="9" x2="11" y2="9"/><line x1="5" y1="12" x2="8" y2="12"/></svg></div>
+    <div class="dash-num" id="dash-services">0</div>
+    <div class="dash-label">Видов услуг</div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">
+    <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><polyline points="8 4 8 8 11 10"/></svg></span>
+    Последние КП
+  </div>
+  <div id="dashRecentList"><div style="color:var(--text3);font-size:14px;padding:4px 0">История пуста</div></div>
+</div>
+</div>
+<div class="page" id="page-contacts">
+<div class="page-title">Контакты</div>
+<div class="contacts-toolbar">
+  <span class="contacts-badge" id="contactsBadge">0 клиентов</span>
+  <div class="contacts-toolbar-actions">
+    <div class="contacts-search-wrap">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="contacts-search-icon"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+      <input class="contacts-search-input" id="contactsSearch" type="text" placeholder="Поиск..." oninput="filterContacts(this.value)"/>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="exportContacts()">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1v10M4 7l4 4 4-4"/><path d="M2 13h12"/></svg>
+      Экспорт
+    </button>
+    <button class="btn btn-primary btn-sm" onclick="openContactModal()">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+      Добавить клиента
+    </button>
+  </div>
+</div>
+<div class="card contacts-table-wrap">
+  <table class="contacts-table">
+    <thead>
+      <tr>
+        <th>ФИО</th>
+        <th>Телефон</th>
+        <th>Email</th>
+        <th>Адрес</th>
+        <th>Действия</th>
+      </tr>
+    </thead>
+    <tbody id="contactsTbody">
+      <tr class="contacts-empty-row" id="contactsEmptyRow">
+        <td colspan="5">
+          <div class="contacts-empty">
+            <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="color:var(--border)"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.761 2.239-5 5-5s5 2.239 5 5"/><line x1="11" y1="4" x2="15" y2="4"/><line x1="11" y1="7" x2="15" y2="7"/><line x1="11" y1="10" x2="13" y2="10"/></svg>
+            <span>Список клиентов пуст</span>
+            <span style="font-size:12px;color:var(--text3)">Нажмите «Добавить клиента» чтобы начать</span>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</div>
 <div class="page active" id="page-new">
 <div class="steps">
 <div class="step active" id="step1"><span class="step-num">01</span>Клиент</div>
@@ -212,7 +333,7 @@
 </div>
 <div id="section-client">
 <div class="card">
-<div class="card-title"><span class="icon">👤</span> Данные клиента</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg></span> Данные клиента</div>
 <div class="form-grid">
 <div class="field"><label>ФИО *</label><input id="c-name" maxlength="80" placeholder="Иванов Иван Иванович" type="text"/></div>
 <div class="field"><label>Телефон *</label><input id="c-phone" maxlength="20" placeholder="+7 (999) 000-00-00" type="tel"/></div>
@@ -226,25 +347,30 @@
 </div>
 <div id="section-services" style="display:none">
 <div class="card">
-<div class="card-title"><span class="icon">❄️</span> Оборудование</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="14" height="5" rx="2"/><line x1="3" y1="6.5" x2="10" y2="6.5"/><line x1="3" y1="8" x2="10" y2="8"/><circle cx="12.5" cy="6.5" r="1"/><path d="M4 9v2M7 9v2.5M10 9v2"/></svg></span> Оборудование</div>
 <div class="services-header"><span>Наименование</span><span>Цена</span><span>Ед.</span><span>Кол-во</span><span>Сумма</span><span></span></div>
 <div class="services-list" id="equipmentList"></div>
 <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
 <button class="btn btn-ghost btn-sm" onclick="addEquipmentRow()">+ Добавить оборудование</button>
-<button class="btn btn-ghost btn-sm" onclick="addFromEquipmentList()">📋 Из списка оборудования</button>
+<button class="btn btn-ghost btn-sm" onclick="addFromEquipmentList()"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="10" height="13" rx="1"/><path d="M6 2V1h4v1"/><line x1="5" y1="7" x2="11" y2="7"/><line x1="5" y1="10" x2="9" y2="10"/></svg> Из списка оборудования</button>
 </div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">🔧</span> Перечень работ</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5"/></svg></span><span id="worksCardTitleText"> Перечень работ</span></div>
 <div class="services-header"><span>Наименование</span><span>Цена</span><span>Ед.</span><span>Кол-во</span><span>Сумма</span><span></span></div>
 <div class="services-list" id="servicesList"></div>
 <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
 <button class="btn btn-ghost btn-sm" onclick="addServiceRow()">+ Добавить строку</button>
-<button class="btn btn-ghost btn-sm" onclick="addFromPriceList()">📋 Из прайса</button>
+<button class="btn btn-ghost btn-sm" onclick="addFromPriceList()"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="10" height="13" rx="1"/><path d="M6 2V1h4v1"/><line x1="5" y1="7" x2="11" y2="7"/><line x1="5" y1="10" x2="9" y2="10"/></svg> Из прайса</button>
+</div>
+<div id="extraStagesContainer"></div>
+<div style="margin-top:8px">
+<button class="btn btn-ghost btn-sm" onclick="addExtraStage()"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg> Добавить этап</button>
 </div>
 <div class="totals-box">
 <div class="totals-row" id="equipmentTotalRow" style="display:none"><span>Оборудование:</span><span id="equipmentTotalDisplay">0 ₽</span></div>
-<div class="totals-row"><span>Работы:</span><span id="worksTotalDisplay">0 ₽</span></div>
+<div id="stageSubtotalsContainer"></div>
+<div class="totals-row"><span id="worksTotalLabel">Работы:</span><span id="worksTotalDisplay">0 ₽</span></div>
 <div class="totals-row"><span>Итого:</span><span id="subtotalDisplay">0 ₽</span></div>
 <div class="discount-row">
 <label>Скидка</label>
@@ -266,13 +392,13 @@
 </div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">📸</span> Фото оборудования</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2l-1.5 2H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1h-2.5L10 2H6z"/><circle cx="8" cy="8" r="2.5"/></svg></span> Фото оборудования</div>
 <div class="photo-url-row">
 <input id="photoUrlInput" placeholder="Прямая ссылка на фото (https://...)" type="url"/>
 <button class="btn btn-ghost btn-sm" onclick="loadPhotoFromUrl()">Загрузить</button>
 </div>
 <div class="photo-toolbar">
-<label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0">📁 С устройства<input accept="image/*" id="photoFileInput" multiple="" onchange="loadPhotoFromFile(event)" style="display:none" type="file"/></label>
+<label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4h4l2 2h8a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/></svg> С устройства<input accept="image/*" id="photoFileInput" multiple="" onchange="loadPhotoFromFile(event)" style="display:none" type="file"/></label>
 <span id="photoCount" style="font-size:12px;color:var(--text3)">0 / 6 фото</span>
 <button class="btn btn-danger btn-sm" id="photoClearBtn" onclick="clearAllPhotos()" style="display:none">✕ Удалить все</button>
 </div>
@@ -281,19 +407,17 @@
 </div>
 <div id="section-preview" style="display:none">
 <div class="card">
-<div class="card-title"><span class="icon">📄</span> Предпросмотр КП</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/><polyline points="9 1 9 5 13 5"/><line x1="5" y1="9" x2="11" y2="9"/><line x1="5" y1="12" x2="8" y2="12"/></svg></span> Предпросмотр КП</div>
 <div class="preview-panel" id="pdfPreview"></div>
 <div class="action-bar">
 <button class="btn btn-ghost" onclick="nextStep(2)">← Назад</button>
-<button class="btn btn-success" onclick="printPDF()">🖨 Получить КП</button>
-<button class="btn btn-primary" onclick="openDocumentsModal()">🧾 Печать документов</button>
-<button class="btn btn-ghost" onclick="openScheduleModalFromQuote()">📅 В график</button>
-<button class="btn btn-primary" onclick="saveToHistory()">💾 Сохранить</button>
-<button class="btn btn-ghost" onclick="resetForm()">✦ Новое КП</button>
+<button class="btn btn-success" onclick="printPDF()"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 6 4 1 12 1 12 6"/><path d="M4 11H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2"/><rect x="4" y="11" width="8" height="5"/></svg> Получить КП</button>
+<button class="btn btn-primary" onclick="openDocumentsModal()"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 1v14l2-1 2 1 2-1 2 1 2-1V1"/><line x1="5" y1="5" x2="11" y2="5"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="5" y1="11" x2="8" y2="11"/></svg> Печать документов</button>
+<button class="btn btn-ghost" onclick="openScheduleModalFromQuote()"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="12" rx="1.5"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="1" x2="5" y2="5"/><line x1="11" y1="1" x2="11" y2="5"/></svg> В график</button>
+<button class="btn btn-primary" onclick="saveToHistory()"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h8l3 3v9a1 1 0 0 1-1 1z"/><polyline points="5 14 5 9 11 9 11 14"/><polyline points="5 2 5 6 10 6"/></svg> Сохранить КП</button>
+<button class="btn btn-ghost" onclick="openContactModalFromQuote()"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg> Сохранить контакт</button>
+<button class="btn btn-ghost" onclick="resetForm()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg> Новое КП</button>
 </div>
-<div style="margin-top:12px;padding:12px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--text2)">
-            💡 На iPhone: <b>Поделиться → Напечатать</b> → сведи пальцы на превью → сохрани PDF
-          </div>
 </div>
 </div>
 </div>
@@ -306,7 +430,7 @@
 <div class="page" id="page-schedule">
 <div class="page-title">График <span>Монтажей</span></div>
 <div class="card schedule-head-card">
-<div class="card-title"><span class="icon">📅</span> Календарь монтажника</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="12" rx="1.5"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="1" x2="5" y2="5"/><line x1="11" y1="1" x2="11" y2="5"/></svg></span> Календарь монтажника</div>
 <p class="schedule-hint">Планируйте выезды монтажника, быстро переносите данные из КП и возвращайтесь к связанному КП для правок.</p>
 <div class="schedule-toolbar">
 <div class="schedule-month-switch">
@@ -326,7 +450,7 @@
 <div class="schedule-month-grid" id="scheduleMonthGrid"></div>
 </div>
 <div class="card schedule-day-card">
-<div class="card-title" id="scheduleDayTitle"><span class="icon">🧰</span> Выезды на день</div>
+<div class="card-title" id="scheduleDayTitle"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="14" height="9" rx="1"/><path d="M5 6V4a3 3 0 0 1 6 0v2"/><line x1="1" y1="10" x2="15" y2="10"/></svg></span> Выезды на день</div>
 <div class="schedule-day-list" id="scheduleDayList"></div>
 </div>
 </div>
@@ -335,7 +459,7 @@
 <div class="page" id="page-settings">
 <div class="page-title">Настройки <span>Мастера</span></div>
 <div class="card">
-<div class="card-title"><span class="icon">👤</span> Мои данные</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg></span> Мои данные</div>
 <p style="font-size:12px;color:var(--text3);margin-bottom:14px">Все поля необязательны</p>
 <div class="form-grid">
 <div class="field span2"><label>ФИО</label><input id="s-company" placeholder="Иванов Иван Иванович" type="text"/></div>
@@ -348,13 +472,13 @@
 </div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">🎨</span> Логотип и стиль</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><circle cx="5" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="11" cy="6.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="10.5" r="1" fill="currentColor" stroke="none"/></svg></span> Логотип и стиль</div>
 <div class="form-grid">
 <div class="field">
 <label>Логотип</label>
 <div class="logo-upload-zone" onclick="document.getElementById('logoInput').click()">
 <input accept="image/*" id="logoInput" onchange="handleLogo(event)" style="display:none" type="file"/>
-<div id="logoPreviewWrap"><div style="color:var(--text3);font-size:13px"><div style="font-size:32px;margin-bottom:8px">🖼</div><p>Нажмите для загрузки</p></div></div>
+<div id="logoPreviewWrap"><div style="color:var(--text3);font-size:13px"><div style="margin-bottom:8px"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div><p>Нажмите для загрузки</p></div></div>
 </div>
 <button class="btn btn-ghost btn-sm" onclick="clearLogo()" style="margin-top:8px">Удалить</button>
 </div>
@@ -369,7 +493,7 @@
 </div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">✍️</span> Подпись мастера</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2.5a2.121 2.121 0 0 1 3 3L5.5 14H2v-3.5L11 2.5z"/></svg></span> Подпись мастера</div>
 <p class="settings-note">Расписывайтесь пальцем на телефоне или мышкой на компьютере. Сохранённая подпись автоматически подставится в договор и акт.</p>
 <div class="signature-pad-wrap">
 <canvas id="signatureCanvas" width="640" height="180"></canvas>
@@ -380,49 +504,49 @@
 </div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">📄</span> Шаблон договора на монтажные работы</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/><polyline points="9 1 9 5 13 5"/><line x1="5" y1="9" x2="11" y2="9"/><line x1="5" y1="12" x2="8" y2="12"/></svg></span> Шаблон договора на монтажные работы</div>
 <p class="settings-note">Редактируется только основной текст договора. Данные клиента, мастера, реквизиты и подписи программа подставляет отдельно, поэтому код и переменные сломать нельзя.</p>
 <div class="field"><label>Текст договора на монтажные работы</label><textarea id="s-contract-body" class="contract-template-textarea" spellcheck="true"></textarea></div>
 <div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="resetContractTemplate()">Вернуть стандартный договор</button></div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">📦</span> Шаблон договора поставки оборудования</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/><polyline points="9 1 9 5 13 5"/><path d="M5.5 8.5L7 7.5l1 1 1.5-1 1 1"/><line x1="5" y1="11" x2="11" y2="11"/></svg></span> Шаблон договора поставки оборудования</div>
 <p class="settings-note">Редактируется только нейтральный текст договора поставки. Данные клиента, мастера, реквизиты, подписи и список оборудования программа подставляет отдельно.</p>
 <div class="field"><label>Текст договора поставки оборудования</label><textarea id="s-supply-contract-body" class="contract-template-textarea" spellcheck="true"></textarea></div>
 <div style="margin-top:10px"><button class="btn btn-ghost btn-sm" onclick="resetSupplyContractTemplate()">Вернуть стандартный договор поставки</button></div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">💰</span> Прайс-лист работ</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 17v-10h4a3 3 0 0 1 0 6h-6"/><path d="M14 15h-6"/></svg></span> Прайс-лист работ</div>
 <div class="services-list" id="priceList"></div>
 <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="addPriceItem()">+ Добавить</button></div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">❄️</span> Оборудование</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="14" height="5" rx="2"/><line x1="3" y1="6.5" x2="10" y2="6.5"/><line x1="3" y1="8" x2="10" y2="8"/><circle cx="12.5" cy="6.5" r="1"/><path d="M4 9v2M7 9v2.5M10 9v2"/></svg></span> Оборудование</div>
 <p class="settings-note">Список кондиционеров и оборудования для быстрого добавления в КП. В акт выполненных работ эти позиции не попадают.</p>
 <div class="services-list" id="equipmentPriceList"></div>
 <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="addEquipmentItem()">+ Добавить</button></div>
 </div>
-<button class="btn btn-primary btn-full" onclick="saveSettings(true)">💾 Сохранить настройки</button>
+<button class="btn btn-primary btn-full" onclick="saveSettings(true)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h8l3 3v9a1 1 0 0 1-1 1z"/><polyline points="5 14 5 9 11 9 11 14"/><polyline points="5 2 5 6 10 6"/></svg> Сохранить настройки</button>
 </div>
 
 <div class="page" id="page-admin">
-<div class="page-title">⚙ Панель <span>Администратора</span></div>
+<div class="page-title">Панель <span>Администратора</span></div>
 <div class="stat-grid" id="adminStats">
 <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Всего ключей</div></div>
 <div class="stat-card"><div class="stat-num" id="statActive">—</div><div class="stat-label">Активных</div></div>
 <div class="stat-card"><div class="stat-num" id="statBlocked">—</div><div class="stat-label">Заблокированных</div></div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">➕</span> Добавить ключ</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg></span> Добавить ключ</div>
 <div class="add-key-form">
 <div class="field"><label>Ключ доступа</label><input autocapitalize="characters" id="newKey" placeholder="KLIM-2025-XXX" type="text"/></div>
 <div class="field"><label>Имя мастера</label><input id="newName" placeholder="Иван Иванов" type="text"/></div>
 <div class="field" style="justify-content:flex-end"><button class="btn btn-primary" onclick="addKey()">Добавить</button></div>
-<div class="field" style="justify-content:flex-end"><button class="btn btn-ghost" onclick="genKey()">🎲 Сгенерировать</button></div>
+<div class="field" style="justify-content:flex-end"><button class="btn btn-ghost" onclick="genKey()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14"/><path d="M8 8.5a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor"/><path d="M15 8.5a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor"/><path d="M15 15.5a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor"/><path d="M8 15.5a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor"/><path d="M11.5 12a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor"/></svg> Сгенерировать</button></div>
 </div>
 </div>
 <div class="card">
-<div class="card-title"><span class="icon">🗝</span> Все ключи</div>
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5.5" r="3.5"/><path d="M8.5 8.5L14 14"/><line x1="11" y1="11" x2="13" y2="9"/><line x1="13" y1="13" x2="15" y2="11"/></svg></span> Все ключи</div>
 <div style="overflow-x:auto">
 <table class="admin-table" id="keysTable">
 <thead><tr>
@@ -432,38 +556,32 @@
 </table>
 </div>
 </div>
+<div class="card">
+<div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="14" height="9" rx="1.5"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/></svg></span> Рекламный баннер</div>
+<p style="font-size:12px;color:var(--text3);margin-bottom:12px">Баннер виден у всех пользователей внизу страницы. Оба поля пустые — баннер скрыт.</p>
+<div class="add-key-form">
+<div class="field span2"><label>Текст баннера</label><input id="adBannerInput" maxlength="120" placeholder="Например: Скидка 10% на монтаж до 30 октября" type="text"/></div>
+<div class="field span2"><label>Или URL картинки / GIF</label><input id="adBannerUrl" maxlength="500" placeholder="https://i.imgur.com/example.jpg" type="url"/></div>
+<div class="field" style="justify-content:flex-end"><button class="btn btn-primary" onclick="saveAdBanner()">Сохранить</button></div>
+<div class="field" style="justify-content:flex-end"><button class="btn btn-ghost" onclick="clearAdBanner()">Скрыть баннер</button></div>
+</div>
+<div id="adBannerPreview" style="display:none;margin-top:8px">
+<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Предпросмотр:</div>
+<div class="ad-strip" id="adBannerPreviewStrip"></div>
+</div>
+</div>
 </div>
 
 <div class="page about-v21-page" id="page-about">
   <section class="about-v21-hero">
-    <div class="about-v21-kicker">Сервис для монтажников кондиционеров</div>
     <div class="about-v21-hero-grid">
       <div class="about-v21-copy">
         <h1>КП Мастер</h1>
-        <p class="about-v21-lead">Оформляйте коммерческие предложения, договоры, акты и выезды в одном рабочем кабинете. Быстрее, аккуратнее и без лишней ручной рутины.</p>
+        <p class="about-v21-lead">Оформляйте КП, договоры и акты в одном месте. Все расчёты автоматически, без Excel и ручной рутины.</p>
         <div class="about-v21-tags">
-          <span>КП за 3–5 минут</span>
+          <span>КП за 3-5 минут</span>
           <span>Документы в один клик</span>
           <span>График выездов</span>
-        </div>
-      </div>
-      <div class="about-v21-stats">
-        <div class="about-v21-stat-card">
-          <strong>1 сервис</strong>
-          <span>вместо Excel, заметок и разрозненных шаблонов</span>
-        </div>
-        <div class="about-v21-stat-card">
-          <strong>0 ручных пересчётов</strong>
-          <span>суммы, скидка и предоплата считаются автоматически</span>
-        </div>
-        <div class="about-v21-stat-card">
-          <strong>1 клик</strong>
-          <span>чтобы перенести данные из КП в график монтажа</span>
-        </div>
-        <div class="about-v21-stat-card">
-          <strong>Работает на любом устройстве</strong>
-          <span>Телефон, планшет, компьютер.</span>
-          <em>*Один ключ привязывается к одному браузеру на конкретном устройстве.</em>
         </div>
       </div>
     </div>
@@ -471,32 +589,32 @@
 
   <section class="about-v21-section">
     <div class="about-v21-heading-wrap">
-      <div class="about-v21-heading">Что получает мастер</div>
+      <div class="about-v21-heading">Что умеет</div>
     </div>
     <div class="about-v21-feature-grid">
       <article class="about-v21-feature-card">
         <h3>Быстрое КП</h3>
-        <p>Быстро оформляйте коммерческое предложение после звонка или осмотра. Все необходимые данные собираются в презентабельный и понятный документ без ручной верстки.</p>
-      </article>
-      <article class="about-v21-feature-card">
-        <h3>Понятно для клиента</h3>
-        <p>Клиент сразу видит, за что платит: состав предложения, стоимость позиций, количество и итоговую сумму. Меньше вопросов, больше прозрачности, быстрее согласование.</p>
-      </article>
-      <article class="about-v21-feature-card">
-        <h3>Свой прайс под рукой</h3>
-        <p>При желании можно сохранить все необходимые услуги и оборудование в настройках один раз. Потом добавлять позиции в КП за секунды, без переписывания прайса вручную.</p>
+        <p>Выбрал работы из прайса, заполнил данные клиента. КП готово.</p>
       </article>
       <article class="about-v21-feature-card">
         <h3>Документы в один клик</h3>
-        <p>Договор на монтаж и акт выполненных работ формируются автоматически по данным клиента, мастера и выбранных работ. Все за несколько секунд.</p>
+        <p>Договор и акт формируются автоматически из данных КП.</p>
       </article>
       <article class="about-v21-feature-card">
-        <h3>График без хаоса</h3>
-        <p>Все выезды ведутся в календаре. Выезд можно создать сразу из коммерческого предложения — все данные перенесутся автоматически, или можно добавить выезд вручную.</p>
+        <h3>График выездов</h3>
+        <p>Все монтажи в календаре. Выезд создаётся прямо из КП.</p>
       </article>
       <article class="about-v21-feature-card">
-        <h3>Меньше ошибок в суммах</h3>
-        <p>Количество, цены, скидка, предоплата и итог пересчитываются автоматически. Это снижает риск ошибиться в расчётах и отправить клиенту неправильную сумму.</p>
+        <h3>0 ручных пересчётов</h3>
+        <p>Сумма, скидка и предоплата считаются автоматически.</p>
+      </article>
+      <article class="about-v21-feature-card">
+        <h3>База клиентов</h3>
+        <p>Сохраняй контакты клиентов: до 999 записей</p>
+      </article>
+      <article class="about-v21-feature-card">
+        <h3>Любое устройство</h3>
+        <p>Телефон, планшет, компьютер. Один ключ на одно устройство.</p>
       </article>
     </div>
   </section>
@@ -504,20 +622,19 @@
   <section class="about-v21-section">
     <div class="about-v21-heading-wrap">
       <div class="about-v21-heading">Для кого</div>
-      <p>Сервис подходит тем, кому нужно быстро оформлять клиента и держать всё в одном месте.</p>
     </div>
     <div class="about-v21-fit-grid">
       <article class="about-v21-fit-card">
         <h3>Частный мастер</h3>
-        <p>Быстро выдавать аккуратное КП после звонка или осмотра и не терять заявки.</p>
+        <p>Быстро оформить КП после звонка и не потерять заявку.</p>
       </article>
       <article class="about-v21-fit-card">
         <h3>Монтажная бригада</h3>
-        <p>Держать выезды, цены, работы и документы в одном понятном рабочем процессе.</p>
+        <p>Выезды, цены и документы в одном рабочем месте.</p>
       </article>
       <article class="about-v21-fit-card">
         <h3>Небольшая компания</h3>
-        <p>Работать аккуратно и быстро без Excel, хаоса в файлах и постоянных ручных правок.</p>
+        <p>Работать без Excel и хаоса в файлах.</p>
       </article>
     </div>
   </section>
@@ -526,7 +643,6 @@
     <div class="about-v21-heading-wrap about-v21-heading-row">
       <div>
         <div class="about-v21-heading">Тарифы</div>
-        <p>Полный доступ ко всем функциям сервиса.</p>
       </div>
     </div>
     <div class="about-v21-pricing-grid">
@@ -535,8 +651,7 @@
           <span class="about-v21-price-period">1 месяц</span>
         </div>
         <div class="about-v21-price-value">1 490 ₽</div>
-        <div class="about-v21-price-sub">Полный доступ ко всем функциям</div>
-        <div class="about-v21-price-footer">Удобно начать и протестировать сервис в работе</div>
+        <div class="about-v21-price-footer">Попробовать сервис в работе</div>
       </article>
 
       <article class="about-v21-price-card about-v21-price-popular">
@@ -547,7 +662,7 @@
         <div class="about-v21-price-value">3 990 ₽</div>
         <div class="about-v21-price-old">4 470 ₽</div>
         <div class="about-v21-price-sub">Экономия 480 ₽</div>
-        <div class="about-v21-price-footer">Оптимально, если сервис уже нужен на постоянной основе</div>
+        <div class="about-v21-price-footer">Оптимально для постоянной работы</div>
       </article>
 
       <article class="about-v21-price-card about-v21-price-best">
@@ -558,10 +673,10 @@
         <div class="about-v21-price-value">9 990 ₽</div>
         <div class="about-v21-price-old">17 880 ₽</div>
         <div class="about-v21-price-sub">Экономия 7 890 ₽</div>
-        <div class="about-v21-price-footer">Максимальная выгода для регулярной работы в течение года</div>
+        <div class="about-v21-price-footer">Максимальная выгода</div>
       </article>
     </div>
-    <div class="about-v21-payment-note"><span>Оплата и доступ — через Telegram-бот</span><a class="about-v21-bot-link about-v21-telegram-button" href="https://t.me/KPpayment_bot" target="_blank">Открыть Telegram-бот</a></div>
+    <div class="about-v21-payment-note"><span>Оплата и доступ через Telegram бот</span><a class="about-v21-bot-link about-v21-telegram-button" href="https://t.me/KPpayment_bot" target="_blank">Открыть Telegram бот</a></div>
   </section>
 
   <section class="about-v21-section about-v21-support-section">
@@ -572,14 +687,20 @@
     <a class="about-v21-bot-link about-v21-support-link about-v21-support-btn about-v21-telegram-button" href="https://t.me/garimuradyan" target="_blank">Написать в Telegram</a>
   </section>
 </div></div>
+
+<div class="ad-strip" id="adStrip" style="display:none"></div>
 </main>
 </div>
 <div id="toast"></div>
 <div id="priceModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;padding:16px">
 <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;padding:24px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-<div class="card-title" id="modalPriceTitle" style="margin:0">📋 Выбрать из прайса</div>
+<div class="card-title" id="modalPriceTitle" style="margin:0"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="10" height="13" rx="1"/><path d="M6 2V1h4v1"/><line x1="5" y1="7" x2="11" y2="7"/><line x1="5" y1="10" x2="9" y2="10"/></svg></span> Выбрать из прайса</div>
 <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
+</div>
+<div class="modal-search-wrap">
+<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+<input class="modal-search-input" id="modalSearchInput" type="text" placeholder="Поиск по названию..." oninput="filterModalItems(this.value)"/>
 </div>
 <div id="modalPriceList"></div>
 <div style="margin-top:16px;text-align:right"><button class="btn btn-primary" onclick="applyModalItems()">Добавить выбранное</button></div>
@@ -588,7 +709,7 @@
 <div class="kp-modal-overlay" id="documentsModal" style="display:none">
 <div class="kp-modal-box">
 <div class="kp-modal-head">
-<div class="card-title" style="margin:0"><span class="icon">🧾</span> Печать документов</div>
+<div class="card-title" style="margin:0"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 1v14l2-1 2 1 2-1 2 1 2-1V1"/><line x1="5" y1="5" x2="11" y2="5"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="5" y1="11" x2="8" y2="11"/></svg></span> Печать документов</div>
 <button class="btn btn-ghost btn-sm" onclick="closeDocumentsModal()">✕</button>
 </div>
 <p class="modal-note">Выберите документы. Они откроются одним файлом для печати/сохранения в PDF.</p>
@@ -606,7 +727,7 @@
 <div class="kp-modal-overlay" id="scheduleModal" style="display:none">
 <div class="kp-modal-box kp-modal-box-wide">
 <div class="kp-modal-head">
-<div class="card-title" style="margin:0"><span class="icon">📅</span> Монтаж</div>
+<div class="card-title" style="margin:0"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="12" rx="1.5"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="1" x2="5" y2="5"/><line x1="11" y1="1" x2="11" y2="5"/></svg></span> Монтаж</div>
 <button class="btn btn-ghost btn-sm" onclick="closeScheduleModal()">✕</button>
 </div>
 <input id="scheduleEditId" type="hidden"/>
@@ -649,6 +770,179 @@
 </div>
 </div>
 
+<!-- Модальное окно: добавление / редактирование контакта -->
+<div class="kp-modal-overlay" id="contactModal" style="display:none">
+<div class="kp-modal-box">
+  <div class="modal-header">
+    <div class="card-title" id="contactModalTitle" style="margin:0">Новый клиент</div>
+    <button class="btn btn-ghost btn-sm" onclick="closeContactModal()">✕</button>
+  </div>
+  <input type="hidden" id="contactId"/>
+  <div class="field"><label>ФИО <span style="color:var(--danger)">*</span></label><input id="c-contact-name" type="text" placeholder="Иванов Иван Иванович" maxlength="80"/></div>
+  <div class="field"><label>Телефон</label><input id="c-contact-phone" type="tel" placeholder="+7 (999) 000-00-00" maxlength="20"/></div>
+  <div class="field"><label>Email</label><input id="c-contact-email" type="email" placeholder="client@email.com" maxlength="60"/></div>
+  <div class="field"><label>Адрес</label><input id="c-contact-address" type="text" placeholder="ул. Примерная, д. 1" maxlength="100"/></div>
+  <div class="field"><label>Заметки</label><textarea id="c-contact-notes" rows="2" maxlength="300" placeholder="Особые пожелания..."></textarea></div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="closeContactModal()">Отмена</button>
+    <button class="btn btn-primary" onclick="saveContact()">Сохранить</button>
+  </div>
+</div>
+</div>
+
+<!-- Модальное окно: связанные КП контакта -->
+<div class="kp-modal-overlay" id="contactKpModal" style="display:none">
+<div class="kp-modal-box">
+  <div class="modal-header">
+    <div class="card-title" id="contactKpTitle" style="margin:0">КП клиента</div>
+    <button class="btn btn-ghost btn-sm" onclick="closeContactKpModal()">✕</button>
+  </div>
+  <div id="contactKpList" style="margin-top:8px"></div>
+</div>
+</div>
+
+<script>
+function toggleTheme(){
+  var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('kpmaster-theme',t);
+}
+function toggleSidebar(){
+  var s=document.getElementById('appSidebar');
+  var o=document.getElementById('sidebarOverlay');
+  if(!s)return;
+  var open=s.classList.toggle('open');
+  if(o)o.classList.toggle('open',open);
+  document.body.classList.toggle('sidebar-open',open);
+}
+function closeSidebar(){
+  var s=document.getElementById('appSidebar');
+  var o=document.getElementById('sidebarOverlay');
+  if(s)s.classList.remove('open');
+  if(o)o.classList.remove('open');
+  document.body.classList.remove('sidebar-open');
+}
+function navTo(page){
+  var bnav=document.getElementById('bnav-'+page);
+  if(typeof showPage==='function') showPage(page, bnav||null);
+  document.querySelectorAll('.sidebar-nav-item').forEach(function(el){el.classList.remove('active')});
+  var active=document.querySelector('.sidebar-nav-item[data-page="'+page+'"]');
+  if(active)active.classList.add('active');
+  closeSidebar();
+  if(page==='dashboard')renderDashboard();
+}
+function renderDashboard(){
+  if(typeof historyData==='undefined')return;
+  var clients=new Set(historyData.map(function(h){return(h.clientName||'').trim()}).filter(Boolean));
+  var budget=historyData.reduce(function(s,h){return s+(parseFloat(h.total)||0);},0);
+  var addrs=new Set(historyData.map(function(h){return h.client&&h.client.addr?h.client.addr.trim():''}).filter(Boolean));
+  var svcs=new Set();
+  historyData.forEach(function(h){if(h.services)h.services.forEach(function(s){if(s&&s.name)svcs.add(s.name);});});
+  var setEl=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('dash-clients',clients.size);
+  setEl('dash-budget',typeof fmt==='function'?fmt(budget):budget.toLocaleString('ru-RU')+'  ₽');
+  setEl('dash-addresses',addrs.size);
+  setEl('dash-services',svcs.size);
+  var list=document.getElementById('dashRecentList');
+  if(!list)return;
+  var last5=historyData.slice(0,5);
+  if(!last5.length){list.innerHTML='<div style="color:var(--text3);font-size:14px;padding:4px 0">История пуста</div>';return;}
+  var esc2=typeof esc==='function'?esc:function(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+  var fmt2=typeof fmt==='function'?fmt:function(n){return Number(n).toLocaleString('ru-RU')+'  ₽';};
+  list.innerHTML='<table class="dash-table"><thead><tr><th>Клиент</th><th>Дата</th><th>Услуг</th><th>Сумма</th></tr></thead><tbody>'+
+    last5.map(function(h){
+      return'<tr><td>'+esc2(h.clientName||'—')+'</td><td>'+esc2(h.date||'—')+'</td><td>'+esc2(h.servicesCount||0)+'</td><td>'+fmt2(h.total)+'</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+function applyAdBanner(txt,url){
+  txt=(txt||'').trim();url=(url||'').trim();
+  var strip=document.getElementById('adStrip');
+  if(!strip)return;
+  if(url){
+    strip.innerHTML='<img src="'+url+'" style="max-height:72px;max-width:100%;border-radius:6px;object-fit:contain" onerror="this.style.display=\'none\'">'+(txt?'<span style="margin-left:12px;font-size:13px">'+txt+'</span>':'');
+    strip.style.display='flex';
+  }else if(txt){
+    strip.textContent=txt;strip.style.display='flex';
+  }else{
+    strip.innerHTML='';strip.style.display='none';
+  }
+  var prev=document.getElementById('adBannerPreview');
+  var prevStrip=document.getElementById('adBannerPreviewStrip');
+  if(prev&&prevStrip){
+    if(url){prevStrip.innerHTML='<img src="'+url+'" style="max-height:72px;max-width:100%;border-radius:6px;object-fit:contain">'+(txt?'<span style="margin-left:12px;font-size:13px">'+txt+'</span>':'');}
+    else if(txt){prevStrip.textContent=txt;}
+    else{prevStrip.innerHTML='';}
+    prev.style.display=(txt||url)?'block':'none';
+  }
+}
+async function loadAdBanner(){
+  if(!window.sb)return;
+  try{
+    var res=await window.sb.rpc('kp_get_banner');
+    if(res&&res.data){
+      var d=res.data;applyAdBanner(d.text,d.url);
+      var inpT=document.getElementById('adBannerInput');if(inpT)inpT.value=d.text||'';
+      var inpU=document.getElementById('adBannerUrl');if(inpU)inpU.value=d.url||'';
+    }
+  }catch(e){console.warn('Banner load error',e);}
+}
+async function saveAdBanner(){
+  if(!window.sb){if(typeof toast==='function')toast('Supabase не готов','error');return;}
+  var txt=(document.getElementById('adBannerInput')||{}).value||'';
+  var url=(document.getElementById('adBannerUrl')||{}).value||'';
+  txt=txt.trim();url=url.trim();
+  var args=Object.assign(typeof rpcAuthParams==='function'?rpcAuthParams():{},{p_banner_text:txt,p_banner_url:url});
+  try{
+    var res=await window.sb.rpc('kp_save_banner',args);
+    if(res&&res.data&&res.data.ok===false){if(typeof toast==='function')toast(res.data.message||'Ошибка','error');return;}
+    applyAdBanner(txt,url);
+    if(typeof toast==='function')toast((txt||url)?'Баннер сохранён':'Баннер скрыт','success');
+  }catch(e){if(typeof toast==='function')toast('Ошибка сохранения','error');console.error(e);}
+}
+async function clearAdBanner(){
+  var inpT=document.getElementById('adBannerInput');var inpU=document.getElementById('adBannerUrl');
+  if(inpT)inpT.value='';if(inpU)inpU.value='';
+  if(!window.sb)return;
+  var args=Object.assign(typeof rpcAuthParams==='function'?rpcAuthParams():{},{p_banner_text:'',p_banner_url:''});
+  try{await window.sb.rpc('kp_save_banner',args);}catch(e){console.error(e);}
+  applyAdBanner('','');
+  if(typeof toast==='function')toast('Баннер скрыт','success');
+}
+function filterModalItems(q){
+  var list=document.getElementById('modalPriceList');
+  if(!list)return;
+  var val=(q||'').trim().toLowerCase();
+  Array.from(list.children).forEach(function(el){
+    var match=!val||el.textContent.toLowerCase().indexOf(val)!==-1;
+    el.classList.toggle('modal-item-hidden',!match);
+  });
+}
+document.addEventListener('DOMContentLoaded',function(){
+  var adminBtn=document.getElementById('bnav-admin');
+  var sidebarAdminBtn=document.getElementById('sidebar-bnav-admin');
+  if(adminBtn&&sidebarAdminBtn){
+    var obs=new MutationObserver(function(){
+      sidebarAdminBtn.style.display=adminBtn.style.display;
+    });
+    obs.observe(adminBtn,{attributes:true,attributeFilter:['style']});
+  }
+  var appWrap=document.getElementById('appWrap');
+  if(appWrap){
+    var appObs=new MutationObserver(function(){
+      if(appWrap.style.display!=='none')loadAdBanner();
+    });
+    appObs.observe(appWrap,{attributes:true,attributeFilter:['style']});
+  }
+  var priceList=document.getElementById('modalPriceList');
+  if(priceList){
+    var searchObs=new MutationObserver(function(){
+      var inp=document.getElementById('modalSearchInput');
+      if(inp)inp.value='';
+    });
+    searchObs.observe(priceList,{childList:true});
+  }
+});
+</script>
 <script defer="True" src="./app.js?v=76"></script>
 <script defer="True" src="./documentTemplates.js?v=76"></script>
 <script defer="True" src="./documents.js?v=76"></script>

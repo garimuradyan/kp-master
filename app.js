@@ -8,7 +8,7 @@ try{
 }catch(e){console.error('Supabase init error',e);}
 if(sb) window.sb=sb;
 var currentKeyId=null,currentKeyData=null;
-var services=[],equipment=[],extraStages=[],priceItems=[],equipmentItems=[],settings={},historyData=[],contactsData=[],logoDataURL=null,quotePhotos=[];
+var services=[],equipment=[],extraStages=[],priceItems=[],equipmentItems=[],settings={},historyData=[],contactsData=[],logoDataURL=null,quotePhotos=[],_drgSrc=null;
 var MAX_PHOTOS=6,MAX_PHOTO_MB=5;
 var ALLOWED_TYPES=['image/jpeg','image/jpg','image/png','image/webp'];
 
@@ -244,13 +244,13 @@ function renderServices(){
   if(titleEl)titleEl.textContent=extraStages.length>0?' Этап 1':' Перечень работ';
   if(!services.length){list.innerHTML='<div class="empty-state" style="padding:24px"><div class="empty-icon">🔧</div><p>Добавьте услуги</p></div>';renderExtraStages();return;}
   list.innerHTML=services.map(function(s,i){
-    return'<div class="service-row">'+
+    return'<div class="service-row" ondragover="drgOver(event)" ondragleave="drgLeave(event)" ondrop="drgDrop(event,\'services\',-1,'+i+')">'+
     '<textarea class="svc-name" rows="2" maxlength="120" placeholder="Наименование" oninput="services['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" onpaste="setTimeout(()=>clampMoneyInput(this),0)" oninput="clampMoneyInput(this);services['+i+'].price=parseFloat(this.value)||0;recalc()">'+
     (s.locked?'<div class="svc-unit-locked" title="Единица задана в прайсе">'+esc(normalizeUnit(s.unit))+'</div>':unitSelectHtml(s.unit,'services['+i+'].unit=this.value;recalc()'))+
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" onpaste="setTimeout(()=>clampQtyInput(this),0)" oninput="clampQtyInput(this);services['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
     '<div class="svc-total" id="svcTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+
-    '<button class="delete-btn" onclick="removeService('+i+')" style="padding-top:4px">✕</button></div>';
+    '<div class="row-actions"><span class="drag-handle" draggable="true" ondragstart="drgStart(event,\'services\',-1,'+i+')" ondragend="drgEnd(event)" title="Перетащить">⠿</span><button class="delete-btn" onclick="removeService('+i+')">✕</button></div></div>';
   }).join('');
   renderExtraStages();
 }
@@ -260,13 +260,13 @@ function renderEquipment(){
   if(!list)return;
   if(!equipment.length){list.innerHTML='<div class="empty-state" style="padding:20px"><div class="empty-icon">❄️</div><p>Оборудование не добавлено</p></div>';recalc();return;}
   list.innerHTML=equipment.map(function(s,i){
-    return'<div class="service-row equipment-row">'+
-    '<textarea class="svc-name" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipment['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+ 
+    return'<div class="service-row equipment-row" ondragover="drgOver(event)" ondragleave="drgLeave(event)" ondrop="drgDrop(event,\'equipment\',-1,'+i+')">'+
+    '<textarea class="svc-name" rows="2" maxlength="140" placeholder="Оборудование" oninput="equipment['+i+'].name=this.value">'+esc(s.name)+'</textarea>'+
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" onpaste="setTimeout(()=>clampMoneyInput(this),0)" oninput="clampMoneyInput(this);equipment['+i+'].price=parseFloat(this.value)||0;recalc()">'+
     (s.locked?'<div class="svc-unit-locked" title="Единица задана в прайсе">'+esc(normalizeUnit(s.unit))+'</div>':unitSelectHtml(s.unit,'equipment['+i+'].unit=this.value;recalc()'))+
     '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" onpaste="setTimeout(()=>clampQtyInput(this),0)" oninput="clampQtyInput(this);equipment['+i+'].qty=parseFloat(this.value)||1;recalc()">'+
-    '<div class="svc-total" id="eqTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+ 
-    '<button class="delete-btn" onclick="removeEquipment('+i+')" style="padding-top:4px">✕</button></div>';
+    '<div class="svc-total" id="eqTotal'+i+'" title="'+esc(fmt((parseFloat(s.price)||0)*(parseFloat(s.qty)||1)))+'">'+appMoneyHtml((parseFloat(s.price)||0)*(parseFloat(s.qty)||1))+'</div>'+
+    '<div class="row-actions"><span class="drag-handle" draggable="true" ondragstart="drgStart(event,\'equipment\',-1,'+i+')" ondragend="drgEnd(event)" title="Перетащить">⠿</span><button class="delete-btn" onclick="removeEquipment('+i+')">✕</button></div></div>';
   }).join('');
   recalc();
 }
@@ -280,13 +280,13 @@ function renderExtraStages(){
     var stageNum=si+2;
     var rowsHtml=stage.items.length?stage.items.map(function(s,ri){
       var v=(parseFloat(s.price)||0)*(parseFloat(s.qty)||1);
-      return'<div class="service-row">'+
+      return'<div class="service-row" ondragover="drgOver(event)" ondragleave="drgLeave(event)" ondrop="drgDrop(event,\'stage\','+si+','+ri+')">'+
       '<textarea class="svc-name" rows="2" maxlength="120" placeholder="Наименование" oninput="extraStages['+si+'].items['+ri+'].name=this.value">'+esc(s.name)+'</textarea>'+
       '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+s.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" onpaste="setTimeout(()=>clampMoneyInput(this),0)" oninput="clampMoneyInput(this);extraStages['+si+'].items['+ri+'].price=parseFloat(this.value)||0;recalc()">'+
-      unitSelectHtml(s.unit,'extraStages['+si+'].items['+ri+'].unit=this.value;recalc()')+
+      (s.locked?'<div class="svc-unit-locked" title="Единица задана в прайсе">'+esc(normalizeUnit(s.unit))+'</div>':unitSelectHtml(s.unit,'extraStages['+si+'].items['+ri+'].unit=this.value;recalc()'))+
       '<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="'+s.qty+'" onbeforeinput="return limitNumericBeforeInput(event,this,4)" onpaste="setTimeout(()=>clampQtyInput(this),0)" oninput="clampQtyInput(this);extraStages['+si+'].items['+ri+'].qty=parseFloat(this.value)||1;recalc()">'+
       '<div class="svc-total" id="stg'+si+'r'+ri+'Total" title="'+esc(fmt(v))+'">'+appMoneyHtml(v)+'</div>'+
-      '<button class="delete-btn" onclick="removeStageRow('+si+','+ri+')" style="padding-top:4px">✕</button></div>';
+      '<div class="row-actions"><span class="drag-handle" draggable="true" ondragstart="drgStart(event,\'stage\','+si+','+ri+')" ondragend="drgEnd(event)" title="Перетащить">⠿</span><button class="delete-btn" onclick="removeStageRow('+si+','+ri+')">✕</button></div></div>';
     }).join(''):'<div class="empty-state" style="padding:24px"><div class="empty-icon">🔧</div><p>Добавьте услуги</p></div>';
     return'<div class="stage-block">'+
     '<div class="stage-header">'+
@@ -356,11 +356,11 @@ function recalc(){
 function renderPriceList(){
   var list=document.getElementById('priceList');if(!list)return;
   list.innerHTML=priceItems.map(function(p,i){
-    return'<div class="service-row settings-price-row">'+
+    return'<div class="service-row settings-price-row" ondragover="drgOver(event)" ondragleave="drgLeave(event)" ondrop="drgDrop(event,\'priceItems\',-1,'+i+')">'+
     '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Услуга</em><input type="text" maxlength="120" placeholder="Услуга" value="'+esc(p.name)+'" oninput="priceItems['+i+'].name=this.value"></label>'+
     '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" placeholder="Цена" oninput="clampMoneyInput(this);priceItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em>'+unitSelectHtml(p.unit,'priceItems['+i+'].unit=this.value')+'</label>'+
-    '<button class="delete-btn" onclick="removePriceItem('+i+')">✕</button></div>';
+    '<div class="row-actions"><span class="drag-handle" draggable="true" ondragstart="drgStart(event,\'priceItems\',-1,'+i+')" ondragend="drgEnd(event)" title="Перетащить">⠿</span><button class="delete-btn" onclick="removePriceItem('+i+')">✕</button></div></div>';
   }).join('');
 }
 function addPriceItem(){priceItems.push({name:'',price:0,unit:'шт.'});renderPriceList();}
@@ -396,11 +396,11 @@ function defaultEquipmentItems(){return[
 function renderEquipmentList(){
   var list=document.getElementById('equipmentPriceList');if(!list)return;
   list.innerHTML=equipmentItems.map(function(p,i){
-    return'<div class="service-row settings-price-row">'+
+    return'<div class="service-row settings-price-row" ondragover="drgOver(event)" ondragleave="drgLeave(event)" ondrop="drgDrop(event,\'equipmentItems\',-1,'+i+')">'+
     '<label class="settings-price-cell settings-name-cell"><em class="settings-row-label">Оборудование</em><input type="text" maxlength="140" placeholder="Оборудование" value="'+esc(p.name)+'" oninput="equipmentItems['+i+'].name=this.value"></label>'+
     '<label class="settings-price-cell settings-price-cell-price"><em class="settings-row-label">Цена</em><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="8" value="'+p.price+'" onbeforeinput="return limitNumericBeforeInput(event,this,8)" placeholder="Цена" oninput="clampMoneyInput(this);equipmentItems['+i+'].price=parseFloat(this.value)||0"></label>'+
     '<label class="settings-price-cell settings-price-cell-unit"><em class="settings-row-label">Ед.</em>'+unitSelectHtml(p.unit,'equipmentItems['+i+'].unit=this.value')+'</label>'+
-    '<button class="delete-btn" onclick="removeEquipmentItem('+i+')">✕</button></div>';
+    '<div class="row-actions"><span class="drag-handle" draggable="true" ondragstart="drgStart(event,\'equipmentItems\',-1,'+i+')" ondragend="drgEnd(event)" title="Перетащить">⠿</span><button class="delete-btn" onclick="removeEquipmentItem('+i+')">✕</button></div></div>';
   }).join('');
 }
 function addEquipmentItem(){equipmentItems.push({name:'',price:0,unit:'шт.'});renderEquipmentList();}
@@ -1248,6 +1248,35 @@ function exportContacts(){
   a.click();
 }
 
+
+// ── DRAG-AND-DROP REORDER ────────────────────────────────────
+function drgStart(e,arr,si,idx){_drgSrc={arr:arr,si:si,idx:idx};e.dataTransfer.effectAllowed='move';}
+function drgOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over');}
+function drgLeave(e){e.currentTarget.classList.remove('drag-over');}
+function drgEnd(e){_drgSrc=null;document.querySelectorAll('.drag-over').forEach(function(el){el.classList.remove('drag-over');});}
+function drgDrop(e,arr,si,idx){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  if(!_drgSrc||_drgSrc.arr!==arr||_drgSrc.si!==si||_drgSrc.idx===idx)return;
+  var a=_drgArr(arr,si);
+  var item=a.splice(_drgSrc.idx,1)[0];
+  a.splice(_drgSrc.idx<idx?idx-1:idx,0,item);
+  _drgSrc=null;_drgRerender(arr);
+}
+function _drgArr(arr,si){
+  if(arr==='services')return services;
+  if(arr==='equipment')return equipment;
+  if(arr==='priceItems')return priceItems;
+  if(arr==='equipmentItems')return equipmentItems;
+  if(arr==='stage')return extraStages[si].items;
+  return[];
+}
+function _drgRerender(arr){
+  if(arr==='services')renderServices();
+  else if(arr==='equipment')renderEquipment();
+  else if(arr==='priceItems')renderPriceList();
+  else if(arr==='equipmentItems')renderEquipmentList();
+  else renderExtraStages();
+}
 
 // ── PHONE MASKING ─────────────────────────────────────────────
 var PHONE_MASKS={

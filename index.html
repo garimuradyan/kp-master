@@ -18,12 +18,27 @@
 <div class="auth-box">
 <div class="auth-logo">КП Мастер</div>
 <div class="auth-sub">Инструмент для монтажников кондиционеров</div>
-<div class="auth-form-block">
+<!-- Форма по ключу -->
+<div class="auth-form-block" id="authKeyBlock">
 <div>
 <label class="auth-field-label">Ключ доступа</label>
 <input autocapitalize="characters" autocomplete="off" autocorrect="off" id="keyInput" maxlength="120" placeholder="KLIM-2025-XXX" spellcheck="false" type="text" class="key-login-input-v58" style="text-transform:none!important;letter-spacing:0!important;font-size:14px!important;font-weight:500!important;text-align:left!important;width:100%;border:1px solid #000;border-radius:6px;padding:9px 12px;outline:none;font-family:inherit;background:#fff;color:#171717;"/>
 </div>
 <button class="btn btn-primary btn-full" onclick="doLogin()">Войти →</button>
+<div style="text-align:center;margin-top:10px"><a href="#" class="auth-toggle-link" onclick="toggleAuthMode('employee');return false;">Я сотрудник компании →</a></div>
+</div>
+<!-- Форма для сотрудника -->
+<div class="auth-form-block" id="authEmpBlock" style="display:none">
+<div>
+<label class="auth-field-label">Логин</label>
+<input autocomplete="off" id="empLoginInput" maxlength="16" placeholder="ivan" type="text" autocapitalize="none" class="key-login-input-v58" style="font-size:14px!important;width:100%;border:1px solid #000;border-radius:6px;padding:9px 12px;outline:none;font-family:inherit;background:#fff;color:#171717;"/>
+</div>
+<div style="margin-top:8px">
+<label class="auth-field-label">Пароль</label>
+<input autocomplete="off" id="empPassInput" maxlength="16" placeholder="••••••••" type="password" class="key-login-input-v58" style="font-size:14px!important;width:100%;border:1px solid #000;border-radius:6px;padding:9px 12px;outline:none;font-family:inherit;background:#fff;color:#171717;"/>
+</div>
+<button class="btn btn-primary btn-full" style="margin-top:10px" onclick="doEmployeeLogin()">Войти как сотрудник →</button>
+<div style="text-align:center;margin-top:10px"><a href="#" class="auth-toggle-link" onclick="toggleAuthMode('key');return false;">← Войти по ключу доступа</a></div>
 </div>
 <div class="auth-divider-line"></div>
 <p class="auth-tg-note">Нет ключа? Получите доступ в&nbsp;<a href="https://t.me/KPpayment_bot" target="_blank">Telegram-боте</a></p>
@@ -374,28 +389,51 @@
 </button>
 <button class="logout-btn" onclick="doLogout()">Выйти</button>
 </div>
+<!-- Переключатель роли (только для директора) -->
+<div class="role-switcher" id="roleSwitcher" style="display:none">
+  <span class="rs-lbl">Режим:</span>
+  <div class="rs-btns">
+    <button class="rs-btn" data-role="director"   onclick="setCrmRole('director',this)">Директор</button>
+    <button class="rs-btn" data-role="manager"    onclick="setCrmRole('manager',this)">Менеджер</button>
+    <button class="rs-btn" data-role="master"     onclick="setCrmRole('master',this)">Мастер</button>
+    <button class="rs-btn" data-role="accountant" onclick="setCrmRole('accountant',this)">Бухгалтер</button>
+    <button class="rs-btn" data-role="warehouse"  onclick="setCrmRole('warehouse',this)">Склад</button>
+  </div>
+</div>
 </header>
 <nav class="bottom-nav">
-<button class="bottom-nav-btn active" id="bnav-new" onclick="showPage('new',this)">
+<button class="bottom-nav-btn active" id="bnav-new" data-roles="manager,director,admin" onclick="showPage('new',this)">
 <span class="bnav-icon">✏️</span>Новое КП
     </button>
-<button class="bottom-nav-btn" id="bnav-history" onclick="showPage('history',this)">
+<button class="bottom-nav-btn" id="bnav-deals" data-roles="manager,accountant,director,admin" onclick="showPage('deals',this)" style="display:none">
+<span class="bnav-icon">📊</span>Сделки
+    </button>
+<button class="bottom-nav-btn" id="bnav-master" data-roles="master,director,admin" onclick="showPage('master',this)" style="display:none">
+<span class="bnav-icon">🔧</span>Мастер
+    </button>
+<button class="bottom-nav-btn" id="bnav-accountant" data-roles="accountant,director,admin" onclick="showPage('accountant',this)" style="display:none">
+<span class="bnav-icon">💰</span>Бухгалтер
+    </button>
+<button class="bottom-nav-btn" id="bnav-warehouse" data-roles="warehouse,director,admin" onclick="showPage('warehouse',this)" style="display:none">
+<span class="bnav-icon">📦</span>Склад
+    </button>
+<button class="bottom-nav-btn" id="bnav-history" data-roles="manager,director,master,accountant,warehouse,admin" onclick="showPage('history',this)">
 <span class="bnav-icon">📋</span>
 <span style="display:flex;align-items:center;gap:3px">История <span class="badge" id="histBadge">0</span></span>
 </button>
-<button class="bottom-nav-btn" id="bnav-schedule" onclick="showPage('schedule',this)">
+<button class="bottom-nav-btn" id="bnav-schedule" data-roles="manager,director,master,admin" onclick="showPage('schedule',this)">
 <span class="bnav-icon">📅</span>График
 </button>
-<button class="bottom-nav-btn" id="bnav-settings" onclick="showPage('settings',this)">
+<button class="bottom-nav-btn" id="bnav-settings" data-roles="all" onclick="showPage('settings',this)">
 <span class="bnav-icon">⚙️</span>Настройки
     </button>
 <button class="bottom-nav-btn admin-nav" id="bnav-admin" onclick="showPage('admin',this)" style="display:none">
 <span class="bnav-icon">👑</span>Админ
     </button>
-<button class="bottom-nav-btn employees-nav" id="bnav-employees" onclick="showPage('employees',this)" style="display:none">
+<button class="bottom-nav-btn employees-nav" id="bnav-employees" data-roles="director" onclick="showPage('employees',this)" style="display:none">
 <span class="bnav-icon">👥</span>Сотрудники
     </button>
-<button class="bottom-nav-btn" id="bnav-about" onclick="showPage('about',this)">
+<button class="bottom-nav-btn" id="bnav-about" data-roles="all" onclick="showPage('about',this)">
 <span class="bnav-icon">ℹ️</span>О сервисе
     </button>
 </nav>
@@ -721,6 +759,121 @@
 <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Предпросмотр:</div>
 <div class="ad-strip" id="adBannerPreviewStrip"></div>
 </div>
+</div>
+</div>
+
+<!-- ══════ СДЕЛКИ ══════ -->
+<div class="page" id="page-deals">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+  <div class="page-title" style="margin-bottom:0">Сделки</div>
+  <button class="btn btn-primary btn-sm" onclick="showPage('new',document.getElementById('bnav-new'))">+ Новое КП</button>
+</div>
+<div class="crm-stat-grid">
+  <div class="crm-stat c-blue"><div class="crm-stat-lbl">Всего сделок</div><div class="crm-stat-val" id="crm-total-count">0</div><div class="crm-stat-sub">КП в системе</div></div>
+  <div class="crm-stat c-green"><div class="crm-stat-lbl">Общая сумма</div><div class="crm-stat-val" id="crm-total-sum">0 ₽</div><div class="crm-stat-sub">по всем КП</div></div>
+  <div class="crm-stat c-orange"><div class="crm-stat-lbl">В этом месяце</div><div class="crm-stat-val" id="crm-month-count">0</div><div class="crm-stat-sub" id="crm-month-label">КП</div></div>
+  <div class="crm-stat c-teal"><div class="crm-stat-lbl">Ср. сумма КП</div><div class="crm-stat-val" id="crm-avg-sum">0 ₽</div><div class="crm-stat-sub">средний чек</div></div>
+</div>
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+    <div class="deals-ftab-row">
+      <button class="deals-ftab on" onclick="filterDeals('all',this)">Все</button>
+      <button class="deals-ftab" onclick="filterDeals('month',this)">Этот месяц</button>
+      <button class="deals-ftab" onclick="filterDeals('prev',this)">Прошлый</button>
+    </div>
+    <input class="deals-search" placeholder="🔍 Поиск..." oninput="filterDealsSearch(this.value)" maxlength="60">
+  </div>
+  <div style="overflow-x:auto">
+  <table class="deals-tbl" id="dealsTbl">
+    <thead><tr><th>№</th><th>Клиент</th><th>Адрес</th><th>Сумма</th><th>Статус</th><th>Дата</th></tr></thead>
+    <tbody id="dealsBody"></tbody>
+  </table>
+  </div>
+</div>
+<!-- Панель деталей сделки -->
+<div class="deal-panel" id="dealPanel">
+  <div class="dp-header">
+    <div>
+      <div class="dp-name" id="dpName"></div>
+      <div id="dpStatusWrap"></div>
+    </div>
+    <button class="dp-close" onclick="closeDealPanel()">✕</button>
+  </div>
+  <div class="dp-body" id="dpBody"></div>
+  <div class="dp-st-row">
+    <button class="dp-st-btn" onclick="changeDealStatus('new')">Новая</button>
+    <button class="dp-st-btn" onclick="changeDealStatus('prog')">В работе</button>
+    <button class="dp-st-btn" onclick="changeDealStatus('done')">Выполнено</button>
+    <button class="dp-st-btn" onclick="changeDealStatus('wait')">Ожидание</button>
+  </div>
+</div>
+</div>
+
+<!-- ══════ МАСТЕР ══════ -->
+<div class="page" id="page-master">
+<div class="page-title">Мои задания</div>
+<div class="crm-stat-grid">
+  <div class="crm-stat c-green"><div class="crm-stat-lbl">Моя ЗП (месяц)</div><div class="crm-stat-val" id="m-stat-salary">—</div><div class="crm-stat-sub">примерно</div></div>
+  <div class="crm-stat c-blue"><div class="crm-stat-lbl">Монтажей сегодня</div><div class="crm-stat-val" id="m-stat-today">0</div><div class="crm-stat-sub" id="m-stat-today-sub"></div></div>
+  <div class="crm-stat c-orange"><div class="crm-stat-lbl">Закрыто в месяце</div><div class="crm-stat-val" id="m-stat-done">0</div><div class="crm-stat-sub" id="m-stat-done-sub"></div></div>
+  <div class="crm-stat c-teal"><div class="crm-stat-lbl">Сумма монтажей</div><div class="crm-stat-val" id="m-stat-rev">—</div><div class="crm-stat-sub" id="m-stat-rev-sub"></div></div>
+</div>
+<div class="card">
+  <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+    <span>Мои заявки</span>
+    <div class="deals-ftab-row">
+      <button class="deals-ftab on" onclick="filterMasterJobs('all',this)">Все</button>
+      <button class="deals-ftab" onclick="filterMasterJobs('today',this)">Сегодня</button>
+      <button class="deals-ftab" onclick="filterMasterJobs('upcoming',this)">Предстоящие</button>
+    </div>
+  </div>
+  <div id="masterJobsList" class="master-jobs-list"></div>
+</div>
+</div>
+
+<!-- ══════ БУХГАЛТЕР ══════ -->
+<div class="page" id="page-accountant">
+<div class="page-title">Расчёт зарплат</div>
+<div class="sal-top">
+  <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3)">Период:</span>
+  <select id="salPeriodSel" onchange="renderAccountantPage()"></select>
+  <button class="btn btn-ghost btn-sm" onclick="exportSalaryReport()">↓ Отчёт</button>
+</div>
+<div class="sal-formula" id="salFormula"></div>
+<div class="sal-grid" id="salGrid"></div>
+</div>
+
+<!-- ══════ СКЛАД ══════ -->
+<div class="page" id="page-warehouse">
+<div class="page-title">Склад</div>
+<div class="crm-stat-grid" style="grid-template-columns:repeat(3,1fr)">
+  <div class="crm-stat c-teal"><div class="crm-stat-lbl">Позиций на складе</div><div class="crm-stat-val" id="wh-stat-count">0</div><div class="crm-stat-sub" id="wh-stat-low"></div></div>
+  <div class="crm-stat c-green"><div class="crm-stat-lbl">Сумма запасов</div><div class="crm-stat-val" id="wh-stat-sum">—</div><div class="crm-stat-sub">по закупочным ценам</div></div>
+  <div class="crm-stat c-orange"><div class="crm-stat-lbl">На исходе</div><div class="crm-stat-val" id="wh-stat-shortage">0</div><div class="crm-stat-sub">позиций требуют заказа</div></div>
+</div>
+<div class="wh-add-form" id="whAddForm" style="display:none">
+  <label>Наименование<input id="whInName" placeholder="Название товара" maxlength="60"></label>
+  <label>Категория<select id="whInCat"><option>Кондиционеры</option><option>Расходники</option><option>Инструменты</option><option>Прочее</option></select></label>
+  <label>Кол-во<input id="whInQty" type="number" min="1" placeholder="0" style="width:80px"></label>
+  <label>Цена закуп. ₽<input id="whInPrice" type="number" min="0" placeholder="0"></label>
+  <button class="btn btn-primary btn-sm" onclick="addWhItem()">Добавить</button>
+  <button class="btn btn-ghost btn-sm" onclick="toggleWhForm(false)">Отмена</button>
+</div>
+<div class="card">
+  <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+    <div class="deals-ftab-row">
+      <button class="wh-cat-btn deals-ftab on" onclick="filterWH('all',this)">Все</button>
+      <button class="wh-cat-btn deals-ftab" onclick="filterWH('Кондиционеры',this)">Кондиционеры</button>
+      <button class="wh-cat-btn deals-ftab" onclick="filterWH('Расходники',this)">Расходники</button>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="toggleWhForm(true)">+ Приход</button>
+  </div>
+  <div style="overflow-x:auto">
+  <table class="wt">
+    <thead><tr><th>Наименование</th><th>Категория</th><th>Остаток</th><th>Цена закуп.</th><th>Сумма</th><th>Движение</th></tr></thead>
+    <tbody id="whBody"></tbody>
+  </table>
+  </div>
 </div>
 </div>
 

@@ -3079,6 +3079,120 @@ body.sidebar-open{overflow:hidden}
 .drag-handle{cursor:grab;color:var(--text3);font-size:14px;line-height:1;user-select:none;padding:1px 3px;border-radius:3px;transition:color .15s}
 .drag-handle:hover{color:var(--accent)}
 .drag-handle:active{cursor:grabbing}
+
+/* ═══════════════════════════════════════════
+   РОЛИ — Переключатель режима (директор)
+═══════════════════════════════════════════ */
+.role-switcher{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface2,rgba(0,0,0,.04));border-radius:10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.rs-lbl{font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
+.rs-btns{display:flex;gap:4px}
+.rs-btn{padding:4px 10px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,border-color .15s}
+.rs-btn:hover{background:var(--surface2);color:var(--text)}
+.rs-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ═══════════════════════════════════════════
+   AUTH — переключатель Ключ / Сотрудник
+═══════════════════════════════════════════ */
+.auth-toggle-link{display:block;text-align:center;margin-top:12px;font-size:13px;color:var(--accent);cursor:pointer;text-decoration:none}
+.auth-toggle-link:hover{text-decoration:underline}
+
+/* ═══════════════════════════════════════════
+   CRM-статистика (общая для всех ролей)
+═══════════════════════════════════════════ */
+.crm-stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.crm-stat{padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;gap:2px}
+.crm-stat-lbl{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+.crm-stat-val{font-size:22px;font-weight:700;color:var(--text);line-height:1.1}
+.crm-stat-sub{font-size:11px;color:var(--text3)}
+.crm-stat.c-blue .crm-stat-val{color:#2563eb}
+.crm-stat.c-green .crm-stat-val{color:#16a34a}
+.crm-stat.c-orange .crm-stat-val{color:#ea580c}
+.crm-stat.c-teal .crm-stat-val{color:#0d9488}
+.crm-stat.c-purple .crm-stat-val{color:#7c3aed}
+
+/* ═══════════════════════════════════════════
+   СТРАНИЦА СДЕЛКИ
+═══════════════════════════════════════════ */
+.deals-ftab-row{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:12px}
+.deals-ftab{padding:5px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+.deals-ftab:hover{background:var(--surface2)}
+.deals-ftab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.deals-search{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-size:14px;margin-bottom:12px;outline:none;transition:border-color .15s;box-sizing:border-box}
+.deals-search:focus{border-color:var(--accent)}
+.deals-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.deals-tbl th{text-align:left;padding:7px 8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);border-bottom:1px solid var(--border)}
+.deals-tbl td{padding:9px 8px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.dt-row{cursor:pointer;transition:background .12s}
+.dt-row:hover{background:var(--surface2)}
+.deals-empty{padding:32px;text-align:center;color:var(--text3)}
+.deal-st{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.deal-st-new{background:#dbeafe;color:#1d4ed8}
+.deal-st-prog{background:#fef9c3;color:#92400e}
+.deal-st-done{background:#dcfce7;color:#15803d}
+.deal-st-wait{background:#f3e8ff;color:#7c3aed}
+/* Deal panel */
+.deal-panel{position:fixed;bottom:0;left:0;right:0;max-height:80vh;background:var(--surface);border-top:1px solid var(--border);border-radius:16px 16px 0 0;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:200;display:flex;flex-direction:column}
+.deal-panel.open{transform:translateY(0)}
+.dp-header{padding:16px 16px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.dp-header h3{font-size:16px;font-weight:600;margin:0;color:var(--text)}
+.dp-body{padding:16px;overflow-y:auto;flex:1}
+.dp-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;gap:12px}
+.dp-row span:first-child{color:var(--text3);flex-shrink:0}
+.dp-row span:last-child{color:var(--text);font-weight:500;text-align:right}
+.dp-st-row{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px}
+.dp-st-btn{padding:7px 14px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);font-size:13px;cursor:pointer;transition:background .15s,color .15s}
+.dp-st-btn:hover{background:var(--surface2);color:var(--text)}
+
+/* ═══════════════════════════════════════════
+   СТРАНИЦА МАСТЕР
+═══════════════════════════════════════════ */
+.master-jobs-list{display:flex;flex-direction:column;gap:4px}
+.jobs-empty{padding:32px;text-align:center;color:var(--text3);font-size:14px}
+.jobs-day{margin-bottom:8px}
+.jobs-day-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding:0 2px 6px;border-bottom:1px solid var(--border);margin-bottom:6px}
+.job-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:6px}
+.job-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.job-name{font-size:14px;font-weight:600;color:var(--text)}
+.job-addr{font-size:12px;color:var(--text3);margin-bottom:4px}
+.job-sum{font-size:13px;font-weight:500;color:var(--accent)}
+
+/* ═══════════════════════════════════════════
+   СТРАНИЦА БУХГАЛТЕР
+═══════════════════════════════════════════ */
+.sal-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sal-top select{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;outline:none}
+.sal-formula{background:var(--surface2,rgba(0,0,0,.04));border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:14px}
+.sal-formula strong{color:var(--text);font-weight:600}
+.sal-grid{display:flex;flex-direction:column;gap:8px}
+.sal-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+.sal-initials{width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.sal-info{flex:1;min-width:0}
+.sal-name{font-size:14px;font-weight:600;color:var(--text)}
+.sal-role{font-size:11px;color:var(--text3)}
+.sal-num{font-size:16px;font-weight:700;color:var(--accent);white-space:nowrap}
+.sal-btn-row{display:flex;gap:8px;margin-top:14px}
+.sal-btn-row button{flex:1;padding:9px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font-size:13px;cursor:pointer;transition:background .15s}
+.sal-btn-row button:hover{background:var(--surface2)}
+
+/* ═══════════════════════════════════════════
+   СТРАНИЦА СКЛАД
+═══════════════════════════════════════════ */
+.wh-add-form{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;display:flex;flex-direction:column;gap:10px}
+.wh-add-form input,.wh-add-form select{padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;outline:none;width:100%;box-sizing:border-box}
+.wh-add-form input:focus,.wh-add-form select:focus{border-color:var(--accent)}
+.wh-add-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wh-add-actions{display:flex;gap:8px}
+.wh-add-actions button{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);font-size:13px;cursor:pointer;transition:background .15s}
+.wh-add-btn-save{background:var(--accent);color:#fff;border-color:var(--accent)!important}
+.wh-add-btn-save:hover{opacity:.9}
+.wh-add-btn-cancel{background:transparent;color:var(--text2)}
+.wh-add-btn-cancel:hover{background:var(--surface2)}
+.wt{width:100%;border-collapse:collapse;font-size:13px}
+.wt th{text-align:left;padding:7px 8px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);border-bottom:1px solid var(--border)}
+.wt td{padding:9px 8px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.wh-cat-btn{padding:5px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+.wh-cat-btn:hover{background:var(--surface2)}
+.wh-cat-btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .service-row.drag-over{outline:2px solid var(--accent)!important;outline-offset:-2px;background:rgba(96,165,250,.08)!important}
 
 /* ═══════════════════════════════════════════════

@@ -7,7 +7,7 @@ try{
   if(window.supabase&&window.supabase.createClient){sb=window.supabase.createClient(SURL,SKEY);}
 }catch(e){console.error('Supabase init error',e);}
 if(sb) window.sb=sb;
-var currentKeyId=null,currentKeyData=null;
+var currentKeyId=null,currentKeyData=null,currentEmployeeData=null;
 var services=[],equipment=[],extraStages=[],priceItems=[],equipmentItems=[],settings={},historyData=[],contactsData=[],logoDataURL=null,quotePhotos=[],_drgSrc=null;
 var MAX_PHOTOS=6,MAX_PHOTO_MB=5;
 var ALLOWED_TYPES=['image/jpeg','image/jpg','image/png','image/webp'];
@@ -29,8 +29,13 @@ function getDeviceId(){
 window.addEventListener('DOMContentLoaded',function(){
   try{
     showPublicLanding();
-    var sk=localStorage.getItem('kp_access_key'),sid=localStorage.getItem('kp_key_id');
-    if(sk&&sid) verifyKey(sk,parseInt(sid,10),true);
+    var empId=localStorage.getItem('kp_employee_id');
+    if(empId){
+      verifyEmployeeSession(empId,true);
+    } else {
+      var sk=localStorage.getItem('kp_access_key'),sid=localStorage.getItem('kp_key_id');
+      if(sk&&sid) verifyKey(sk,parseInt(sid,10),true);
+    }
     var keyInput=document.getElementById('keyInput');
     if(keyInput) keyInput.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
     var priceModal=document.getElementById('priceModal');
@@ -114,11 +119,15 @@ function setAuthMsg(msg,color){
 function doLogout(){
   if(demoTimer){clearInterval(demoTimer);demoTimer=null;}
   localStorage.removeItem('kp_access_key');localStorage.removeItem('kp_key_id');
-  currentKeyId=null;currentKeyData=null;
+  localStorage.removeItem('kp_employee_id');localStorage.removeItem('kp_crm_role');
+  currentKeyId=null;currentKeyData=null;currentEmployeeData=null;
   services=[];equipment=[];priceItems=[];equipmentItems=[];settings={};historyData=[];contactsData=[];logoDataURL=null;quotePhotos=[];
   showPublicLanding();
   document.getElementById('keyInput').value='';
+  var eli=document.getElementById('empLoginInput');if(eli)eli.value='';
+  var epi=document.getElementById('empPassInput');if(epi)epi.value='';
   setAuthMsg('');
+  toggleAuthMode('key');
 }
 
 var demoTimer = null;
@@ -128,24 +137,23 @@ function showApp(){
   document.getElementById('authWrap').style.display='none';
   document.getElementById('appWrap').style.display='block';
   if(currentKeyData){
-    document.getElementById('masterName').textContent=currentKeyData.master_name||'';
-    if(!currentKeyData.is_admin){
-      var dl=daysLeft(currentKeyData.expires_at);
-      var dc=document.getElementById('daysCounter');
-      if(dc){dc.style.display='';dc.textContent=dl+' дн.';dc.style.color=dl<=3?'var(--danger)':'var(--success)';}
+    var displayName=currentEmployeeData?currentEmployeeData.name:(currentKeyData.master_name||'');
+    document.getElementById('masterName').textContent=displayName;
+    // Счётчик дней — только директор (ключ), не сотрудник
+    var dc=document.getElementById('daysCounter');
+    if(dc){
+      if(!currentEmployeeData&&!currentKeyData.is_admin){
+        var dl=daysLeft(currentKeyData.expires_at);
+        dc.style.display='';dc.textContent=dl+' дн.';dc.style.color=dl<=3?'var(--danger)':'var(--success)';
+      } else {
+        dc.style.display='none';
+      }
     }
     if(currentKeyData.is_admin){
       document.getElementById('bnav-admin').style.display='';
     }
-    var empNav=document.getElementById('bnav-employees');
-    if(empNav){
-      if(!currentKeyData.is_admin&&(currentKeyData.role==='director'||currentKeyData.role==='admin')){
-        empNav.style.display='';
-      } else {
-        empNav.style.display='none';
-      }
-    }
   }
+  initRoleNav();
   loadUserData();
 }
 
@@ -203,6 +211,10 @@ function showPage(name,el){
   if(name==='settings'){renderPriceList();renderEquipmentList();setTimeout(resizeSignatureCanvas,50);}
   if(name==='admin')loadAdminData();
   if(name==='employees')loadEmployees();
+  if(name==='deals'&&typeof renderDealsPage==='function')renderDealsPage();
+  if(name==='master'&&typeof renderMasterPage==='function')renderMasterPage();
+  if(name==='accountant'&&typeof renderAccountantPage==='function')renderAccountantPage();
+  if(name==='warehouse'&&typeof renderWarehousePage==='function')renderWarehousePage();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1448,6 +1460,121 @@ function initPhoneMasks(){
 }
 
 // ================================================================
+// Вход сотрудника
+// ================================================================
+
+function toggleAuthMode(mode){
+  var kb=document.getElementById('authKeyBlock');
+  var eb=document.getElementById('authEmpBlock');
+  if(kb)kb.style.display=mode==='key'?'':'none';
+  if(eb)eb.style.display=mode==='employee'?'':'none';
+  setAuthMsg('');
+}
+
+async function doEmployeeLogin(){
+  var loginEl=document.getElementById('empLoginInput');
+  var passEl=document.getElementById('empPassInput');
+  var login=(loginEl?loginEl.value:'').trim().toLowerCase();
+  var pass=passEl?passEl.value:'';
+  if(!login){setAuthMsg('Введите логин');return;}
+  if(!pass){setAuthMsg('Введите пароль');return;}
+  if(!sb){setAuthMsg('Ошибка соединения. Обновите страницу.');return;}
+  setAuthMsg('Проверяю...','var(--text2)');
+  var passHash;
+  try{passHash=await sha256hex(pass);}catch(e){setAuthMsg('Ошибка хеширования');return;}
+  var res;
+  try{res=await sb.rpc('kp_employee_login',{p_login:login,p_pass_hash:passHash,p_fingerprint:getDeviceId()});}
+  catch(e){setAuthMsg('Ошибка соединения');return;}
+  if(res.error||rpcFailed(res)){setAuthMsg(rpcMsg(res,'Неверный логин или пароль'));return;}
+  var emp=res.data.employee,comp=res.data.company;
+  if(!emp||!comp){setAuthMsg('Ошибка входа');return;}
+  currentEmployeeData=emp;
+  currentKeyData=comp;
+  currentKeyId=comp.id;
+  localStorage.setItem('kp_employee_id',emp.id);
+  localStorage.setItem('kp_access_key',comp.key);
+  localStorage.setItem('kp_key_id',String(comp.id));
+  showApp();
+}
+
+async function verifyEmployeeSession(empId,silent){
+  if(!sb){if(!silent)setAuthMsg('Ошибка соединения.');return;}
+  var res;
+  try{res=await sb.rpc('kp_verify_employee',{p_employee_id:empId,p_fingerprint:getDeviceId()});}
+  catch(e){if(!silent)setAuthMsg('Ошибка проверки');return;}
+  if(res.error||rpcFailed(res)){
+    localStorage.removeItem('kp_employee_id');
+    var sk=localStorage.getItem('kp_access_key'),sid=localStorage.getItem('kp_key_id');
+    if(sk&&sid)verifyKey(sk,parseInt(sid,10),true);
+    else showPublicLanding();
+    return;
+  }
+  var emp=res.data.employee,comp=res.data.company;
+  currentEmployeeData=emp;currentKeyData=comp;currentKeyId=comp.id;
+  showApp();
+}
+
+// ================================================================
+// Ролевая навигация
+// ================================================================
+
+var _crmRoleMap={
+  manager:    ['new','deals','history','schedule','settings','about'],
+  director:   ['new','history','schedule','settings','employees','about'],
+  master:     ['master','history','schedule','settings','about'],
+  accountant: ['accountant','deals','history','settings','about'],
+  warehouse:  ['warehouse','history','settings','about'],
+  admin:      ['new','deals','master','accountant','warehouse','history','schedule','settings','employees','about','admin'],
+};
+
+function getCrmRole(){
+  if(currentEmployeeData&&currentEmployeeData.role)return currentEmployeeData.role;
+  try{var r=localStorage.getItem('kp_crm_role');if(r)return r;}catch(e){}
+  if(currentKeyData&&currentKeyData.role)return currentKeyData.role;
+  return'manager';
+}
+
+function applyRoleNav(role){
+  var isAdmin=currentKeyData&&currentKeyData.is_admin;
+  var allowed=_crmRoleMap[role]||_crmRoleMap.manager;
+  if(isAdmin)allowed=_crmRoleMap.admin;
+  document.querySelectorAll('.bottom-nav-btn[data-roles]').forEach(function(btn){
+    var id=btn.id||'';
+    var page=id.replace('bnav-','');
+    var roles=(btn.getAttribute('data-roles')||'').split(',');
+    var show=roles.indexOf('all')>-1||roles.indexOf(role)>-1||(isAdmin&&roles.indexOf('admin')>-1);
+    if(isAdmin&&id!=='bnav-about')show=true;
+    // суперадмин-панель — отдельно
+    if(id==='bnav-admin'){btn.style.display=isAdmin?'':'none';return;}
+    btn.style.display=show?'':'none';
+  });
+  // переключатель ролей — только директор ключом (не сотрудник)
+  var sw=document.getElementById('roleSwitcher');
+  if(sw){
+    var showSw=(currentKeyData&&!currentKeyData.is_admin&&!currentEmployeeData&&(currentKeyData.role==='director'));
+    sw.style.display=showSw?'':'none';
+  }
+  // подсветить активную кнопку переключателя
+  document.querySelectorAll('.rs-btn').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-role')===role);});
+}
+
+function setCrmRole(role){
+  if(currentEmployeeData)return; // сотрудник не переключает роль
+  try{localStorage.setItem('kp_crm_role',role);}catch(e){}
+  applyRoleNav(role);
+  // перейти на первую доступную страницу
+  var allowed=_crmRoleMap[role]||[];
+  var first=allowed[0]||'new';
+  var btn=document.getElementById('bnav-'+first);
+  showPage(first,btn);
+}
+
+function initRoleNav(){
+  var role=getCrmRole();
+  applyRoleNav(role);
+}
+
+// ================================================================
 // Раздел Сотрудники
 // ================================================================
 
@@ -1558,4 +1685,265 @@ async function resetEmpDevices(empId){
   if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка сброса'),'error');return;}
   toast('Устройства сброшены','success');
   loadEmployees();
+}
+
+// ================================================================
+// Страница Сделки
+// ================================================================
+var _dealsFilter='all',_dealsSearch='',_dealsActiveDeal=null;
+
+function _fmtShort(n){
+  if(!n&&n!==0)return'—';
+  if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';
+  if(n>=1000)return Math.round(n/1000)+'К ₽';
+  return n.toLocaleString('ru-RU')+' ₽';
+}
+
+function renderDealsPage(){
+  var data=historyData||[];
+  var now=new Date();
+  var thisM=now.getMonth(),thisY=now.getFullYear();
+  var prevM=thisM===0?11:thisM-1,prevY=thisM===0?thisY-1:thisY;
+  var filtered=data.filter(function(h){
+    if(_dealsFilter==='month'){var d=new Date(h.created_at||h.date||'');return d.getMonth()===thisM&&d.getFullYear()===thisY;}
+    if(_dealsFilter==='prev'){var d=new Date(h.created_at||h.date||'');return d.getMonth()===prevM&&d.getFullYear()===prevY;}
+    return true;
+  });
+  if(_dealsSearch){
+    var q=_dealsSearch.toLowerCase();
+    filtered=filtered.filter(function(h){
+      return(h.clientName||'').toLowerCase().includes(q)||(h.clientPhone||'').includes(q)||(h.num||'').toLowerCase().includes(q)||((h.client&&h.client.addr)||'').toLowerCase().includes(q);
+    });
+  }
+  var totalSum=data.reduce(function(s,h){return s+(h.total||0);},0);
+  var monthCount=data.filter(function(h){var d=new Date(h.created_at||h.date||'');return d.getMonth()===thisM&&d.getFullYear()===thisY;}).length;
+  var avg=data.length?Math.round(totalSum/data.length):0;
+  var el=function(id){return document.getElementById(id);};
+  if(el('crm-total-count'))el('crm-total-count').textContent=data.length;
+  if(el('crm-total-sum'))el('crm-total-sum').textContent=_fmtShort(totalSum);
+  if(el('crm-month-count'))el('crm-month-count').textContent=monthCount;
+  if(el('crm-avg-sum'))el('crm-avg-sum').textContent=_fmtShort(avg);
+  var tbody=el('dealsBody');
+  if(!tbody)return;
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="6" class="deals-empty">КП не найдены</td></tr>';return;}
+  var stMap={new:'deal-st-new',prog:'deal-st-prog',done:'deal-st-done',wait:'deal-st-wait'};
+  var stLbl={new:'Новая',prog:'В работе',done:'Выполнено',wait:'Ожидание'};
+  tbody.innerHTML=filtered.map(function(h,i){
+    var st=h.status||'new';
+    var d=new Date(h.created_at||h.date||'');
+    var dateStr=isNaN(d)?'—':d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    return'<tr class="dt-row" onclick="openDealPanel(\''+esc(JSON.stringify(h)).replace(/'/g,'\\\'')+'\')">'+'<td>'+(h.num||('#'+i))+'</td><td>'+esc(h.clientName||'—')+'</td><td style="font-size:11px">'+esc((h.client&&h.client.addr)||h.clientAddress||'—')+'</td><td>'+_fmtShort(h.total||0)+'</td><td><span class="deal-st '+stMap[st]+'">'+stLbl[st]+'</span></td><td>'+dateStr+'</td></tr>';
+  }).join('');
+}
+
+function filterDeals(type,btn){
+  _dealsFilter=type;
+  document.querySelectorAll('.deals-ftab').forEach(function(b){b.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  renderDealsPage();
+}
+
+function filterDealsSearch(val){_dealsSearch=val;renderDealsPage();}
+
+function openDealPanel(hJson){
+  var h;
+  try{h=typeof hJson==='string'?JSON.parse(hJson):hJson;}catch(e){return;}
+  _dealsActiveDeal=h;
+  var stMap={new:{cls:'deal-st-new',lbl:'Новая'},prog:{cls:'deal-st-prog',lbl:'В работе'},done:{cls:'deal-st-done',lbl:'Выполнено'},wait:{cls:'deal-st-wait',lbl:'Ожидание'}};
+  var st=stMap[h.status||'new']||stMap.new;
+  var pn=document.getElementById('dpName');if(pn)pn.textContent=h.clientName||'Клиент';
+  var sw=document.getElementById('dpStatusWrap');if(sw)sw.innerHTML='<span class="deal-st '+st.cls+'">'+st.lbl+'</span>';
+  var body=document.getElementById('dpBody');
+  if(body)body.innerHTML='<div class="dp-row"><span>Телефон:</span><span>'+esc(h.clientPhone||'—')+'</span></div>'+
+    '<div class="dp-row"><span>Адрес:</span><span>'+esc((h.client&&h.client.addr)||h.clientAddress||'—')+'</span></div>'+
+    '<div class="dp-row"><span>Сумма:</span><span>'+_fmtShort(h.total||0)+'</span></div>'+
+    '<div class="dp-row"><span>КП №:</span><span>'+esc(h.num||'—')+'</span></div>';
+  var dp=document.getElementById('dealPanel');if(dp)dp.classList.add('open');
+}
+
+function closeDealPanel(){
+  var dp=document.getElementById('dealPanel');if(dp)dp.classList.remove('open');
+  _dealsActiveDeal=null;
+}
+
+function changeDealStatus(newStatus){
+  if(!_dealsActiveDeal)return;
+  _dealsActiveDeal.status=newStatus;
+  if(historyData&&_dealsActiveDeal.id){var h=historyData.find(function(x){return x.id===_dealsActiveDeal.id;});if(h)h.status=newStatus;}
+  var stMap={new:{cls:'deal-st-new',lbl:'Новая'},prog:{cls:'deal-st-prog',lbl:'В работе'},done:{cls:'deal-st-done',lbl:'Выполнено'},wait:{cls:'deal-st-wait',lbl:'Ожидание'}};
+  var st=stMap[newStatus]||stMap.new;
+  var sw=document.getElementById('dpStatusWrap');if(sw)sw.innerHTML='<span class="deal-st '+st.cls+'">'+st.lbl+'</span>';
+  renderDealsPage();
+}
+
+// ================================================================
+// Страница Мастер
+// ================================================================
+var _masterFilter='all';
+
+function renderMasterPage(){
+  var data=historyData||[];
+  var fmtK=function(n){if(!n)return'0 ₽';if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return n.toLocaleString('ru-RU')+' ₽';};
+  var now=new Date(),todayStr=now.toISOString().slice(0,10);
+  var thisM=now.getMonth(),thisY=now.getFullYear();
+  var mn=['Январе','Феврале','Марте','Апреле','Мае','Июне','Июле','Августе','Сентябре','Октябре','Ноябре','Декабре'];
+  var getDate=function(h){return new Date(h.created_at||h.date||'');};
+  var monthData=data.filter(function(h){var d=getDate(h);return d.getMonth()===thisM&&d.getFullYear()===thisY;});
+  var todayData=data.filter(function(h){return getDate(h).toISOString().slice(0,10)===todayStr;});
+  var doneMonth=monthData.filter(function(h){return h.status==='done';});
+  var monthRev=monthData.reduce(function(s,h){return s+(h.total||0);},0);
+  var setEl=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('m-stat-today',todayData.length);
+  setEl('m-stat-today-sub',todayData.length?'заявок на сегодня':'нет заявок');
+  setEl('m-stat-done',doneMonth.length);
+  setEl('m-stat-done-sub','в '+mn[thisM]);
+  setEl('m-stat-rev',fmtK(monthRev));
+  setEl('m-stat-rev-sub',mn[thisM]);
+  setEl('m-stat-salary','—');
+  _renderMasterList(data);
+}
+
+function _renderMasterList(data){
+  var now=new Date(),todayStr=now.toISOString().slice(0,10);
+  var filtered=data;
+  if(_masterFilter==='today')filtered=data.filter(function(h){return new Date(h.created_at||h.date||'').toISOString().slice(0,10)===todayStr;});
+  else if(_masterFilter==='upcoming')filtered=data.filter(function(h){return new Date(h.created_at||h.date||'')>now;});
+  var el=document.getElementById('masterJobsList');
+  if(!el)return;
+  if(!filtered.length){el.innerHTML='<div class="jobs-empty">Заявок нет</div>';return;}
+  var groups={},order=[];
+  filtered.forEach(function(h){
+    var d=new Date(h.created_at||h.date||'');
+    var key=isNaN(d)?'—':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+    if(!groups[key]){groups[key]=[];order.push(key);}
+    groups[key].push(h);
+  });
+  var stCls={new:'deal-st-new',prog:'deal-st-prog',done:'deal-st-done',wait:'deal-st-wait'};
+  var stLbl={new:'Новая',prog:'В работе',done:'Выполнено',wait:'Ожидание'};
+  el.innerHTML=order.map(function(day){
+    var items=groups[day].map(function(h){
+      var st=h.status||'new';
+      return'<div class="job-card"><div class="job-card-top"><span class="job-name">'+esc(h.clientName||'Клиент')+'</span><span class="deal-st '+stCls[st]+'">'+stLbl[st]+'</span></div>'+'<div class="job-addr">'+esc((h.client&&h.client.addr)||h.clientAddress||'—')+'</div>'+'<div class="job-sum">'+_fmtShort(h.total||0)+'</div></div>';
+    }).join('');
+    return'<div class="jobs-day"><div class="jobs-day-lbl">'+esc(day)+'</div>'+items+'</div>';
+  }).join('');
+}
+
+function filterMasterJobs(type,btn){
+  _masterFilter=type;
+  document.querySelectorAll('#page-master .deals-ftab').forEach(function(b){b.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  _renderMasterList(historyData||[]);
+}
+
+// ================================================================
+// Страница Бухгалтер
+// ================================================================
+
+function renderAccountantPage(){
+  var data=historyData||[];
+  var fmtR=function(n){return Math.round(n||0).toLocaleString('ru-RU')+' ₽';};
+  var fmtK=function(n){if(!n)return'0 ₽';if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return n.toLocaleString('ru-RU')+' ₽';};
+  var now=new Date();
+  var monthSet={};
+  data.forEach(function(h){var d=new Date(h.created_at||h.date||'');if(!isNaN(d)){var k=d.getFullYear()+'-'+(d.getMonth()+1);monthSet[k]={y:d.getFullYear(),m:d.getMonth()};}});
+  monthSet[now.getFullYear()+'-'+(now.getMonth()+1)]={y:now.getFullYear(),m:now.getMonth()};
+  var months=Object.values(monthSet);
+  months.sort(function(a,b){return b.y-a.y||b.m-a.m;});
+  var mn=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  var mnG=['Январе','Феврале','Марте','Апреле','Мае','Июне','Июле','Августе','Сентябре','Октябре','Ноябре','Декабре'];
+  var sel=document.getElementById('salPeriodSel');
+  if(sel&&!sel.options.length){months.forEach(function(mo){var opt=document.createElement('option');opt.value=mo.y+'-'+mo.m;opt.textContent=mn[mo.m]+' '+mo.y;sel.appendChild(opt);});}
+  var chosen=sel&&sel.value?sel.value.split('-').map(Number):null;
+  var selY=chosen?chosen[0]:now.getFullYear(),selM=chosen?chosen[1]:now.getMonth();
+  var periodData=data.filter(function(h){var d=new Date(h.created_at||h.date||'');return d.getMonth()===selM&&d.getFullYear()===selY;});
+  var totalRev=periodData.reduce(function(s,h){return s+(h.total||0);},0);
+  var netProfit=Math.round(totalRev*0.65);
+  var profitRatePct=totalRev>=1000000?'3%':'2%';
+  var profitRate=totalRev>=1000000?0.03:0.02;
+  var formEl=document.getElementById('salFormula');
+  if(formEl)formEl.innerHTML='<strong>Формула ЗП менеджера:</strong> Оклад + <strong>8%</strong> своей ЧП + половина <strong>'+profitRatePct+'</strong> общей ЧП'+(totalRev>=1000000?' (выручка ≥ 1 000 000 ₽)':' (выручка < 1 000 000 ₽)')+'. Общая ЧП за '+mnG[selM]+' <strong>'+fmtR(netProfit)+'</strong>.';
+  var employees=[
+    {initials:'МН',name:'Менеджер',role:'Менеджер',base:45000,ownRevShare:0.08,ownNetProfit:Math.round(netProfit*0.55),expenses:1500,status:'done'},
+    {initials:'МТ',name:'Мастер',role:'Мастер',base:0,ratePerJob:3000,jobs:periodData.length,bonus:periodData.length>=15?5000:0,expenses:2000,status:periodData.length>0?'done':'wait'},
+  ];
+  var grid=document.getElementById('salGrid');
+  if(!grid)return;
+  grid.innerHTML=employees.map(function(e){
+    var total=e.role==='Мастер'?e.ratePerJob*e.jobs+e.bonus-e.expenses:Math.round(e.base+(e.ownNetProfit*e.ownRevShare)+(netProfit*profitRate*0.5)-e.expenses);
+    total=Math.max(0,total);
+    return'<div class="sal-card"><div class="sal-initials">'+esc(e.initials)+'</div><div class="sal-info"><div class="sal-name">'+esc(e.name)+'</div><div class="sal-role">'+esc(e.role)+'</div></div><div class="sal-num">'+fmtR(total)+'</div></div>';
+  }).join('');
+}
+
+function exportSalaryReport(){toast('Экспорт отчёта — в разработке','info');}
+
+// ================================================================
+// Страница Склад
+// ================================================================
+var _whFilter='all',_whItems=null;
+
+function _defaultWhItems(){
+  return[
+    {id:1,n:'Кондиционер Daikin FTXF25D',cat:'Кондиционеры',q:4,max:10,price:38500,mv:'+2 шт.',st:'ok'},
+    {id:2,n:'Кондиционер Mitsubishi MSZ-LN25VG',cat:'Кондиционеры',q:1,max:8,price:52000,mv:'+3 шт.',st:'low'},
+    {id:3,n:'Кронштейн универсальный',cat:'Расходники',q:23,max:50,price:850,mv:'−3 шт.',st:'ok'},
+    {id:4,n:'Межблочная трасса 3м',cat:'Расходники',q:2,max:20,price:1200,mv:'−5 шт.',st:'low'},
+    {id:5,n:'Дренажный шланг 2м',cat:'Расходники',q:0,max:30,price:380,mv:'−2 шт.',st:'out'},
+    {id:6,n:'Медная трубка 1/4" (бухта 15м)',cat:'Расходники',q:8,max:15,price:3200,mv:'+10 шт.',st:'ok'},
+    {id:7,n:'Перфоратор Bosch GBH 2-26',cat:'Инструменты',q:3,max:5,price:14500,mv:'—',st:'ok'},
+  ];
+}
+
+function renderWarehousePage(){
+  if(!_whItems)_whItems=_defaultWhItems();
+  var fmtK=function(n){if(!n)return'0 ₽';if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return n.toLocaleString('ru-RU')+' ₽';};
+  var low=_whItems.filter(function(w){return w.st==='low'||w.st==='out';}).length;
+  var totalSum=_whItems.reduce(function(s,w){return s+(w.price*w.q);},0);
+  var setEl=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('wh-stat-count',_whItems.length);
+  setEl('wh-stat-sum',fmtK(totalSum));
+  setEl('wh-stat-shortage',low);
+  setEl('wh-stat-low',low?low+' позиции на исходе':'все позиции в норме');
+  _renderWhTable();
+}
+
+function _renderWhTable(){
+  var items=_whFilter==='all'?_whItems:_whItems.filter(function(w){return w.cat===_whFilter;});
+  var tbody=document.getElementById('whBody');
+  if(!tbody)return;
+  if(!items.length){tbody.innerHTML='<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text3)">Позиций нет</td></tr>';return;}
+  tbody.innerHTML=items.map(function(w){
+    var pct=w.max?Math.round(w.q/w.max*100):0;
+    var clr=w.st==='ok'?'#16a34a':w.st==='low'?'#ea580c':'#dc2626';
+    var stLabel=w.st==='ok'?'ОК':w.st==='low'?'Мало':'Нет';
+    return'<tr><td>'+esc(w.n)+'</td><td style="font-size:11px">'+esc(w.cat)+'</td>'+
+      '<td><div style="display:flex;align-items:center;gap:6px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border);overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+clr+'"></div></div><span style="font-weight:700;color:'+clr+'">'+w.q+'</span><span style="font-size:10px;color:'+clr+'">'+stLabel+'</span></div></td>'+
+      '<td style="font-size:12px">'+fmtK(w.price)+'</td><td style="font-size:12px">'+fmtK(w.price*w.q)+'</td><td style="font-size:11px;color:var(--text3)">'+esc(w.mv)+'</td></tr>';
+  }).join('');
+}
+
+function filterWH(cat,btn){
+  _whFilter=cat;
+  document.querySelectorAll('.wh-cat-btn').forEach(function(b){b.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  _renderWhTable();
+}
+
+function toggleWhForm(show){document.getElementById('whAddForm').style.display=show?'':'none';}
+
+function addWhItem(){
+  var n=document.getElementById('whInName').value.trim();
+  var cat=document.getElementById('whInCat').value;
+  var q=parseInt(document.getElementById('whInQty').value)||0;
+  var price=parseInt(document.getElementById('whInPrice').value)||0;
+  if(!n||q<=0){toast('Заполните наименование и количество','error');return;}
+  if(!_whItems)_whItems=[];
+  _whItems.push({id:Date.now(),n:n,cat:cat,q:q,max:q*2,price:price,mv:'+'+q+' шт.',st:'ok'});
+  document.getElementById('whInName').value='';
+  document.getElementById('whInQty').value='';
+  document.getElementById('whInPrice').value='';
+  toggleWhForm(false);
+  renderWarehousePage();
+  toast('Товар добавлен','success');
 }

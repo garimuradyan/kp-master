@@ -154,6 +154,7 @@ function showApp(){
     }
   }
   initRoleNav();
+  if(typeof updateSidebarProfile==='function')updateSidebarProfile();
   loadUserData();
 }
 
@@ -1628,15 +1629,24 @@ function renderEmployees(){
 }
 
 function openEmployeeForm(emp){
+  var role=emp?(emp.role==='director'?'admin':emp.role):'manager';
   document.getElementById('empId').value=emp?emp.id:'';
   document.getElementById('empName').value=emp?emp.name:'';
   document.getElementById('empLogin').value=emp?emp.login:'';
   document.getElementById('empPass').value='';
-  document.getElementById('empRole').value=emp?(emp.role==='director'?'admin':emp.role):'manager';
+  document.getElementById('empRole').value=role;
+  // sync radio buttons
+  var radios=document.querySelectorAll('input[name="empRoleRadio"]');
+  radios.forEach(function(r){r.checked=r.value===role;});
   document.getElementById('employeeModalTitle').textContent=emp?'Редактировать сотрудника':'Новый сотрудник';
-  document.getElementById('empPassHint').textContent=emp?'(оставьте пустым — не менять)':'(обязательно при создании)';
+  var hint=document.getElementById('empPassHint');
+  if(hint)hint.textContent=emp?'(оставьте пустым — не менять)':'(обязательно при создании)';
   document.getElementById('empFormMsg').textContent='';
   document.getElementById('employeeModal').style.display='flex';
+  // sync radio -> select on change
+  document.querySelectorAll('input[name="empRoleRadio"]').forEach(function(r){
+    r.onchange=function(){document.getElementById('empRole').value=this.value;};
+  });
 }
 
 function closeEmployeeForm(){
@@ -1651,8 +1661,14 @@ async function saveEmployee(){
   var role=document.getElementById('empRole').value;
   var msgEl=document.getElementById('empFormMsg');
   if(!name){msgEl.textContent='Введите ФИО';return;}
+  if(name.length<2){msgEl.textContent='ФИО слишком короткое (минимум 2 символа)';return;}
   if(!login){msgEl.textContent='Введите логин';return;}
+  if(login.length<3){msgEl.textContent='Логин слишком короткий (минимум 3 символа)';return;}
+  if(login.length>16){msgEl.textContent='Логин слишком длинный (максимум 16 символов)';return;}
+  if(!/^[a-zA-Z0-9_\-]+$/.test(login)){msgEl.textContent='Логин может содержать только латинские буквы, цифры, _ и -';return;}
   if(!empId&&!pass){msgEl.textContent='Введите пароль';return;}
+  if(pass&&pass.length<6){msgEl.textContent='Пароль слишком короткий (минимум 6 символов)';return;}
+  if(pass&&pass.length>16){msgEl.textContent='Пароль слишком длинный (максимум 16 символов)';return;}
   var passHash=null;
   if(pass){
     try{passHash=await sha256hex(pass);}
@@ -1882,7 +1898,9 @@ function exportSalaryReport(){toast('Экспорт отчёта — в разр
 // ================================================================
 // Страница Склад
 // ================================================================
-var _whFilter='all',_whItems=null;
+var _whFilter='all',_whItems=null,_whOpType='in';
+
+function _fmtWh(n){if(!n&&n!==0)return'—';if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return n.toLocaleString('ru-RU')+' ₽';}
 
 function _defaultWhItems(){
   return[
@@ -1898,53 +1916,99 @@ function _defaultWhItems(){
 
 function renderWarehousePage(){
   if(!_whItems)_whItems=_defaultWhItems();
-  var fmtK=function(n){if(!n)return'0 ₽';if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return n.toLocaleString('ru-RU')+' ₽';};
   var low=_whItems.filter(function(w){return w.st==='low'||w.st==='out';}).length;
   var totalSum=_whItems.reduce(function(s,w){return s+(w.price*w.q);},0);
   var setEl=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
   setEl('wh-stat-count',_whItems.length);
-  setEl('wh-stat-sum',fmtK(totalSum));
+  setEl('wh-stat-sum',_fmtWh(totalSum));
   setEl('wh-stat-shortage',low);
-  setEl('wh-stat-low',low?low+' позиции на исходе':'все позиции в норме');
   _renderWhTable();
 }
 
+function _whStatus(st){
+  if(st==='ok')return'<span class="wh-badge wh-ok"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2 6 5 9 10 3"/></svg>В наличии</span>';
+  if(st==='low')return'<span class="wh-badge wh-low"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="2" x2="6" y2="7"/><circle cx="6" cy="10" r=".8" fill="currentColor" stroke="none"/></svg>Мало</span>';
+  return'<span class="wh-badge wh-out"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>Нет</span>';
+}
+
 function _renderWhTable(){
-  var items=_whFilter==='all'?_whItems:_whItems.filter(function(w){return w.cat===_whFilter;});
+  var search=(document.getElementById('whSearch')||{value:''}).value.toLowerCase();
+  var items=_whItems.filter(function(w){
+    var catOk=_whFilter==='all'||w.cat===_whFilter;
+    var searchOk=!search||w.n.toLowerCase().indexOf(search)>-1||w.cat.toLowerCase().indexOf(search)>-1;
+    return catOk&&searchOk;
+  });
   var tbody=document.getElementById('whBody');
   if(!tbody)return;
-  if(!items.length){tbody.innerHTML='<tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text3)">Позиций нет</td></tr>';return;}
+  var totalFilt=items.reduce(function(s,w){return s+(w.price*w.q);},0);
+  var foot=document.getElementById('wh-foot-total');
+  if(foot)foot.textContent=_fmtWh(totalFilt);
+  if(!items.length){tbody.innerHTML='<tr><td colspan="6" class="wh-empty">Позиций не найдено</td></tr>';return;}
   tbody.innerHTML=items.map(function(w){
-    var pct=w.max?Math.round(w.q/w.max*100):0;
-    var clr=w.st==='ok'?'#16a34a':w.st==='low'?'#ea580c':'#dc2626';
-    var stLabel=w.st==='ok'?'ОК':w.st==='low'?'Мало':'Нет';
-    return'<tr><td>'+esc(w.n)+'</td><td style="font-size:11px">'+esc(w.cat)+'</td>'+
-      '<td><div style="display:flex;align-items:center;gap:6px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border);overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+clr+'"></div></div><span style="font-weight:700;color:'+clr+'">'+w.q+'</span><span style="font-size:10px;color:'+clr+'">'+stLabel+'</span></div></td>'+
-      '<td style="font-size:12px">'+fmtK(w.price)+'</td><td style="font-size:12px">'+fmtK(w.price*w.q)+'</td><td style="font-size:11px;color:var(--text3)">'+esc(w.mv)+'</td></tr>';
+    var pct=w.max?Math.min(100,Math.round(w.q/w.max*100)):100;
+    return'<tr class="wh-row">'+
+      '<td class="wh-name-cell"><div class="wh-item-icon"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 6l6-5 6 5v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6z"/></svg></div>'+esc(w.n)+'</td>'+
+      '<td><span class="wh-cat-badge">'+esc(w.cat)+'</span></td>'+
+      '<td><div class="wh-qty-wrap"><div class="wh-qty-bar"><div class="wh-qty-fill" style="width:'+pct+'%;background:'+(w.st==='ok'?'#16a34a':w.st==='low'?'#ea580c':'#dc2626')+'"></div></div><span class="wh-qty-num">'+w.q+'</span></div></td>'+
+      '<td>'+_whStatus(w.st)+'</td>'+
+      '<td class="ta-r wh-price">'+_fmtWh(w.price)+'</td>'+
+      '<td class="ta-r wh-price">'+_fmtWh(w.price*w.q)+'</td>'+
+    '</tr>';
   }).join('');
 }
 
 function filterWH(cat,btn){
   _whFilter=cat;
-  document.querySelectorAll('.wh-cat-btn').forEach(function(b){b.classList.remove('on');});
+  document.querySelectorAll('.wh-tab').forEach(function(b){b.classList.remove('on');});
   if(btn)btn.classList.add('on');
   _renderWhTable();
 }
 
-function toggleWhForm(show){document.getElementById('whAddForm').style.display=show?'':'none';}
+var _whOpTitles={
+  in:{t:'Приход товара',s:'Добавить новые позиции или пополнить остатки',btn:'Оприходовать',qLbl:'Количество (прибыло)'},
+  out:{t:'Расход / Списание',s:'Зафиксировать использование или списание товара',btn:'Списать',qLbl:'Количество (убыло)'},
+  inv:{t:'Инвентаризация',s:'Скорректировать фактический остаток по результатам пересчёта',btn:'Сохранить остаток',qLbl:'Фактический остаток'},
+};
 
-function addWhItem(){
-  var n=document.getElementById('whInName').value.trim();
-  var cat=document.getElementById('whInCat').value;
-  var q=parseInt(document.getElementById('whInQty').value)||0;
-  var price=parseInt(document.getElementById('whInPrice').value)||0;
-  if(!n||q<=0){toast('Заполните наименование и количество','error');return;}
-  if(!_whItems)_whItems=[];
-  _whItems.push({id:Date.now(),n:n,cat:cat,q:q,max:q*2,price:price,mv:'+'+q+' шт.',st:'ok'});
-  document.getElementById('whInName').value='';
-  document.getElementById('whInQty').value='';
-  document.getElementById('whInPrice').value='';
-  toggleWhForm(false);
-  renderWarehousePage();
-  toast('Товар добавлен','success');
+function openWhOp(type){
+  _whOpType=type;
+  var cfg=_whOpTitles[type]||_whOpTitles.in;
+  var setEl=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('whOpTitle',cfg.t);setEl('whOpSub',cfg.s);setEl('whOpQtyLbl',cfg.qLbl);setEl('whOpSaveBtn',cfg.btn);
+  ['whOpName','whOpQty','whOpPrice','whOpNote'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  var msg=document.getElementById('whOpMsg');if(msg)msg.textContent='';
+  var priceWrap=document.getElementById('whOpPriceWrap');
+  if(priceWrap)priceWrap.style.display=type==='out'?'none':'';
+  document.getElementById('whOpModal').style.display='flex';
 }
+
+function closeWhOp(){document.getElementById('whOpModal').style.display='none';}
+
+function saveWhOp(){
+  var n=document.getElementById('whOpName').value.trim();
+  var cat=document.getElementById('whOpCat').value;
+  var q=parseInt(document.getElementById('whOpQty').value)||0;
+  var price=parseInt(document.getElementById('whOpPrice').value)||0;
+  var msg=document.getElementById('whOpMsg');
+  if(!n){msg.textContent='Введите наименование';return;}
+  if(q<=0){msg.textContent='Введите количество';return;}
+  if(!_whItems)_whItems=[];
+  var existing=_whItems.find(function(w){return w.n.toLowerCase()===n.toLowerCase();});
+  if(_whOpType==='in'){
+    if(existing){existing.q+=q;existing.mv='+'+q+' шт.';if(price)existing.price=price;}
+    else{_whItems.push({id:Date.now(),n:n,cat:cat,q:q,max:q*3,price:price||0,mv:'+'+q+' шт.',st:'ok'});}
+  } else if(_whOpType==='out'){
+    if(!existing){msg.textContent='Товар не найден на складе';return;}
+    existing.q=Math.max(0,existing.q-q);existing.mv='−'+q+' шт.';
+  } else if(_whOpType==='inv'){
+    if(existing){existing.q=q;existing.mv='Инв.';}
+    else{_whItems.push({id:Date.now(),n:n,cat:cat,q:q,max:q*2,price:price||0,mv:'Инв.',st:'ok'});}
+  }
+  _whItems.forEach(function(w){w.st=w.q===0?'out':w.q<=Math.ceil(w.max*0.2)?'low':'ok';});
+  closeWhOp();
+  renderWarehousePage();
+  toast(_whOpType==='in'?'Товар оприходован':'Операция выполнена','success');
+}
+
+function toggleWhForm(show){if(show)openWhOp('in');}
+function addWhItem(){saveWhOp();}

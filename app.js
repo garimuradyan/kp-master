@@ -1529,8 +1529,9 @@ var _crmRoleMap={
 
 function getCrmRole(){
   if(currentEmployeeData&&currentEmployeeData.role)return currentEmployeeData.role;
-  try{var r=localStorage.getItem('kp_crm_role');if(r)return r;}catch(e){}
   if(currentKeyData&&currentKeyData.role)return currentKeyData.role;
+  // ключ без роли = директор (полный доступ)
+  if(currentKeyData&&!currentEmployeeData)return'director';
   return'manager';
 }
 

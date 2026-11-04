@@ -389,17 +389,6 @@
 </button>
 <button class="logout-btn" onclick="doLogout()">Выйти</button>
 </div>
-<!-- Переключатель роли (только для директора) -->
-<div class="role-switcher" id="roleSwitcher" style="display:none">
-  <span class="rs-lbl">Режим:</span>
-  <div class="rs-btns">
-    <button class="rs-btn" data-role="director"   onclick="setCrmRole('director',this)">Директор</button>
-    <button class="rs-btn" data-role="manager"    onclick="setCrmRole('manager',this)">Менеджер</button>
-    <button class="rs-btn" data-role="master"     onclick="setCrmRole('master',this)">Мастер</button>
-    <button class="rs-btn" data-role="accountant" onclick="setCrmRole('accountant',this)">Бухгалтер</button>
-    <button class="rs-btn" data-role="warehouse"  onclick="setCrmRole('warehouse',this)">Склад</button>
-  </div>
-</div>
 </header>
 <nav class="bottom-nav">
 <button class="bottom-nav-btn active" id="bnav-new" data-roles="manager,director,admin" onclick="showPage('new',this)">

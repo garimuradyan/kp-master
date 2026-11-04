@@ -1962,7 +1962,7 @@ thead th:nth-child(4){
 .auth-tg-note a{color:#0891b2;text-decoration:none}
 .auth-tg-note a:hover{text-decoration:underline}
 .auth-features-list{margin-top:16px;display:flex;flex-direction:column;gap:8px}
-.auth-feature-row{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid #e5e5e5;border-radius:4px}
+.auth-feature-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid #e5e5e5;border-radius:8px;min-height:44px}
 .auth-feature-text{font-size:13px;color:#525252;line-height:1.45}
 
 /* ── About — reset dark backgrounds ── */
@@ -2511,14 +2511,14 @@ thead th:nth-child(4){
 
 .auth-wrap{
   min-height:auto;
-  padding:42px 16px 24px;
+  padding:32px 24px 0;
   align-items:flex-start;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(59,130,246,.22), transparent 30%),
-    radial-gradient(circle at 80% 15%, rgba(16,185,129,.16), transparent 28%),
-    var(--bg);
+  justify-content:flex-start;
+  max-width:720px;
+  margin:0 auto;
+  background:none;
 }
-.auth-box{position:relative;z-index:3}
+.auth-box{position:relative;z-index:3;max-width:460px!important;padding:0!important}
 .public-about-wrap{
   display:block;
   background:var(--bg);
@@ -3201,7 +3201,7 @@ body.sidebar-open{overflow:hidden}
 #publicAboutWrap{background:#ffffff}
 .lp-page{max-width:720px;margin:0 auto;padding-inline:24px;font-family:'Inter',ui-sans-serif,system-ui,sans-serif}
 html{scroll-behavior:smooth}
-.lp-hero{padding:64px 0 56px;border-bottom:1px solid #e5e5e5}
+.lp-hero{padding:32px 0 48px;border-bottom:1px solid #e5e5e5}
 .lp-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
 .lp-pill{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:#171717;padding:5px 14px;border-radius:9999px;border:1px solid #e5e5e5;background:#ffffff;box-shadow:rgba(0,0,0,.05) 0 1px 2px}
 .lp-pill-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}

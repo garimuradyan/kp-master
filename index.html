@@ -426,6 +426,22 @@
       Админ
     </button>
   </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-profile" id="sidebarProfile" onclick="toggleProfileMenu()">
+      <div class="sidebar-avatar" id="sidebarAvatar">ДР</div>
+      <div class="sidebar-profile-info">
+        <div class="sidebar-profile-name" id="sidebarProfileName">Директор</div>
+        <div class="sidebar-profile-role" id="sidebarProfileRole">Директор</div>
+      </div>
+      <svg class="sidebar-profile-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 10 8 6 12 10"/></svg>
+    </div>
+    <div class="sidebar-profile-menu" id="sidebarProfileMenu" style="display:none">
+      <button class="sidebar-profile-menu-item danger" onclick="closeSidebar();doLogout()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3"/><polyline points="7 11 11 8 7 5"/><line x1="11" y1="8" x2="1" y2="8"/></svg>
+        Выйти из аккаунта
+      </button>
+    </div>
+  </div>
 </aside>
 <header class="app-header">
 <div class="header-left">
@@ -437,8 +453,12 @@
 <div class="header-right">
 <span class="days-counter-badge" id="daysCounter" style="display:none"></span>
 <span class="master-badge" id="masterName"></span>
-<button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()" title="Сменить тему">
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3.5"/><line x1="8" y1="0.5" x2="8" y2="2"/><line x1="8" y1="14" x2="8" y2="15.5"/><line x1="0.5" y1="8" x2="2" y2="8"/><line x1="14" y1="8" x2="15.5" y2="8"/><line x1="2.93" y1="2.93" x2="3.99" y2="3.99"/><line x1="12.01" y1="12.01" x2="13.07" y2="13.07"/><line x1="13.07" y1="2.93" x2="12.01" y2="3.99"/><line x1="3.99" y1="12.01" x2="2.93" y2="13.07"/></svg>
+<button class="theme-pill" id="themeToggle" onclick="toggleTheme()" title="Сменить тему" aria-label="Переключить тему">
+  <span class="theme-pill-track">
+    <span class="theme-pill-thumb"></span>
+    <svg class="theme-pill-icon theme-pill-moon" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M14.5 10.07A6.5 6.5 0 0 1 5.93 1.5a6.5 6.5 0 1 0 8.57 8.57z"/></svg>
+    <svg class="theme-pill-icon theme-pill-sun" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M12 3l1-1M3 13l1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+  </span>
 </button>
 <button class="logout-btn" onclick="doLogout()">Выйти</button>
 </div>
@@ -887,36 +907,138 @@
 
 <!-- ══════ СКЛАД ══════ -->
 <div class="page" id="page-warehouse">
-<div class="page-title">Склад</div>
-<div class="crm-stat-grid" style="grid-template-columns:repeat(3,1fr)">
-  <div class="crm-stat c-teal"><div class="crm-stat-lbl">Позиций на складе</div><div class="crm-stat-val" id="wh-stat-count">0</div><div class="crm-stat-sub" id="wh-stat-low"></div></div>
-  <div class="crm-stat c-green"><div class="crm-stat-lbl">Сумма запасов</div><div class="crm-stat-val" id="wh-stat-sum">—</div><div class="crm-stat-sub">по закупочным ценам</div></div>
-  <div class="crm-stat c-orange"><div class="crm-stat-lbl">На исходе</div><div class="crm-stat-val" id="wh-stat-shortage">0</div><div class="crm-stat-sub">позиций требуют заказа</div></div>
+<div class="wh-header">
+  <div class="page-title" style="margin-bottom:0">Склад</div>
+  <div class="wh-ops">
+    <button class="wh-op-btn wh-op-in" onclick="openWhOp('in')">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+      Приход
+    </button>
+    <button class="wh-op-btn wh-op-out" onclick="openWhOp('out')">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="2" y1="8" x2="14" y2="8"/></svg>
+      Расход
+    </button>
+    <button class="wh-op-btn wh-op-inv" onclick="openWhOp('inv')">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="5" y1="5" x2="11" y2="5"/><line x1="5" y1="11" x2="8" y2="11"/></svg>
+      Инвентаризация
+    </button>
+  </div>
 </div>
-<div class="wh-add-form" id="whAddForm" style="display:none">
-  <label>Наименование<input id="whInName" placeholder="Название товара" maxlength="60"></label>
-  <label>Категория<select id="whInCat"><option>Кондиционеры</option><option>Расходники</option><option>Инструменты</option><option>Прочее</option></select></label>
-  <label>Кол-во<input id="whInQty" type="number" min="1" placeholder="0" style="width:80px"></label>
-  <label>Цена закуп. ₽<input id="whInPrice" type="number" min="0" placeholder="0"></label>
-  <button class="btn btn-primary btn-sm" onclick="addWhItem()">Добавить</button>
-  <button class="btn btn-ghost btn-sm" onclick="toggleWhForm(false)">Отмена</button>
-</div>
-<div class="card">
-  <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
-    <div class="deals-ftab-row">
-      <button class="wh-cat-btn deals-ftab on" onclick="filterWH('all',this)">Все</button>
-      <button class="wh-cat-btn deals-ftab" onclick="filterWH('Кондиционеры',this)">Кондиционеры</button>
-      <button class="wh-cat-btn deals-ftab" onclick="filterWH('Расходники',this)">Расходники</button>
+
+<div class="wh-stats-row">
+  <div class="wh-stat-tile">
+    <div class="wh-stat-icon" style="background:rgba(20,184,166,.12);color:#0d9488">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 6l6-5 6 5v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6z"/><polyline points="6 15 6 9 10 9 10 15"/></svg>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="toggleWhForm(true)">+ Приход</button>
+    <div>
+      <div class="wh-stat-val" id="wh-stat-count">0</div>
+      <div class="wh-stat-lbl">Позиций</div>
+    </div>
   </div>
-  <div style="overflow-x:auto">
-  <table class="wt">
-    <thead><tr><th>Наименование</th><th>Категория</th><th>Остаток</th><th>Цена закуп.</th><th>Сумма</th><th>Движение</th></tr></thead>
-    <tbody id="whBody"></tbody>
-  </table>
+  <div class="wh-stat-tile">
+    <div class="wh-stat-icon" style="background:rgba(22,163,74,.12);color:#16a34a">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="1" x2="8" y2="15"/><path d="M11 4H6.5a2.5 2.5 0 0 0 0 5H9a2.5 2.5 0 0 1 0 5H5"/></svg>
+    </div>
+    <div>
+      <div class="wh-stat-val" id="wh-stat-sum">—</div>
+      <div class="wh-stat-lbl">Стоимость</div>
+    </div>
+  </div>
+  <div class="wh-stat-tile">
+    <div class="wh-stat-icon" style="background:rgba(234,88,12,.12);color:#ea580c">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2v5l3 3"/><circle cx="8" cy="9" r="6"/></svg>
+    </div>
+    <div>
+      <div class="wh-stat-val" id="wh-stat-shortage">0</div>
+      <div class="wh-stat-lbl">На исходе</div>
+    </div>
   </div>
 </div>
+
+<div class="wh-table-card">
+  <div class="wh-toolbar">
+    <div class="wh-tabs">
+      <button class="wh-tab on" onclick="filterWH('all',this)">Все</button>
+      <button class="wh-tab" onclick="filterWH('Кондиционеры',this)">Кондиционеры</button>
+      <button class="wh-tab" onclick="filterWH('Расходники',this)">Расходники</button>
+      <button class="wh-tab" onclick="filterWH('Инструменты',this)">Инструменты</button>
+    </div>
+    <input class="wh-search" id="whSearch" placeholder="Поиск..." oninput="filterWH(_whFilter,null)" maxlength="60"/>
+  </div>
+  <div class="wh-table-wrap">
+    <table class="wh-tbl">
+      <thead>
+        <tr>
+          <th>Наименование</th>
+          <th>Категория</th>
+          <th>Остаток</th>
+          <th>Статус</th>
+          <th class="ta-r">Цена</th>
+          <th class="ta-r">Сумма</th>
+        </tr>
+      </thead>
+      <tbody id="whBody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="5" class="wh-foot-lbl">Итого на складе</td>
+          <td class="ta-r wh-foot-val" id="wh-foot-total">—</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- Модалка операций склада -->
+<div class="wh-op-overlay" id="whOpModal" style="display:none" onclick="if(event.target===this)closeWhOp()">
+  <div class="wh-op-box">
+    <div class="wh-op-header">
+      <div>
+        <div class="wh-op-title" id="whOpTitle">Приход товара</div>
+        <div class="wh-op-sub" id="whOpSub">Добавить новые позиции или пополнить остатки</div>
+      </div>
+      <button class="emp-modal-close" onclick="closeWhOp()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
+      </button>
+    </div>
+
+    <!-- Тип операции: in/out/inv -->
+    <div class="wh-op-body" id="whOpBody">
+      <div class="emp-field">
+        <label class="emp-label">Наименование товара</label>
+        <input class="emp-input" id="whOpName" placeholder="Кондиционер Daikin..." maxlength="80"/>
+      </div>
+      <div class="wh-op-row2">
+        <div class="emp-field">
+          <label class="emp-label">Категория</label>
+          <select class="emp-input" id="whOpCat">
+            <option>Кондиционеры</option>
+            <option>Расходники</option>
+            <option>Инструменты</option>
+            <option>Прочее</option>
+          </select>
+        </div>
+        <div class="emp-field">
+          <label class="emp-label" id="whOpQtyLbl">Количество</label>
+          <input class="emp-input" id="whOpQty" type="number" min="1" placeholder="0"/>
+        </div>
+      </div>
+      <div class="emp-field" id="whOpPriceWrap">
+        <label class="emp-label">Цена закупки, ₽</label>
+        <input class="emp-input" id="whOpPrice" type="number" min="0" placeholder="0"/>
+      </div>
+      <div class="emp-field" id="whOpNoteWrap">
+        <label class="emp-label">Комментарий <span class="emp-label-hint">(необязательно)</span></label>
+        <input class="emp-input" id="whOpNote" placeholder="Поставщик, накладная..." maxlength="120"/>
+      </div>
+    </div>
+
+    <div id="whOpMsg" class="emp-form-msg"></div>
+    <div class="emp-modal-actions">
+      <button class="btn btn-ghost" onclick="closeWhOp()">Отмена</button>
+      <button class="btn btn-primary" id="whOpSaveBtn" onclick="saveWhOp()">Сохранить</button>
+    </div>
+  </div>
 </div>
 
 <div class="page" id="page-employees">
@@ -931,27 +1053,84 @@
 </div>
 
 <!-- Форма добавления/редактирования сотрудника -->
-<div class="modal-overlay" id="employeeModal" style="display:none" onclick="if(event.target===this)closeEmployeeForm()">
-  <div class="modal-box" style="max-width:420px;width:100%">
-    <div class="modal-title" id="employeeModalTitle">Новый сотрудник</div>
+<div class="emp-modal-overlay" id="employeeModal" style="display:none" onclick="if(event.target===this)closeEmployeeForm()">
+  <div class="emp-modal-box">
+    <div class="emp-modal-header">
+      <div>
+        <div class="emp-modal-title" id="employeeModalTitle">Новый сотрудник</div>
+        <div class="emp-modal-subtitle">Заполните данные для входа в систему</div>
+      </div>
+      <button class="emp-modal-close" onclick="closeEmployeeForm()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
+      </button>
+    </div>
     <input type="hidden" id="empId">
-    <div class="field"><label>ФИО</label><input id="empName" placeholder="Иван Иванов" type="text" maxlength="80"/></div>
-    <div class="field"><label>Логин</label><input id="empLogin" placeholder="ivan" type="text" maxlength="40" autocapitalize="none"/></div>
-    <div class="field"><label>Пароль <span id="empPassHint" style="font-size:11px;color:var(--text3)">(обязательно при создании)</span></label><input id="empPass" placeholder="Введите пароль" type="password" maxlength="80"/></div>
-    <div class="field">
-      <label>Роль</label>
-      <select id="empRole">
-        <option value="manager">Менеджер</option>
-        <option value="accountant">Бухгалтер</option>
-        <option value="admin">Администратор</option>
-        <option value="master">Мастер</option>
-      </select>
+    <div class="emp-form-grid">
+      <div class="emp-field">
+        <label class="emp-label">ФИО</label>
+        <input class="emp-input" id="empName" placeholder="Иван Иванов" type="text" maxlength="80"/>
+      </div>
+      <div class="emp-field">
+        <label class="emp-label">Логин</label>
+        <input class="emp-input" id="empLogin" placeholder="ivan" type="text" maxlength="16" autocapitalize="none"/>
+      </div>
+      <div class="emp-field">
+        <label class="emp-label">Пароль <span id="empPassHint" class="emp-label-hint">(обязательно при создании)</span></label>
+        <input class="emp-input" id="empPass" placeholder="Введите пароль" type="password" maxlength="16"/>
+      </div>
+      <div class="emp-field">
+        <label class="emp-label">Роль</label>
+        <div class="emp-role-grid">
+          <label class="emp-role-option">
+            <input type="radio" name="empRoleRadio" value="manager" checked/>
+            <span class="emp-role-card">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/><polyline points="9 1 9 5 13 5"/></svg>
+              Менеджер
+            </span>
+          </label>
+          <label class="emp-role-option">
+            <input type="radio" name="empRoleRadio" value="master"/>
+            <span class="emp-role-card">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14.7 4.3a1 1 0 0 0 0 1.4l-5 5a1 1 0 0 1-1.4 0L4.3 6.7a1 1 0 0 1 0-1.4l1-1A1 1 0 0 1 6.7 4l3.6 3.6L13.3 4.7a1 1 0 0 1 1.4 0z"/></svg>
+              Мастер
+            </span>
+          </label>
+          <label class="emp-role-option">
+            <input type="radio" name="empRoleRadio" value="accountant"/>
+            <span class="emp-role-card">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="1" x2="8" y2="15"/><path d="M11 4H6.5a2.5 2.5 0 0 0 0 5H9a2.5 2.5 0 0 1 0 5H5"/></svg>
+              Бухгалтер
+            </span>
+          </label>
+          <label class="emp-role-option">
+            <input type="radio" name="empRoleRadio" value="warehouse"/>
+            <span class="emp-role-card">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 6l6-5 6 5v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6z"/><polyline points="6 15 6 9 10 9 10 15"/></svg>
+              Склад
+            </span>
+          </label>
+          <label class="emp-role-option">
+            <input type="radio" name="empRoleRadio" value="admin"/>
+            <span class="emp-role-card">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="5" r="2.5"/><path d="M1 14c0-2.761 2.239-5 5-5s5 2.239 5 5"/><circle cx="13" cy="6" r="1.5"/><path d="M11 13c0-1.657.895-3 2-3"/></svg>
+              Администратор
+            </span>
+          </label>
+        </div>
+        <select id="empRole" style="display:none">
+          <option value="manager">Менеджер</option>
+          <option value="accountant">Бухгалтер</option>
+          <option value="admin">Администратор</option>
+          <option value="master">Мастер</option>
+          <option value="warehouse">Складовщик</option>
+        </select>
+      </div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button class="btn btn-primary" style="flex:1" onclick="saveEmployee()">Сохранить</button>
-      <button class="btn btn-ghost" style="flex:1" onclick="closeEmployeeForm()">Отмена</button>
+    <div id="empFormMsg" class="emp-form-msg"></div>
+    <div class="emp-modal-actions">
+      <button class="btn btn-ghost" onclick="closeEmployeeForm()">Отмена</button>
+      <button class="btn btn-primary" onclick="saveEmployee()">Сохранить</button>
     </div>
-    <div id="empFormMsg" style="margin-top:8px;font-size:13px;color:var(--danger)"></div>
   </div>
 </div>
 </div>
@@ -1190,6 +1369,36 @@ function toggleTheme(){
   var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme',t);
   localStorage.setItem('kpmaster-theme',t);
+}
+function updateSidebarProfile(){
+  var ROLE_LABELS_S={director:'Директор',admin:'Администратор',manager:'Менеджер',accountant:'Бухгалтер',master:'Мастер',warehouse:'Складовщик'};
+  var name='',role='director';
+  if(typeof currentEmployeeData!=='undefined'&&currentEmployeeData){
+    name=currentEmployeeData.name||'';role=currentEmployeeData.role||'manager';
+  } else if(typeof currentKeyData!=='undefined'&&currentKeyData){
+    name=currentKeyData.master_name||'';role='director';
+  }
+  var initials=(name||'').trim().split(/\s+/).slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase()||'??';
+  var el=document.getElementById('sidebarAvatar');if(el)el.textContent=initials;
+  var en=document.getElementById('sidebarProfileName');if(en)en.textContent=name||ROLE_LABELS_S[role]||role;
+  var er=document.getElementById('sidebarProfileRole');if(er)er.textContent=ROLE_LABELS_S[role]||role;
+}
+function toggleProfileMenu(){
+  var menu=document.getElementById('sidebarProfileMenu');
+  var profile=document.getElementById('sidebarProfile');
+  if(!menu)return;
+  var open=menu.style.display==='none';
+  menu.style.display=open?'':'none';
+  if(profile)profile.classList.toggle('open',open);
+  if(open){
+    document.addEventListener('click',function closeMenu(e){
+      if(!document.getElementById('sidebarProfile').contains(e.target)){
+        menu.style.display='none';
+        if(profile)profile.classList.remove('open');
+        document.removeEventListener('click',closeMenu);
+      }
+    });
+  }
 }
 function toggleSidebar(){
   var s=document.getElementById('appSidebar');

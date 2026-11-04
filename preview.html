@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>КП Мастер — Превью дизайна</title>
+<link href="./styles.css" rel="stylesheet"/>
+<script>!function(){var t=localStorage.getItem('kpmaster-theme')||'light';document.documentElement.setAttribute('data-theme',t)}();</script>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<aside class="app-sidebar" id="appSidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">КП МАСТЕР</div>
+    <button class="sidebar-close" onclick="closeSidebar()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
+    </button>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="sidebar-nav-item" data-page="dashboard" onclick="navTo('dashboard')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+      Дашборд
+    </button>
+    <button class="sidebar-nav-item active" data-page="new" onclick="navTo('new')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/><polyline points="9 1 9 5 13 5"/><line x1="5" y1="9" x2="11" y2="9"/><line x1="5" y1="12" x2="8" y2="12"/></svg>
+      Новое КП
+    </button>
+    <button class="sidebar-nav-item" data-page="history" onclick="navTo('history')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><polyline points="8 4 8 8 11 10"/></svg>
+      История
+    </button>
+    <button class="sidebar-nav-item" data-page="contacts" onclick="navTo('contacts')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.761 2.239-5 5-5s5 2.239 5 5"/><line x1="11" y1="4" x2="15" y2="4"/><line x1="11" y1="7" x2="15" y2="7"/><line x1="11" y1="10" x2="13" y2="10"/></svg>
+      Контакты
+    </button>
+    <button class="sidebar-nav-item" data-page="schedule" onclick="navTo('schedule')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="12" rx="1.5"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="1" x2="5" y2="5"/><line x1="11" y1="1" x2="11" y2="5"/></svg>
+      График
+    </button>
+    <button class="sidebar-nav-item" data-page="settings" onclick="navTo('settings')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M2.93 2.93l1.06 1.06M12.01 12.01l1.06 1.06M12.01 2.93l-1.06 1.06M3.99 12.01l-1.06 1.06"/></svg>
+      Настройки
+    </button>
+    <button class="sidebar-nav-item" data-page="about" onclick="navTo('about')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5" r="0.5" fill="currentColor" stroke="none"/></svg>
+      О сервисе
+    </button>
+    <button class="sidebar-nav-item sidebar-admin-item" data-page="admin" onclick="navTo('admin')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1l2 4 4.5.65-3.25 3.17.77 4.47L8 11.1l-4.02 2.19.77-4.47L1.5 5.65 6 5z"/></svg>
+      Админ
+    </button>
+  </nav>
+</aside>
+
+<header class="app-header">
+  <div class="header-left">
+    <button class="hamburger-btn" onclick="toggleSidebar()">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="2" y1="5" x2="18" y2="5"/><line x1="2" y1="10" x2="18" y2="10"/><line x1="2" y1="15" x2="18" y2="15"/></svg>
+    </button>
+    <div class="app-logo">КП МАСТЕР</div>
+  </div>
+  <div class="header-right">
+    <span class="days-counter-badge" id="daysCounter" style="display:inline-flex">14 дней</span>
+    <span class="master-badge">Иван Иванов</span>
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Сменить тему">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3.5"/><line x1="8" y1="0.5" x2="8" y2="2"/><line x1="8" y1="14" x2="8" y2="15.5"/><line x1="0.5" y1="8" x2="2" y2="8"/><line x1="14" y1="8" x2="15.5" y2="8"/><line x1="2.93" y1="2.93" x2="3.99" y2="3.99"/><line x1="12.01" y1="12.01" x2="13.07" y2="13.07"/><line x1="13.07" y1="2.93" x2="12.01" y2="3.99"/><line x1="3.99" y1="12.01" x2="2.93" y2="13.07"/></svg>
+    </button>
+    <button class="logout-btn">Выйти</button>
+  </div>
+</header>
+
+<main class="app-body">
+
+<div id="pv-new">
+  <div class="steps">
+    <div class="step active"><span class="step-num">01</span>Клиент</div>
+    <div class="step"><span class="step-num">02</span>Услуги</div>
+    <div class="step"><span class="step-num">03</span>Итог</div>
+  </div>
+  <div class="card">
+    <div class="card-title">
+      <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg></span>
+      Данные клиента
+    </div>
+    <div class="form-grid">
+      <div class="field"><label>ФИО *</label><input placeholder="Иванов Иван Иванович" type="text"/></div>
+      <div class="field"><label>Телефон *</label><input placeholder="+7 (999) 000-00-00" type="tel"/></div>
+      <div class="field"><label>Email</label><input placeholder="client@email.com" type="email"/></div>
+      <div class="field"><label>Город</label><input placeholder="Москва" type="text"/></div>
+      <div class="field span2"><label>Адрес объекта</label><input placeholder="ул. Примерная, д. 1, кв. 10" type="text"/></div>
+      <div class="field span2"><label>Комментарий</label><textarea placeholder="Особые пожелания..."></textarea></div>
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-primary">Далее — Услуги →</button>
+    </div>
+  </div>
+</div>
+
+<div id="pv-dashboard" style="display:none">
+  <div class="page-title">Дашборд</div>
+  <div class="dash-grid">
+    <div class="dash-card">
+      <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg></div>
+      <div class="dash-num">12</div>
+      <div class="dash-label">Клиентов</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="14" height="10" rx="1.5"/><path d="M5 4V3a2 2 0 0 1 4 0v1"/><line x1="8" y1="9" x2="8" y2="11"/></svg></div>
+      <div class="dash-num">487 500 ₽</div>
+      <div class="dash-label">Общий бюджет</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5C5.515 1.5 3.5 3.515 3.5 6c0 3.75 4.5 8.5 4.5 8.5s4.5-4.75 4.5-8.5C12.5 3.515 10.485 1.5 8 1.5z"/><circle cx="8" cy="6" r="1.5"/></svg></div>
+      <div class="dash-num">9</div>
+      <div class="dash-label">Адресов</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-icon"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/><polyline points="9 1 9 5 13 5"/><line x1="5" y1="9" x2="11" y2="9"/><line x1="5" y1="12" x2="8" y2="12"/></svg></div>
+      <div class="dash-num">7</div>
+      <div class="dash-label">Видов услуг</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">
+      <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><polyline points="8 4 8 8 11 10"/></svg></span>
+      Последние КП
+    </div>
+    <table class="dash-table">
+      <thead><tr><th>Клиент</th><th>Дата</th><th>Услуг</th><th>Сумма</th></tr></thead>
+      <tbody>
+        <tr><td>Петров Сергей А.</td><td>18.09.2026</td><td>3</td><td>45 000 ₽</td></tr>
+        <tr><td>Сидорова Анна В.</td><td>15.09.2026</td><td>2</td><td>32 500 ₽</td></tr>
+        <tr><td>Козлов Дмитрий П.</td><td>12.09.2026</td><td>4</td><td>78 000 ₽</td></tr>
+        <tr><td>Новикова Елена С.</td><td>10.09.2026</td><td>1</td><td>22 000 ₽</td></tr>
+        <tr><td>Морозов Алексей И.</td><td>08.09.2026</td><td>3</td><td>55 000 ₽</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="pv-history" style="display:none">
+  <div class="page-title">История <span>КП</span></div>
+  <div class="history-list">
+    <div class="history-item">
+      <div class="history-info">
+        <div class="history-name">Петров Сергей Александрович</div>
+        <div class="history-meta"><span>15.09.2026</span><span>Москва, ул. Ленина 12</span></div>
+      </div>
+      <div class="history-amount">45 000 ₽</div>
+      <div class="history-actions">
+        <button class="btn btn-ghost btn-sm">Открыть</button>
+        <button class="btn btn-danger btn-sm">Удалить</button>
+      </div>
+    </div>
+    <div class="history-item">
+      <div class="history-info">
+        <div class="history-name">Сидорова Анна Викторовна</div>
+        <div class="history-meta"><span>12.09.2026</span><span>Москва, пр. Мира 5</span></div>
+      </div>
+      <div class="history-amount">32 500 ₽</div>
+      <div class="history-actions">
+        <button class="btn btn-ghost btn-sm">Открыть</button>
+        <button class="btn btn-danger btn-sm">Удалить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="pv-contacts" style="display:none">
+  <div class="page-title">Контакты</div>
+  <div class="contacts-toolbar">
+    <span class="contacts-badge">0 клиентов</span>
+    <div class="contacts-toolbar-actions">
+      <button class="btn btn-ghost btn-sm" disabled style="opacity:.45;cursor:not-allowed">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1v10M4 7l4 4 4-4"/><path d="M2 13h12"/></svg>
+        Экспорт
+      </button>
+      <button class="btn btn-primary btn-sm" disabled style="opacity:.45;cursor:not-allowed">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="2" x2="8" y2="14"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+        Добавить клиента
+      </button>
+    </div>
+  </div>
+  <div class="card contacts-table-wrap">
+    <table class="contacts-table">
+      <thead>
+        <tr><th>ФИО</th><th>Телефон</th><th>Email</th><th>Адрес</th><th>Действия</th></tr>
+      </thead>
+      <tbody>
+        <tr class="contacts-empty-row">
+          <td colspan="5">
+            <div class="contacts-empty">
+              <svg width="32" height="32" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="color:var(--border)"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.761 2.239-5 5-5s5 2.239 5 5"/><line x1="11" y1="4" x2="15" y2="4"/><line x1="11" y1="7" x2="15" y2="7"/><line x1="11" y1="10" x2="13" y2="10"/></svg>
+              <span>Список клиентов пуст</span>
+              <span style="font-size:12px;color:var(--text3)">Функция будет добавлена в следующей версии</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="pv-schedule" style="display:none">
+  <div class="page-title">График <span>Монтажей</span></div>
+  <div class="card">
+    <div class="schedule-weekdays">
+      <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+    </div>
+    <div class="schedule-month-grid" style="margin-top:8px">
+      <div class="schedule-day"><div class="day-num">1</div></div>
+      <div class="schedule-day"><div class="day-num">2</div></div>
+      <div class="schedule-day has-jobs"><div class="day-num">3</div><div class="day-count">2</div></div>
+      <div class="schedule-day"><div class="day-num">4</div></div>
+      <div class="schedule-day is-today"><div class="day-num">5</div></div>
+      <div class="schedule-day"><div class="day-num">6</div></div>
+      <div class="schedule-day"><div class="day-num">7</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="pv-settings" style="display:none">
+  <div class="page-title">Настройки <span>Мастера</span></div>
+  <div class="card">
+    <div class="card-title">Мои данные</div>
+    <div class="form-grid">
+      <div class="field span2"><label>ФИО</label><input placeholder="Иванов Иван Иванович" type="text"/></div>
+      <div class="field"><label>Телефон</label><input placeholder="+7 (999) 000-00-00" type="tel"/></div>
+      <div class="field"><label>Email</label><input placeholder="master@mail.ru" type="email"/></div>
+    </div>
+  </div>
+  <button class="btn btn-primary btn-full" style="margin-top:8px">Сохранить настройки</button>
+</div>
+
+<div id="pv-about" style="display:none">
+  <div class="page-title">О <span>сервисе</span></div>
+  <div class="card"><p style="color:var(--text2)">Информация о сервисе КП Мастер.</p></div>
+</div>
+
+<div id="pv-admin" style="display:none">
+  <div class="page-title">Панель <span>Администратора</span></div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-num">24</div><div class="stat-label">Всего ключей</div></div>
+    <div class="stat-card"><div class="stat-num">18</div><div class="stat-label">Активных</div></div>
+    <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Заблокированных</div></div>
+  </div>
+</div>
+
+<div class="ad-strip" id="adStrip" style="display:none"></div>
+</main>
+
+<script>
+function toggleTheme(){
+  var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('kpmaster-theme',t);
+}
+function toggleSidebar(){
+  var s=document.getElementById('appSidebar');
+  var o=document.getElementById('sidebarOverlay');
+  if(!s)return;
+  var open=s.classList.toggle('open');
+  if(o)o.classList.toggle('open',open);
+  document.body.classList.toggle('sidebar-open',open);
+}
+function closeSidebar(){
+  var s=document.getElementById('appSidebar');
+  var o=document.getElementById('sidebarOverlay');
+  if(s)s.classList.remove('open');
+  if(o)o.classList.remove('open');
+  document.body.classList.remove('sidebar-open');
+}
+function navTo(page){
+  document.querySelectorAll('[id^="pv-"]').forEach(function(el){el.style.display='none'});
+  var el=document.getElementById('pv-'+page);
+  if(el)el.style.display='block';
+  document.querySelectorAll('.sidebar-nav-item').forEach(function(el){el.classList.remove('active')});
+  var active=document.querySelector('.sidebar-nav-item[data-page="'+page+'"]');
+  if(active)active.classList.add('active');
+  closeSidebar();
+}
+</script>
+</body>
+</html>

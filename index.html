@@ -381,6 +381,10 @@
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/><polyline points="9 1 9 5 13 5"/><line x1="5" y1="9" x2="11" y2="9"/><line x1="5" y1="12" x2="8" y2="12"/></svg>
       Новое КП
     </button>
+    <button class="sidebar-nav-item" data-page="deals" id="sidebar-bnav-deals" onclick="navTo('deals')" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="8" x2="4" y2="8"/><line x1="1" y1="4" x2="4" y2="4"/><line x1="1" y1="12" x2="4" y2="12"/><rect x="6" y="2" width="9" height="4" rx="1"/><rect x="6" y="7" width="9" height="4" rx="1"/><rect x="6" y="12" width="9" height="2" rx="1"/></svg>
+      Сделки
+    </button>
     <button class="sidebar-nav-item" data-page="history" onclick="navTo('history')">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><polyline points="8 4 8 8 11 10"/></svg>
       История
@@ -400,6 +404,18 @@
     <button class="sidebar-nav-item" data-page="about" onclick="navTo('about')">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5" r="0.5" fill="currentColor" stroke="none"/></svg>
       О сервисе
+    </button>
+    <button class="sidebar-nav-item" data-page="master" id="sidebar-bnav-master" onclick="navTo('master')" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 4.3a1 1 0 0 0 0 1.4l-5 5a1 1 0 0 1-1.4 0L4.3 6.7a1 1 0 0 1 0-1.4l1-1A1 1 0 0 1 6.7 4l3.6 3.6L13.3 4.7a1 1 0 0 1 1.4 0l0 0z"/></svg>
+      Мастер
+    </button>
+    <button class="sidebar-nav-item" data-page="accountant" id="sidebar-bnav-accountant" onclick="navTo('accountant')" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="1" x2="8" y2="15"/><path d="M11 4H6.5a2.5 2.5 0 0 0 0 5H9a2.5 2.5 0 0 1 0 5H5"/></svg>
+      Бухгалтер
+    </button>
+    <button class="sidebar-nav-item" data-page="warehouse" id="sidebar-bnav-warehouse" onclick="navTo('warehouse')" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6l6-5 6 5v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6z"/><polyline points="6 15 6 9 10 9 10 15"/></svg>
+      Склад
     </button>
     <button class="sidebar-nav-item" data-page="employees" id="sidebar-bnav-employees" onclick="navTo('employees')" style="display:none">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.761 2.239-5 5-5s5 2.239 5 5"/><circle cx="12" cy="5" r="2"/><path d="M15 14c0-2.209-1.343-4-3-4"/></svg>
@@ -1294,14 +1310,13 @@ document.addEventListener('DOMContentLoaded',function(){
     });
     obs.observe(adminBtn,{attributes:true,attributeFilter:['style']});
   }
-  var empBtn=document.getElementById('bnav-employees');
-  var sidebarEmpBtn=document.getElementById('sidebar-bnav-employees');
-  if(empBtn&&sidebarEmpBtn){
-    var empObs=new MutationObserver(function(){
-      sidebarEmpBtn.style.display=empBtn.style.display;
-    });
-    empObs.observe(empBtn,{attributes:true,attributeFilter:['style']});
-  }
+  [['deals','sidebar-bnav-deals'],['master','sidebar-bnav-master'],['accountant','sidebar-bnav-accountant'],['warehouse','sidebar-bnav-warehouse'],['employees','sidebar-bnav-employees']].forEach(function(pair){
+    var src=document.getElementById('bnav-'+pair[0]);
+    var dst=document.getElementById(pair[1]);
+    if(src&&dst){
+      new MutationObserver(function(){dst.style.display=src.style.display;}).observe(src,{attributes:true,attributeFilter:['style']});
+    }
+  });
   var appWrap=document.getElementById('appWrap');
   if(appWrap){
     var appObs=new MutationObserver(function(){

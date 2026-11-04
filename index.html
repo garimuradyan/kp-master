@@ -401,6 +401,10 @@
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5" r="0.5" fill="currentColor" stroke="none"/></svg>
       О сервисе
     </button>
+    <button class="sidebar-nav-item" data-page="employees" id="sidebar-bnav-employees" onclick="navTo('employees')" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.761 2.239-5 5-5s5 2.239 5 5"/><circle cx="12" cy="5" r="2"/><path d="M15 14c0-2.209-1.343-4-3-4"/></svg>
+      Сотрудники
+    </button>
     <button class="sidebar-nav-item sidebar-admin-item" data-page="admin" id="sidebar-bnav-admin" onclick="navTo('admin')" style="display:none">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1l2 4 4.5.65-3.25 3.17.77 4.47L8 11.1l-4.02 2.19.77-4.47L1.5 5.65 6 5z"/></svg>
       Админ
@@ -1289,6 +1293,14 @@ document.addEventListener('DOMContentLoaded',function(){
       sidebarAdminBtn.style.display=adminBtn.style.display;
     });
     obs.observe(adminBtn,{attributes:true,attributeFilter:['style']});
+  }
+  var empBtn=document.getElementById('bnav-employees');
+  var sidebarEmpBtn=document.getElementById('sidebar-bnav-employees');
+  if(empBtn&&sidebarEmpBtn){
+    var empObs=new MutationObserver(function(){
+      sidebarEmpBtn.style.display=empBtn.style.display;
+    });
+    empObs.observe(empBtn,{attributes:true,attributeFilter:['style']});
   }
   var appWrap=document.getElementById('appWrap');
   if(appWrap){

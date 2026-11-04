@@ -392,6 +392,9 @@
 <button class="bottom-nav-btn admin-nav" id="bnav-admin" onclick="showPage('admin',this)" style="display:none">
 <span class="bnav-icon">👑</span>Админ
     </button>
+<button class="bottom-nav-btn employees-nav" id="bnav-employees" onclick="showPage('employees',this)" style="display:none">
+<span class="bnav-icon">👥</span>Сотрудники
+    </button>
 <button class="bottom-nav-btn" id="bnav-about" onclick="showPage('about',this)">
 <span class="bnav-icon">ℹ️</span>О сервисе
     </button>
@@ -718,6 +721,43 @@
 <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Предпросмотр:</div>
 <div class="ad-strip" id="adBannerPreviewStrip"></div>
 </div>
+</div>
+</div>
+
+<div class="page" id="page-employees">
+<div class="page-title">Сотрудники</div>
+<div class="card">
+  <div class="card-title">
+    <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg></span>
+    Список сотрудников
+    <button class="btn btn-primary" style="margin-left:auto;font-size:12px;padding:5px 12px" onclick="openEmployeeForm(null)">+ Добавить</button>
+  </div>
+  <div id="employeesList"><div class="empty-state" style="padding:24px"><div class="empty-icon">👥</div><p>Загрузка...</p></div></div>
+</div>
+
+<!-- Форма добавления/редактирования сотрудника -->
+<div class="modal-overlay" id="employeeModal" style="display:none" onclick="if(event.target===this)closeEmployeeForm()">
+  <div class="modal-box" style="max-width:420px;width:100%">
+    <div class="modal-title" id="employeeModalTitle">Новый сотрудник</div>
+    <input type="hidden" id="empId">
+    <div class="field"><label>ФИО</label><input id="empName" placeholder="Иван Иванов" type="text" maxlength="80"/></div>
+    <div class="field"><label>Логин</label><input id="empLogin" placeholder="ivan" type="text" maxlength="40" autocapitalize="none"/></div>
+    <div class="field"><label>Пароль <span id="empPassHint" style="font-size:11px;color:var(--text3)">(обязательно при создании)</span></label><input id="empPass" placeholder="Введите пароль" type="password" maxlength="80"/></div>
+    <div class="field">
+      <label>Роль</label>
+      <select id="empRole">
+        <option value="manager">Менеджер</option>
+        <option value="accountant">Бухгалтер</option>
+        <option value="admin">Администратор</option>
+        <option value="master">Мастер</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveEmployee()">Сохранить</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeEmployeeForm()">Отмена</button>
+    </div>
+    <div id="empFormMsg" style="margin-top:8px;font-size:13px;color:var(--danger)"></div>
+  </div>
 </div>
 </div>
 

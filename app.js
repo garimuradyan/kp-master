@@ -137,6 +137,14 @@ function showApp(){
     if(currentKeyData.is_admin){
       document.getElementById('bnav-admin').style.display='';
     }
+    var empNav=document.getElementById('bnav-employees');
+    if(empNav){
+      if(!currentKeyData.is_admin&&(currentKeyData.role==='director'||currentKeyData.role==='admin')){
+        empNav.style.display='';
+      } else {
+        empNav.style.display='none';
+      }
+    }
   }
   loadUserData();
 }
@@ -194,6 +202,7 @@ function showPage(name,el){
   if(name==='schedule'&&typeof renderSchedule==='function')renderSchedule();
   if(name==='settings'){renderPriceList();renderEquipmentList();setTimeout(resizeSignatureCanvas,50);}
   if(name==='admin')loadAdminData();
+  if(name==='employees')loadEmployees();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1436,4 +1445,117 @@ function initPhoneMask(id){
 
 function initPhoneMasks(){
   ['c-phone','s-phone','schPhone','c-contact-phone'].forEach(initPhoneMask);
+}
+
+// ================================================================
+// Раздел Сотрудники
+// ================================================================
+
+var employeesData=[];
+
+async function sha256hex(str){
+  var buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+}
+
+var ROLE_LABELS={director:'Директор',admin:'Администратор',manager:'Менеджер',accountant:'Бухгалтер',master:'Мастер'};
+var ROLE_DEVICE_LIMITS={director:3,admin:2,manager:2,accountant:2,master:1};
+
+async function loadEmployees(){
+  if(!isLoggedIn())return;
+  var list=document.getElementById('employeesList');
+  if(list)list.innerHTML='<div style="padding:16px;text-align:center;color:var(--text3)">Загрузка...</div>';
+  var res=await sb.rpc('kp_get_employees',rpcAuthParams());
+  if(res.error||rpcFailed(res)){
+    if(list)list.innerHTML='<div style="padding:16px;color:var(--danger)">'+esc(rpcMsg(res,'Ошибка загрузки'))+'</div>';
+    return;
+  }
+  employeesData=res.data.employees||[];
+  renderEmployees();
+}
+
+function renderEmployees(){
+  var list=document.getElementById('employeesList');
+  if(!list)return;
+  if(!employeesData.length){
+    list.innerHTML='<div class="empty-state" style="padding:24px"><div class="empty-icon">👥</div><p>Сотрудников нет. Нажмите «+ Добавить»</p></div>';
+    return;
+  }
+  list.innerHTML='<div style="overflow-x:auto"><table class="admin-table"><thead><tr><th>ФИО</th><th>Логин</th><th>Роль</th><th>Устройства</th><th>Действия</th></tr></thead><tbody>'+
+  employeesData.map(function(e){
+    var devInfo=(e.active_devices||0)+' / '+(e.device_limit||1);
+    var lastSeen=e.last_seen?new Date(e.last_seen).toLocaleDateString('ru'):'—';
+    return '<tr>'+
+      '<td>'+esc(e.name)+'</td>'+
+      '<td style="font-family:monospace;font-size:12px">'+esc(e.login)+'</td>'+
+      '<td>'+esc(ROLE_LABELS[e.role]||e.role)+'</td>'+
+      '<td style="font-size:12px">'+devInfo+'<br><span style="color:var(--text3);font-size:10px">'+lastSeen+'</span></td>'+
+      '<td><div style="display:flex;gap:4px;flex-wrap:wrap">'+
+        '<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px" onclick="openEmployeeForm('+JSON.stringify(e).replace(/"/g,'&quot;')+')">✏️</button>'+
+        '<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px" onclick="resetEmpDevices(\''+e.id+'\')">🔄 Сброс</button>'+
+        '<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;color:var(--danger)" onclick="deleteEmployee(\''+e.id+'\',\''+esc(e.name)+'\')">✕</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('')+'</tbody></table></div>';
+}
+
+function openEmployeeForm(emp){
+  document.getElementById('empId').value=emp?emp.id:'';
+  document.getElementById('empName').value=emp?emp.name:'';
+  document.getElementById('empLogin').value=emp?emp.login:'';
+  document.getElementById('empPass').value='';
+  document.getElementById('empRole').value=emp?(emp.role==='director'?'admin':emp.role):'manager';
+  document.getElementById('employeeModalTitle').textContent=emp?'Редактировать сотрудника':'Новый сотрудник';
+  document.getElementById('empPassHint').textContent=emp?'(оставьте пустым — не менять)':'(обязательно при создании)';
+  document.getElementById('empFormMsg').textContent='';
+  document.getElementById('employeeModal').style.display='flex';
+}
+
+function closeEmployeeForm(){
+  document.getElementById('employeeModal').style.display='none';
+}
+
+async function saveEmployee(){
+  var empId=document.getElementById('empId').value||null;
+  var name=document.getElementById('empName').value.trim();
+  var login=document.getElementById('empLogin').value.trim().toLowerCase();
+  var pass=document.getElementById('empPass').value;
+  var role=document.getElementById('empRole').value;
+  var msgEl=document.getElementById('empFormMsg');
+  if(!name){msgEl.textContent='Введите ФИО';return;}
+  if(!login){msgEl.textContent='Введите логин';return;}
+  if(!empId&&!pass){msgEl.textContent='Введите пароль';return;}
+  var passHash=null;
+  if(pass){
+    try{passHash=await sha256hex(pass);}
+    catch(e){msgEl.textContent='Ошибка хеширования пароля';return;}
+  }
+  var params=Object.assign({},rpcAuthParams(),{
+    p_employee_id:empId||null,
+    p_name:name,
+    p_login:login,
+    p_pass_hash:passHash,
+    p_role:role
+  });
+  var res=await sb.rpc('kp_save_employee',params);
+  if(res.error||rpcFailed(res)){msgEl.textContent=rpcMsg(res,'Ошибка сохранения');return;}
+  closeEmployeeForm();
+  toast('Сохранено','success');
+  loadEmployees();
+}
+
+async function deleteEmployee(empId,name){
+  if(!confirm('Удалить сотрудника «'+name+'»?'))return;
+  var res=await sb.rpc('kp_delete_employee',Object.assign({},rpcAuthParams(),{p_employee_id:empId}));
+  if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка удаления'),'error');return;}
+  toast('Сотрудник удалён','success');
+  loadEmployees();
+}
+
+async function resetEmpDevices(empId){
+  if(!confirm('Сбросить все устройства этого сотрудника?'))return;
+  var res=await sb.rpc('kp_reset_employee_devices',Object.assign({},rpcAuthParams(),{p_employee_id:empId}));
+  if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка сброса'),'error');return;}
+  toast('Устройства сброшены','success');
+  loadEmployees();
 }

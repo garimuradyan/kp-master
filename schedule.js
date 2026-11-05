@@ -84,21 +84,128 @@
 
   window.openScheduleModalFromQuote = function(){
     if(typeof validateClient === 'function' && !validateClient()) return;
+    var extra = JSON.parse(JSON.stringify(window.extraStages || []));
+    // If KP has extra stages — show stage picker first
+    if(extra.length > 0){
+      _openStagePicker(extra);
+      return;
+    }
+    _openScheduleFromSelectedStages(null);
+  };
+
+  function _openStagePicker(extraStages){
+    var fmt = function(n){if(!n)return'0 ₽';if(n>=1000000)return(n/1000000).toFixed(1)+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return Math.round(n).toLocaleString('ru-RU')+' ₽';};
+    var allStages = [];
+    var s1sum = (window.services||[]).reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
+    var s1cnt = (window.services||[]).length;
+    allStages.push({idx:0, label:'Этап 1' + ((window.services||[]).length?'':' (пусто)'), subtitle:s1cnt+' позиций', sum:s1sum});
+    extraStages.forEach(function(st,i){
+      var sum=st.items.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
+      allStages.push({idx:i+1, label:'Этап '+(i+2)+(st.title?' — '+st.title:''), subtitle:st.items.length+' позиций', sum:sum});
+    });
+    var eqSum = (window.equipment||[]).reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
+    if((window.equipment||[]).length>0){
+      allStages.push({idx:-1, label:'Оборудование', subtitle:(window.equipment||[]).length+' позиций', sum:eqSum, alwaysOn:false});
+    }
+    window.__stagePickerData = allStages;
+    var list = document.getElementById('stagePickerList');
+    if(!list) return;
+    list.innerHTML = allStages.map(function(st){
+      var checked = st.alwaysOn !== false ? 'checked' : 'checked';
+      return '<label class="stage-picker-item selected" onclick="toggleStagePickerItem(this)">'
+        +'<input type="checkbox" checked data-idx="'+st.idx+'" onclick="event.stopPropagation()">'
+        +'<div class="stage-picker-item-info"><div class="stage-picker-item-name">'+st.label+'</div>'
+        +'<div class="stage-picker-item-count">'+st.subtitle+'</div></div>'
+        +'<div class="stage-picker-item-sum">'+fmt(st.sum)+'</div>'
+        +'</label>';
+    }).join('');
+    _updateStagePickerTotal();
+    var ov = document.getElementById('stagePickerOverlay');
+    if(ov) ov.classList.add('visible');
+  }
+
+  window.toggleStagePickerItem = function(label){
+    var cb = label.querySelector('input[type=checkbox]');
+    if(!cb) return;
+    cb.checked = !cb.checked;
+    label.classList.toggle('selected', cb.checked);
+    _updateStagePickerTotal();
+  };
+
+  function _updateStagePickerTotal(){
+    var fmt = function(n){if(!n)return'0 ₽';if(n>=1000000)return(n/1000000).toFixed(1)+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return Math.round(n).toLocaleString('ru-RU')+' ₽';};
+    var total = 0;
+    var data = window.__stagePickerData || [];
+    document.querySelectorAll('#stagePickerList input[type=checkbox]').forEach(function(cb){
+      if(cb.checked){
+        var idx = parseInt(cb.dataset.idx, 10);
+        var st = data.find(function(s){return s.idx===idx;});
+        if(st) total += st.sum;
+      }
+    });
+    var el = document.getElementById('stagePickerTotalVal');
+    if(el) el.textContent = fmt(total);
+  }
+
+  window.closeStagePickerOverlay = function(){
+    var ov = document.getElementById('stagePickerOverlay');
+    if(ov) ov.classList.remove('visible');
+    window.__stagePickerData = null;
+  };
+
+  window.confirmStagePicker = function(){
+    var selectedIdxs = [];
+    document.querySelectorAll('#stagePickerList input[type=checkbox]').forEach(function(cb){
+      if(cb.checked) selectedIdxs.push(parseInt(cb.dataset.idx, 10));
+    });
+    if(!selectedIdxs.length){toast('Выберите хотя бы один этап','error');return;}
+    window.closeStagePickerOverlay();
+    _openScheduleFromSelectedStages(selectedIdxs);
+  };
+
+  function _openScheduleFromSelectedStages(selectedIdxs){
     var c = typeof getClientData === 'function' ? getClientData() : {};
-    var t = typeof getTotals === 'function' ? getTotals() : {grand:0};
-    var items = JSON.parse(JSON.stringify(window.services || []));
-    var eq = JSON.parse(JSON.stringify(window.equipment || []));
-    if(!items.length && !eq.length){toast('Добавьте работы или оборудование в КП','error');return;}
-    var quoteSnapshot = makeQuoteSnapshot();
+    var extra = JSON.parse(JSON.stringify(window.extraStages || []));
+    // Build merged items from selected stages (null = all)
+    var mergedItems = [];
+    var includeEq = true;
+    if(selectedIdxs !== null){
+      includeEq = selectedIdxs.indexOf(-1) >= 0;
+      selectedIdxs.forEach(function(idx){
+        if(idx === 0){
+          mergedItems = mergedItems.concat(JSON.parse(JSON.stringify(window.services || [])));
+        } else if(idx > 0){
+          var st = extra[idx-1];
+          if(st) mergedItems = mergedItems.concat(JSON.parse(JSON.stringify(st.items || [])));
+        }
+      });
+    } else {
+      mergedItems = JSON.parse(JSON.stringify(window.services || []));
+    }
+    var eq = includeEq ? JSON.parse(JSON.stringify(window.equipment || [])) : [];
+    if(!mergedItems.length && !eq.length){toast('Добавьте работы или оборудование в КП','error');return;}
+    var worksSum = mergedItems.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
+    var eqSum = eq.reduce(function(s,x){return s+(parseFloat(x.price)||0)*(parseFloat(x.qty)||1);},0);
+    var grand = worksSum + eqSum;
+    var quoteSnapshot = {
+      client:Object.assign({},c),
+      services:mergedItems,
+      equipment:eq,
+      totals:{grand:grand, worksSubtotal:worksSum, equipmentSubtotal:eqSum},
+      discount:{val:parseFloat(val('discountVal'))||0, type:val('discountType')||'percent'},
+      prepay:parseFloat(val('prepayVal'))||0,
+      createdAt:new Date().toISOString(),
+      selectedStages:selectedIdxs
+    };
     fillScheduleModal({
       id:'', date:scheduleSelectedDate || dateKey(new Date()), start:'10:00', end:'13:00', visitType:'one_stage',
-      clientName:c.name||'', phone:c.phone||'', address:c.addr||'', items:items, equipment:eq,
-      works:itemsToText(items), equipmentText:itemsToText(eq),
-      total:t.grand||0, source:'КП', notes:c.notes||'', quoteSnapshot: quoteSnapshot
+      clientName:c.name||'', phone:c.phone||'', address:c.addr||'', items:mergedItems, equipment:eq,
+      works:itemsToText(mergedItems), equipmentText:itemsToText(eq),
+      total:grand, source:'КП', notes:c.notes||'', quoteSnapshot:quoteSnapshot
     });
     var modal = document.getElementById('scheduleModal');
     if(modal) modal.style.display='flex';
-  };
+  }
 
   window.closeScheduleModal = function(){
     var modal = document.getElementById('scheduleModal');

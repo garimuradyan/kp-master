@@ -1503,6 +1503,19 @@
 </div>
 </div>
 </div>
+<!-- Stage Picker for Schedule -->
+<div class="app-dialog-overlay" id="stagePickerOverlay" onclick="closeStagePickerOverlay()">
+  <div class="app-dialog-box stage-picker-box" onclick="event.stopPropagation()">
+    <div class="app-dialog-title">Выберите этапы для выезда</div>
+    <div class="stage-picker-hint">Работы и сумма берутся из отмеченных этапов</div>
+    <div id="stagePickerList" class="stage-picker-list"></div>
+    <div class="stage-picker-total">Итого выбрано: <strong id="stagePickerTotalVal">0 ₽</strong></div>
+    <div class="app-dialog-btns">
+      <button class="btn btn-ghost" onclick="closeStagePickerOverlay()">Отмена</button>
+      <button class="btn btn-primary" id="stagePickerConfirmBtn" onclick="confirmStagePicker()">В график</button>
+    </div>
+  </div>
+</div>
 <div class="kp-modal-overlay" id="scheduleModal" style="display:none">
 <div class="kp-modal-box kp-modal-box-wide">
 <div class="kp-modal-head">

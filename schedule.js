@@ -485,12 +485,13 @@
     var jobs = scheduleJobs.filter(function(j){return j.date===scheduleSelectedDate;}).sort(function(a,b){return (a.start||'').localeCompare(b.start||'');});
     if(!jobs.length){list.innerHTML='<div class="empty-state" style="padding:30px 10px"><div class="empty-icon">📭</div><p>На этот день выездов нет</p><button class="btn btn-primary btn-sm" onclick="openScheduleModal()">+ Добавить</button></div>';return;}
     list.innerHTML = jobs.map(function(j){
-      var typeLabel = VISIT_LABELS[j.visitType] || VISIT_LABELS[visitTypeFromLegacy(j.status)] || 'Выезд';
+      var visitType = j.visitType || visitTypeFromLegacy(j.status);
+      var typeLabel = visitType !== 'one_stage' ? (VISIT_LABELS[visitType] || 'Выезд') : '';
       var works = j.works || itemsToText(normalizeItemsFromJob(j));
       var eqText = j.equipmentText || itemsToText(normalizeEquipmentFromJob(j));
       return '<div class="schedule-job">'+
-        '<div class="schedule-job-time"><b>'+esc(j.start||'—')+'</b>'+(j.end?'–'+esc(j.end):'')+'</div>'+ 
-        '<div class="schedule-job-body"><div class="schedule-job-top"><b>'+esc(j.clientName)+'</b><span class="schedule-status visit-type-badge">'+esc(typeLabel)+'</span></div>'+ 
+        '<div class="schedule-job-time"><b>'+esc(j.start||'—')+'</b>'+(j.end?'–'+esc(j.end):'')+'</div>'+
+        '<div class="schedule-job-body"><div class="schedule-job-top"><b>'+esc(j.clientName)+'</b>'+(typeLabel?'<span class="schedule-status visit-type-badge">'+esc(typeLabel)+'</span>':'')+'</div>'+
         (j.phone?'<div class="schedule-line">☎ '+esc(j.phone)+'</div>':'')+
         (j.address?'<div class="schedule-line">📍 '+esc(j.address)+'</div>':'')+
         (eqText?'<div class="schedule-works schedule-equipment-view"><b>Оборудование</b><br>'+esc(eqText).replace(/\n/g,'<br>')+'</div>':'')+

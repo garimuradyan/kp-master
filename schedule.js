@@ -286,6 +286,7 @@
       total: total,
       source: source,
       notes: val('schNotes'),
+      assigned_master: val('schMaster'),
       updatedAt: new Date().toISOString()
     };
     if(quoteSnapshot) job.quoteSnapshot = quoteSnapshot;
@@ -387,6 +388,7 @@
     window.__pendingQuoteSnapshot = quoteSnapshot;
     renderPriceSelect();
     renderEquipmentSelect();
+    fillMasterSelect(job.assigned_master||'');
     setScheduleQuoteLock(scheduleModalLockedByQuote);
     renderScheduleEditors();
   }
@@ -399,6 +401,27 @@
     if(eqPicker)eqPicker.style.display=locked?'none':'flex';
     var note=document.getElementById('schQuoteLockNote');
     if(note)note.style.display=locked?'':'none';
+  }
+
+  function fillMasterSelect(selected){
+    var sel = document.getElementById('schMaster');
+    if(!sel) return;
+    var masters = (window.employeesData||[]).filter(function(e){ return e.role==='master'; });
+    sel.innerHTML = '<option value="">— Не назначен —</option>'
+      + masters.map(function(e){
+          return '<option value="'+esc(e.name)+'"'+(e.name===selected?' selected':'')+'>'+esc(e.name)+'</option>';
+        }).join('');
+    sel.value = selected || '';
+    // Мастер не может менять назначение
+    var role = typeof getCrmRole === 'function' ? getCrmRole() : '';
+    sel.disabled = (role === 'master');
+  }
+
+  function getScheduleFilter(){
+    var role = typeof getCrmRole === 'function' ? getCrmRole() : '';
+    if(role !== 'master') return null;
+    var emp = window.currentEmployeeData;
+    return emp ? emp.name : null;
   }
 
   function renderPriceSelect(){
@@ -472,7 +495,12 @@
     for(var d=1; d<=last.getDate(); d++){
       var dt = new Date(y,m,d);
       var key = dateKey(dt);
-      var dayJobs = scheduleJobs.filter(function(j){return j.date===key;});
+      var masterFilter2 = getScheduleFilter();
+      var dayJobs = scheduleJobs.filter(function(j){
+        if(j.date !== key) return false;
+        if(masterFilter2 && j.assigned_master !== masterFilter2) return false;
+        return true;
+      });
       var classes = ['schedule-day'];
       if(key===scheduleSelectedDate) classes.push('is-selected');
       if(key===dateKey(new Date())) classes.push('is-today');
@@ -488,7 +516,12 @@
     if(!list) return;
     var date = parseDateKey(scheduleSelectedDate);
     if(title) title.innerHTML = '<span class="icon">🧰</span> '+date.toLocaleDateString('ru-RU',{day:'numeric',month:'long',weekday:'long'});
-    var jobs = scheduleJobs.filter(function(j){return j.date===scheduleSelectedDate;}).sort(function(a,b){return (a.start||'').localeCompare(b.start||'');});
+    var masterFilter = getScheduleFilter();
+    var jobs = scheduleJobs.filter(function(j){
+      if(j.date !== scheduleSelectedDate) return false;
+      if(masterFilter && j.assigned_master !== masterFilter) return false;
+      return true;
+    }).sort(function(a,b){return (a.start||'').localeCompare(b.start||'');});
     if(!jobs.length){list.innerHTML='<div class="empty-state" style="padding:30px 10px"><div class="empty-icon">📭</div><p>На этот день выездов нет</p><button class="btn btn-primary btn-sm" onclick="openScheduleModal()">+ Добавить</button></div>';return;}
     list.innerHTML = jobs.map(function(j){
       var visitType = j.visitType || visitTypeFromLegacy(j.status);
@@ -503,8 +536,17 @@
         (eqText?'<div class="schedule-works schedule-equipment-view"><b>Оборудование</b><br>'+esc(eqText).replace(/\n/g,'<br>')+'</div>':'')+
         (works?'<div class="schedule-works schedule-services-view"><b>Работы</b><br>'+esc(works).replace(/\n/g,'<br>')+'</div>':'')+
         '<div class="schedule-job-bottom"><span>'+(j.total?fmt(j.total):'Без суммы')+'</span>'+(j.source?'<span>'+esc(j.source)+'</span>':'')+'</div>'+ 
+        (j.assigned_master?'<div class="schedule-line schedule-master-line">👷 '+esc(j.assigned_master)+'</div>':'')+
         (j.notes?'<div class="schedule-note">'+esc(j.notes)+'</div>':'')+
-        '<div class="schedule-actions"><button class="btn btn-ghost btn-sm" onclick="openScheduleModal(\''+j.id+'\')">Изменить</button>'+(j.quoteSnapshot?'<button class="btn btn-ghost btn-sm" onclick="loadScheduleQuote(\''+j.id+'\')">Открыть КП</button>':'')+'<button class="btn btn-danger btn-sm" onclick="deleteScheduleJob(\''+j.id+'\')">Удалить</button></div>'+ 
+        (function(){
+          var schRole = typeof getCrmRole === 'function' ? getCrmRole() : '';
+          var schRO = (schRole === 'accountant' || schRole === 'warehouse' || schRole === 'master');
+          return '<div class="schedule-actions">'
+            + (!schRO ? '<button class="btn btn-ghost btn-sm" onclick="openScheduleModal(\''+j.id+'\')">Изменить</button>' : '')
+            + (j.quoteSnapshot ? '<button class="btn btn-ghost btn-sm" onclick="loadScheduleQuote(\''+j.id+'\')">Открыть КП</button>' : '')
+            + (!schRO ? '<button class="btn btn-danger btn-sm" onclick="deleteScheduleJob(\''+j.id+'\')">Удалить</button>' : '')
+            + '</div>';
+        })()+ 
         '</div></div>';
     }).join('');
   }

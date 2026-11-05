@@ -778,7 +778,7 @@
 <input id="scheduleMonthInput" onchange="setScheduleMonthFromInput()" type="month"/>
 </div>
 <button class="btn btn-ghost btn-sm" onclick="setScheduleToday()">Сегодня</button>
-<button class="btn btn-primary btn-sm" onclick="openScheduleModal()">+ Добавить выезд</button>
+<button class="btn btn-primary btn-sm" id="scheduleAddBtn" onclick="openScheduleModal()">+ Добавить выезд</button>
 </div>
 <div class="schedule-stats" id="scheduleStats"></div>
 </div>
@@ -961,9 +961,10 @@
   <div class="dp-body" id="dpBody"></div>
   <div class="dp-st-row">
     <button class="dp-st-btn" onclick="changeDealStatus('new')">Новая</button>
+    <button class="dp-st-btn" onclick="changeDealStatus('sent')">КП отправлено</button>
+    <button class="dp-st-btn" onclick="changeDealStatus('agree')">Согласование</button>
     <button class="dp-st-btn" onclick="changeDealStatus('prog')">В работе</button>
     <button class="dp-st-btn" onclick="changeDealStatus('done')">Выполнено</button>
-    <button class="dp-st-btn" onclick="changeDealStatus('wait')">Ожидание</button>
   </div>
 </div>
 </div>
@@ -1551,18 +1552,18 @@
     <div class="page-header-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 4.9 2 2 0 0 1 3.59 2.72h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Звонки и SMS</div>
     <div class="page-header-sub">Журнал коммуникаций с клиентами</div>
   </div>
-  <div class="calls-filter">
-    <button class="task-filter-btn active" onclick="filterCalls('all',this)">Все</button>
-    <button class="task-filter-btn" onclick="filterCalls('in',this)">Входящие</button>
-    <button class="task-filter-btn" onclick="filterCalls('out',this)">Исходящие</button>
-    <button class="task-filter-btn" onclick="filterCalls('sms',this)">SMS</button>
-    <button class="task-filter-btn" onclick="filterCalls('missed',this)">Пропущенные</button>
-  </div>
-  <div class="card" style="padding:0;overflow:hidden">
-    <div id="calls-list"><!-- заполняется JS --></div>
-  </div>
-  <div style="margin-top:16px;text-align:right">
-    <button class="btn btn-primary btn-sm" onclick="openAddCallModal()">+ Добавить запись</button>
+  <div class="calls-wip-wrap">
+    <div class="calls-wip-icon">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 4.9 2 2 0 0 1 3.59 2.72h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    </div>
+    <div class="calls-wip-title">Раздел в разработке</div>
+    <div class="calls-wip-desc">Здесь появится журнал звонков с автоматической записью входящих и исходящих звонков через интеграцию с IP-телефонией.</div>
+    <div class="calls-wip-features">
+      <div class="calls-wip-feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Автоматический журнал входящих и исходящих</div>
+      <div class="calls-wip-feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Привязка звонка к контакту и сделке</div>
+      <div class="calls-wip-feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Запись и прослушивание разговоров</div>
+      <div class="calls-wip-feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Интеграция с Asterisk, Манго, Билайн Бизнес</div>
+    </div>
   </div>
 </div>
 
@@ -1660,6 +1661,7 @@
 <div class="field"><label>Клиент</label><input id="schClient" maxlength="80" placeholder="ФИО клиента" type="text"/></div>
 <div class="field"><label>Телефон</label><input id="schPhone" maxlength="20" placeholder="+7..." type="tel"/></div>
 <div class="field span2"><label>Адрес</label><input id="schAddress" maxlength="140" placeholder="Адрес объекта" type="text"/></div>
+<div class="field span2"><label>Мастер</label><select id="schMaster"><option value="">— Не назначен —</option></select></div>
 <div class="field span2"><label>Оборудование</label>
 <div id="schQuoteLockNote" class="schedule-lock-note" style="display:none">Оборудование, работы и сумма перенесены из КП. Для изменения откройте и отредактируйте само КП.</div>
 <div id="schEquipmentPicker" class="schedule-price-picker">

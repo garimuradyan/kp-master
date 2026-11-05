@@ -232,6 +232,9 @@ async function loadUserData(){
   }
   renderServices();
   renderEquipment();
+  loadTasksFromServer();
+  loadWarehouseFromServer();
+  applyRoleDataFilters();
 }
 
 function applySettings(){
@@ -862,13 +865,19 @@ async function saveToHistory(){
   if(!validateClient()){nextStep(1);return;}
   var c=getClientData(),t=getTotals(),num=generateQuoteNumber();
   var respName=currentEmployeeData?currentEmployeeData.name:(currentKeyData?(currentKeyData.master_name||''):'');
+  // Preserve status from existing KP if editing, otherwise 'new'
+  var existingStatus = 'new';
+  if(window._kpEditSourceId){
+    var existingH = historyData.find(function(x){return x.id===window._kpEditSourceId;});
+    if(existingH) existingStatus = existingH.status || 'new';
+  }
   var editLog=[];
   if(window._kpEditSourceId){
     var prev=window._kpEditBaseLog||[];
     editLog=prev.concat([{name:respName,at:new Date().toISOString()}]);
     window._kpEditSourceId=null;window._kpEditBaseLog=null;
   }
-  var entry={num:num,date:new Date().toLocaleDateString('ru-RU'),clientName:c.name,clientPhone:c.phone,total:t.grand,servicesCount:services.length,services:JSON.parse(JSON.stringify(services)),equipment:JSON.parse(JSON.stringify(equipment)),extraStages:JSON.parse(JSON.stringify(extraStages)),client:Object.assign({},c),discount:{val:parseFloat(document.getElementById('discountVal').value)||0,type:document.getElementById('discountType').value},responsible_name:respName};
+  var entry={num:num,date:new Date().toLocaleDateString('ru-RU'),clientName:c.name,clientPhone:c.phone,total:t.grand,servicesCount:services.length,services:JSON.parse(JSON.stringify(services)),equipment:JSON.parse(JSON.stringify(equipment)),extraStages:JSON.parse(JSON.stringify(extraStages)),client:Object.assign({},c),discount:{val:parseFloat(document.getElementById('discountVal').value)||0,type:document.getElementById('discountType').value},responsible_name:respName,status:existingStatus};
   if(editLog.length)entry.edit_log=editLog;
   var args=Object.assign(rpcAuthParams(),{p_client_name:c.name,p_client_phone:c.phone,p_total:t.grand,p_data:entry});
   var res=await sb.rpc('kp_save_quote',args);
@@ -878,10 +887,16 @@ async function saveToHistory(){
 
 function renderHistory(){
   var list=document.getElementById('historyList');
-  if(!historyData.length){list.innerHTML='<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><p>История пуста</p></div>';return;}
-  var used=historyData.length;
+  var role=getCrmRole();
+  var myName=currentEmployeeData?currentEmployeeData.name:(currentKeyData?(currentKeyData.master_name||''):'');
+  var readOnly=(role==='master'||role==='accountant');
+  // Мастер видит только свои КП
+  var data=historyData;
+  if(role==='master'&&myName) data=historyData.filter(function(h){return h.responsible_name===myName;});
+  if(!data.length){list.innerHTML='<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><p>История пуста</p></div>';return;}
+  var used=data.length;
   var counter=!currentKeyData.is_admin&&used?'<div style="margin-bottom:12px;font-size:12px;color:var(--text2);padding:4px 0">КП сохранено: <strong>'+used+'</strong></div>':'';
-  list.innerHTML=counter+historyData.map(function(h){
+  list.innerHTML=counter+data.map(function(h){
     var respBadge=h.responsible_name?'<span class="kp-resp-badge">'+esc(h.responsible_name)+'</span>':'';
     var editLog=h.edit_log&&h.edit_log.length?h.edit_log:null;
     var editHtml='';
@@ -896,10 +911,32 @@ function renderHistory(){
     '<div class="history-meta"><span>№ '+h.num+'</span><span>'+h.date+'</span><span>'+esc(h.clientPhone)+'</span><span>'+h.servicesCount+' услуг</span></div>'+editHtml+'</div>'+
     '<div class="history-amount">'+fmt(h.total)+'</div>'+
     '<div class="history-actions">'+
-    '<button class="btn btn-ghost btn-sm" title="Редактировать (загрузить)" onclick="loadFromHistory('+h.id+')" style="display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
-    '<button class="btn btn-ghost btn-sm" title="Создать копию" onclick="copyFromHistory('+h.id+')" style="display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'+
-    '<button class="btn btn-danger btn-sm" onclick="deleteFromHistory('+h.id+')">✕</button></div></div>';
+    (!readOnly?'<button class="btn btn-ghost btn-sm" title="Редактировать (загрузить)" onclick="loadFromHistory('+h.id+')" style="display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>':'')+
+    (!readOnly?'<button class="btn btn-ghost btn-sm" title="Создать копию" onclick="copyFromHistory('+h.id+')" style="display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>':'')+
+    (!readOnly?'<button class="btn btn-danger btn-sm" onclick="deleteFromHistory('+h.id+')">✕</button>':'')+
+    (readOnly?'<button class="btn btn-ghost btn-sm" onclick="openHistoryPreview('+h.id+')">Просмотр</button>':'')+
+    '</div></div>';
   }).join('');
+}
+
+function openHistoryPreview(id){
+  var h=historyData.find(function(x){return x.id===id;});if(!h)return;
+  // Загружаем КП только для просмотра — без установки _kpEditSourceId
+  loadFromHistory(id);
+  // Блокируем все поля и кнопки действий
+  setTimeout(function(){
+    var wrap=document.getElementById('appWrap');
+    if(!wrap)return;
+    ['c-name','c-phone','c-email','c-addr','c-inn','discountVal','prepayVal'].forEach(function(id){
+      var el=document.getElementById(id);if(el)el.setAttribute('readonly','');
+    });
+    var saveBtn=document.getElementById('saveKpBtn');
+    if(saveBtn)saveBtn.style.display='none';
+    var addServiceBtn=document.querySelector('.add-service-btn');
+    if(addServiceBtn)addServiceBtn.style.display='none';
+  },100);
+  navTo('new');
+  toast('Режим просмотра КП','info');
 }
 
 function loadFromHistory(id){
@@ -1747,12 +1784,12 @@ async function verifyEmployeeSession(empId,silent){
 // ================================================================
 
 var _crmRoleMap={
-  manager:    ['new','deals','history','schedule','settings','about'],
-  director:   ['new','history','schedule','settings','employees','about'],
-  master:     ['master','history','schedule','settings','about'],
-  accountant: ['accountant','deals','history','settings','about'],
-  warehouse:  ['warehouse','history','settings','about'],
-  admin:      ['new','deals','master','accountant','warehouse','history','schedule','settings','employees','about','admin'],
+  manager:    ['new','deals','history','schedule','tasks','analytics','warehouse','settings','about'],
+  director:   ['new','deals','history','schedule','tasks','analytics','warehouse','settings','employees','about'],
+  master:     ['history','schedule','tasks','settings','about'],
+  accountant: ['accountant','deals','history','analytics','schedule','settings','about'],
+  warehouse:  ['warehouse','schedule','settings','about'],
+  admin:      ['new','deals','master','accountant','warehouse','history','schedule','tasks','analytics','settings','employees','about','admin'],
 };
 
 function getCrmRole(){
@@ -1972,8 +2009,8 @@ function renderDealsPage(){
   var tbody=el('dealsBody');
   if(!tbody)return;
   if(!filtered.length){tbody.innerHTML='<tr><td colspan="6" class="deals-empty">КП не найдены</td></tr>';return;}
-  var stMap={new:'deal-st-new',prog:'deal-st-prog',done:'deal-st-done',wait:'deal-st-wait'};
-  var stLbl={new:'Новая',prog:'В работе',done:'Выполнено',wait:'Ожидание'};
+  var stMap={new:'deal-st-new',sent:'deal-st-sent',agree:'deal-st-agree',prog:'deal-st-prog',done:'deal-st-done',wait:'deal-st-agree'};
+  var stLbl={new:'Новая',sent:'Отправлено',agree:'Согласование',prog:'В работе',done:'Выполнено',wait:'Согласование'};
   tbody.innerHTML=filtered.map(function(h,i){
     var st=h.status||'new';
     var d=new Date(h.created_at||h.date||'');
@@ -1995,7 +2032,7 @@ function openDealPanel(hJson){
   var h;
   try{h=typeof hJson==='string'?JSON.parse(hJson):hJson;}catch(e){return;}
   _dealsActiveDeal=h;
-  var stMap={new:{cls:'deal-st-new',lbl:'Новая'},prog:{cls:'deal-st-prog',lbl:'В работе'},done:{cls:'deal-st-done',lbl:'Выполнено'},wait:{cls:'deal-st-wait',lbl:'Ожидание'}};
+  var stMap={new:{cls:'deal-st-new',lbl:'Новая'},sent:{cls:'deal-st-sent',lbl:'Отправлено'},agree:{cls:'deal-st-agree',lbl:'Согласование'},prog:{cls:'deal-st-prog',lbl:'В работе'},done:{cls:'deal-st-done',lbl:'Выполнено'},wait:{cls:'deal-st-agree',lbl:'Согласование'}};
   var st=stMap[h.status||'new']||stMap.new;
   var pn=document.getElementById('dpName');if(pn)pn.textContent=h.clientName||'Клиент';
   var sw=document.getElementById('dpStatusWrap');if(sw)sw.innerHTML='<span class="deal-st '+st.cls+'">'+st.lbl+'</span>';
@@ -2020,7 +2057,7 @@ function changeDealStatus(newStatus){
   if(!_dealsActiveDeal)return;
   _dealsActiveDeal.status=newStatus;
   if(historyData&&_dealsActiveDeal.id){var h=historyData.find(function(x){return x.id===_dealsActiveDeal.id;});if(h)h.status=newStatus;}
-  var stMap={new:{cls:'deal-st-new',lbl:'Новая'},prog:{cls:'deal-st-prog',lbl:'В работе'},done:{cls:'deal-st-done',lbl:'Выполнено'},wait:{cls:'deal-st-wait',lbl:'Ожидание'}};
+  var stMap={new:{cls:'deal-st-new',lbl:'Новая'},sent:{cls:'deal-st-sent',lbl:'Отправлено'},agree:{cls:'deal-st-agree',lbl:'Согласование'},prog:{cls:'deal-st-prog',lbl:'В работе'},done:{cls:'deal-st-done',lbl:'Выполнено'},wait:{cls:'deal-st-agree',lbl:'Согласование'}};
   var st=stMap[newStatus]||stMap.new;
   var sw=document.getElementById('dpStatusWrap');if(sw)sw.innerHTML='<span class="deal-st '+st.cls+'">'+st.lbl+'</span>';
   renderDealsPage();
@@ -2068,8 +2105,8 @@ function _renderMasterList(data){
     if(!groups[key]){groups[key]=[];order.push(key);}
     groups[key].push(h);
   });
-  var stCls={new:'deal-st-new',prog:'deal-st-prog',done:'deal-st-done',wait:'deal-st-wait'};
-  var stLbl={new:'Новая',prog:'В работе',done:'Выполнено',wait:'Ожидание'};
+  var stCls={new:'deal-st-new',sent:'deal-st-sent',agree:'deal-st-agree',prog:'deal-st-prog',done:'deal-st-done',wait:'deal-st-agree'};
+  var stLbl={new:'Новая',sent:'Отправлено',agree:'Согласование',prog:'В работе',done:'Выполнено',wait:'Согласование'};
   el.innerHTML=order.map(function(day){
     var items=groups[day].map(function(h){
       var st=h.status||'new';
@@ -2240,11 +2277,47 @@ function saveWhOp(){
   _whItems.forEach(function(w){w.st=w.q===0?'out':w.q<=Math.ceil(w.max*0.2)?'low':'ok';});
   closeWhOp();
   renderWarehousePage();
+  saveWarehouseToServer();
   toast(_whOpType==='in'?'Товар оприходован':'Операция выполнена','success');
 }
 
 function toggleWhForm(show){if(show)openWhOp('in');}
 function addWhItem(){saveWhOp();}
+
+function applyRoleDataFilters(){
+  var role = getCrmRole();
+  // Задачи — автоматически фильтр "Мои" для мастера и складовщика
+  if(role === 'master' || role === 'warehouse'){
+    _taskFilter = 'mine';
+    var mineBtn = document.querySelector('.task-filter-btn[onclick*="mine"]');
+    if(mineBtn){
+      document.querySelectorAll('.task-filter-btn').forEach(function(b){b.classList.remove('active');});
+      mineBtn.classList.add('active');
+    }
+  }
+  // График — скрыть кнопку "+ Добавить выезд" для бухгалтера, складовщика и мастера
+  var addBtn = document.getElementById('scheduleAddBtn');
+  if(addBtn){
+    var canAddSchedule = (role === 'director' || role === 'manager' || role === 'admin');
+    addBtn.style.display = canAddSchedule ? '' : 'none';
+  }
+}
+
+async function loadWarehouseFromServer(){
+  if(!sb||!currentKeyId)return;
+  var res=await sb.rpc('kp_load_warehouse',rpcAuthParams());
+  if(res.error||rpcFailed(res))return;
+  var items=res.data.items||[];
+  if(items.length){
+    _whItems=items;
+    if(document.getElementById('wh-stat-count'))renderWarehousePage();
+  }
+}
+
+async function saveWarehouseToServer(){
+  if(!sb||!currentKeyId||!_whItems)return;
+  sb.rpc('kp_save_warehouse',Object.assign(rpcAuthParams(),{p_items:JSON.stringify(_whItems)}));
+}
 
 
 /* ================================================================
@@ -2393,7 +2466,7 @@ function renderAnalyticsPage(){
   renderBars(revByMonth, barLabels, 'chart-rev-bars', 'success', function(v){return fmtShortNum(v);});
 
   // Status breakdown
-  var stDefs = [{k:'new',l:'Новые',c:'#6366f1'},{k:'prog',l:'В работе',c:'#f59e0b'},{k:'done',l:'Выполнено',c:'#10b981'},{k:'wait',l:'Ожидание',c:'#06b6d4'}];
+  var stDefs = [{k:'new',l:'Новые',c:'#6366f1'},{k:'sent',l:'Отправлено',c:'#06b6d4'},{k:'agree',l:'Согласование',c:'#f59e0b'},{k:'prog',l:'В работе',c:'#fb6340'},{k:'done',l:'Выполнено',c:'#10b981'}];
   var stCounts = {}; stDefs.forEach(function(s){stCounts[s.k]=0;});
   filtered.forEach(function(h){var k=h.status||'new';if(stCounts[k]!==undefined)stCounts[k]++;else stCounts.new++;});
   var stTotal = filtered.length||1;
@@ -2435,6 +2508,17 @@ function renderAnalyticsPage(){
 var _tasks = [];
 var _taskFilter = 'open';
 var _taskModalPriority = 'mid';
+
+async function loadTasksFromServer(){
+  if(!sb||!currentKeyId) return;
+  var res = await sb.rpc('kp_load_tasks', rpcAuthParams());
+  if(res.error||rpcFailed(res)) return;
+  var raw = res.data.tasks || [];
+  _tasks = raw.map(function(t){
+    return {id:t.id, title:t.title, assignee:t.assignee||'', due:t.due||'', priority:t.priority||'mid', done:!!t.done, created_by:t.created_by||'', created_at:t.created_at||''};
+  });
+  if(document.getElementById('tasks-list')) renderTasksList();
+}
 
 var PRIORITY_LABELS = {high:'Высокий', mid:'Средний', low:'Низкий'};
 var PRIORITY_COLORS = {high:'#ef4444', mid:'#f59e0b', low:'#10b981'};
@@ -2504,26 +2588,26 @@ function renderTasksList(){
 function toggleTask(id){
   var t = _tasks.find(function(x){return x.id===id;});
   if(!t) return;
-  // If marking as done and we're not in the done/all view — animate out
+  var newDone = !t.done;
   var disappears = !t.done && (_taskFilter === 'open' || _taskFilter === 'mine' || _taskFilter === 'overdue');
+  function applyToggle(){
+    t.done = newDone;
+    renderTasksList();
+    if(sb && currentKeyId)
+      sb.rpc('kp_update_task', Object.assign(rpcAuthParams(), {p_task_id: id, p_done: newDone}));
+  }
   if(disappears){
     var el = document.querySelector('.task-item[data-id="'+id+'"]');
-    if(el){
-      el.classList.add('task-completing');
-      setTimeout(function(){
-        t.done = true;
-        renderTasksList();
-      }, 320);
-      return;
-    }
+    if(el){ el.classList.add('task-completing'); setTimeout(applyToggle, 320); return; }
   }
-  t.done = !t.done;
-  renderTasksList();
+  applyToggle();
 }
 
 function deleteTask(id){
   _tasks = _tasks.filter(function(t){return t.id!==id;});
   renderTasksList();
+  if(sb && currentKeyId)
+    sb.rpc('kp_delete_task', Object.assign(rpcAuthParams(), {p_task_id: id}));
 }
 
 function filterTasks(f, btn){
@@ -2568,13 +2652,13 @@ function closeTaskModal(){
   if(modal) modal.style.display = 'none';
 }
 
-function saveTaskModal(){
+async function saveTaskModal(){
   var title = (document.getElementById('taskTitleInput').value||'').trim();
   if(!title){toast('Введите название задачи','error');return;}
   var assignee = document.getElementById('taskAssigneeSelect').value;
   var due = document.getElementById('taskDueInput').value;
   var me = currentEmployeeData ? currentEmployeeData.name : (currentKeyData ? (currentKeyData.master_name||'') : '');
-  _tasks.unshift({
+  var task = {
     id: Date.now(),
     title: title,
     assignee: assignee,
@@ -2583,67 +2667,144 @@ function saveTaskModal(){
     created_by: me,
     created_at: new Date().toISOString(),
     done: false
-  });
+  };
+  _tasks.unshift(task);
   closeTaskModal();
   renderTasksList();
   toast('Задача создана');
+  if(sb && currentKeyId){
+    var res = await sb.rpc('kp_save_task', Object.assign(rpcAuthParams(), {
+      p_title: title,
+      p_assignee: assignee||'',
+      p_due: due||'',
+      p_priority: _taskModalPriority,
+      p_created_by: me
+    }));
+    if(!res.error && !rpcFailed(res) && res.data && res.data.id){
+      task.id = res.data.id;
+    }
+  }
 }
 
 /* ── КАНБАН ──────────────────────────────────────────────────── */
-var _kanbanCols = [
-  {id:'new',title:'Новые',color:'#5e72e4',cards:[
-    {id:1,title:'ООО «Климат»',sub:'Кондиционер Mitsubishi 2 шт.',tag:'КП',tagClass:'blue',amount:'85 000 ₽'},
-    {id:2,title:'Петров И.С.',sub:'Монтаж сплит-системы',tag:'Выезд',tagClass:'orange',amount:'12 000 ₽'}
-  ]},
-  {id:'inwork',title:'В работе',color:'#fb6340',cards:[
-    {id:3,title:'ТЦ «Марс»',sub:'Чиллер + разводка',tag:'Договор',tagClass:'green',amount:'340 000 ₽'},
-    {id:4,title:'ИП Сидоров',sub:'Обслуживание 3 блока',tag:'КП',tagClass:'blue',amount:'28 000 ₽'}
-  ]},
-  {id:'agree',title:'Согласование',color:'#11cdef',cards:[
-    {id:5,title:'Завод «Механик»',sub:'Промышленный холодильник',tag:'Договор',tagClass:'green',amount:'1 200 000 ₽'}
-  ]},
-  {id:'done',title:'Выполнено',color:'#2dce89',cards:[
-    {id:6,title:'Смирнова Е.В.',sub:'Установка сплит-системы',tag:'Акт',tagClass:'green',amount:'65 000 ₽'},
-    {id:7,title:'Офис «ДельтаТех»',sub:'Замена фреона',tag:'Акт',tagClass:'green',amount:'9 500 ₽'}
-  ]}
+var KB_COLS = [
+  {id:'new',   title:'Новые',          color:'#6366f1'},
+  {id:'sent',  title:'КП отправлено',  color:'#06b6d4'},
+  {id:'agree', title:'Согласование',   color:'#f59e0b'},
+  {id:'prog',  title:'В работе',       color:'#fb6340'},
+  {id:'done',  title:'Выполнено',      color:'#10b981'}
 ];
+
+var KB_STATUS_MAP = {new:'new', sent:'sent', agree:'agree', wait:'agree', prog:'prog', done:'done'};
+
+var _kbDragId = null;
 
 function renderKanbanPage(){
   var board = document.getElementById('kanban-board');
-  if(!board || board.dataset.rendered) return;
-  board.dataset.rendered = '1';
-  board.innerHTML = _kanbanCols.map(function(col){
-    var cards = col.cards.map(function(c){
-      return '<div class="kanban-card" style="border-left-color:'+col.color+'">'
-        + '<div class="kanban-card-title">'+c.title+'</div>'
-        + '<div class="kanban-card-sub">'+c.sub+'</div>'
-        + '<div class="kanban-card-footer">'
-          + '<span class="kanban-tag '+c.tagClass+'">'+c.tag+'</span>'
-          + '<span style="font-size:12px;font-weight:700;color:var(--text2)">'+c.amount+'</span>'
-        + '</div>'
-      + '</div>';
+  if(!board) return;
+  delete board.dataset.rendered;
+
+  function fmtMoney(n){if(!n)return'';if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return Math.round(n).toLocaleString('ru-RU')+' ₽';}
+
+  var colCards = {};
+  KB_COLS.forEach(function(c){colCards[c.id]=[];});
+  (historyData||[]).forEach(function(h){
+    var col = KB_STATUS_MAP[h.status||'new'] || 'new';
+    colCards[col].push(h);
+  });
+
+  board.innerHTML = KB_COLS.map(function(col){
+    var cards = colCards[col.id];
+    var total = cards.reduce(function(s,h){return s+(h.total||0);},0);
+
+    var cardsHTML = cards.map(function(h){
+      var desc = '';
+      if(h.services&&h.services.length) desc = h.services[0].name||'';
+      else if(h.equipment&&h.equipment.length) desc = h.equipment[0].name||'';
+      var d = new Date(h.created_at||h.date||'');
+      var dateStr = isNaN(d)?'':d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+      var resp = h.responsible_name ? '<span class="kb-resp">'+esc(h.responsible_name)+'</span>' : '';
+      return '<div class="kanban-card" draggable="true"'
+        +' style="border-left-color:'+col.color+'"'
+        +' ondragstart="kbDragStart(event,\''+h.id+'\')"'
+        +' ondragend="kbDragEnd(event)"'
+        +' onclick="kbOpenCard(\''+h.id+'\')">'
+        +'<div class="kanban-card-title">'+esc(h.clientName||'Клиент')+'</div>'
+        +(desc?'<div class="kanban-card-sub">'+esc(desc)+'</div>':'')
+        +'<div class="kanban-card-footer">'
+          +'<div style="display:flex;align-items:center;gap:5px">'+resp+'<span class="kb-date">'+dateStr+'</span></div>'
+          +(total?'<span class="kb-amount">'+fmtMoney(total)+'</span>':'')
+        +'</div>'
+      +'</div>';
     }).join('');
-    return '<div class="kanban-col">'
-      + '<div class="kanban-col-header">'
-        + '<span class="kanban-col-title" style="color:'+col.color+'">'+col.title+'</span>'
-        + '<span class="kanban-col-count">'+col.cards.length+'</span>'
-      + '</div>'
-      + cards
-      + '<button class="kanban-add-btn" onclick="addKanbanCard(\''+col.id+'\')">+ Добавить</button>'
-    + '</div>';
+
+    return '<div class="kanban-col" id="kbcol-'+col.id+'"'
+      +' ondragover="kbDragOver(event)"'
+      +' ondragleave="kbDragLeave(event)"'
+      +' ondrop="kbDrop(event,\''+col.id+'\')">'
+      +'<div class="kanban-col-header">'
+        +'<span class="kanban-col-title" style="color:'+col.color+'">'+col.title+'</span>'
+        +'<span class="kanban-col-count">'+cards.length+'</span>'
+      +'</div>'
+      +'<div class="kb-cards-wrap">'+cardsHTML+'</div>'
+      +'<div class="kb-col-footer">'+(total?fmtMoney(total):'')+'</div>'
+    +'</div>';
   }).join('');
 }
 
-function addKanbanCard(colId){
-  appPrompt('Название:',function(title){
-    if(!title || !title.trim()) return;
-    var col = _kanbanCols.find(function(c){return c.id===colId;});
-    if(col){
-      col.cards.push({id:Date.now(),title:title.trim(),sub:'',tag:'КП',tagClass:'blue',amount:'—'});
-      var board = document.getElementById('kanban-board');
-      if(board) { delete board.dataset.rendered; renderKanbanPage(); }
-    }
-  });
+function kbOpenCard(id){
+  var h = (historyData||[]).find(function(x){return String(x.id)===String(id);});
+  if(!h) return;
+  loadFromHistory(h.id);
+}
+
+function kbAddCard(colStatus){
+  showPage('new', null);
+  // Pre-set status for when it gets saved — stored temporarily
+  window._kbNewCardStatus = colStatus;
+}
+
+function kbDragStart(e, id){
+  _kbDragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', id);
+  e.currentTarget.classList.add('kb-dragging');
+}
+
+function kbDragEnd(e){
+  e.currentTarget.classList.remove('kb-dragging');
+  document.querySelectorAll('.kanban-col').forEach(function(c){c.classList.remove('kb-over');});
+}
+
+function kbDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  var col = e.currentTarget;
+  if(col.classList.contains('kanban-col')) col.classList.add('kb-over');
+}
+
+function kbDragLeave(e){
+  if(e.currentTarget.classList.contains('kanban-col'))
+    e.currentTarget.classList.remove('kb-over');
+}
+
+function kbDrop(e, colId){
+  e.preventDefault();
+  e.currentTarget.classList.remove('kb-over');
+  var id = _kbDragId || e.dataTransfer.getData('text/plain');
+  if(!id) return;
+  var h = (historyData||[]).find(function(x){return String(x.id)===String(id);});
+  if(!h) return;
+  var oldStatus = h.status || 'new';
+  var newStatus = colId;
+  if(KB_STATUS_MAP[oldStatus] === newStatus) return;
+  h.status = newStatus;
+  _kbDragId = null;
+  renderKanbanPage();
+  // Persist to server if available
+  if(sb && h.id && typeof rpcAuthParams === 'function'){
+    sb.rpc('kp_update_quote_status', Object.assign(rpcAuthParams(), {p_id: h.id, p_status: newStatus}));
+  }
 }
 
 /* ── ФАЙЛЫ ───────────────────────────────────────────────────── */

@@ -195,7 +195,10 @@
       discount:{val:parseFloat(val('discountVal'))||0, type:val('discountType')||'percent'},
       prepay:parseFloat(val('prepayVal'))||0,
       createdAt:new Date().toISOString(),
-      selectedStages:selectedIdxs
+      selectedStages:selectedIdxs,
+      originalServices:JSON.parse(JSON.stringify(window.services||[])),
+      originalExtraStages:JSON.parse(JSON.stringify(window.extraStages||[])),
+      originalEquipment:JSON.parse(JSON.stringify(window.equipment||[]))
     };
     fillScheduleModal({
       id:'', date:scheduleSelectedDate || dateKey(new Date()), start:'10:00', end:'13:00', visitType:'one_stage',
@@ -341,12 +344,15 @@
     setIf('c-city',q.client && q.client.city);
     setIf('c-addr',q.client && q.client.addr);
     setIf('c-notes',q.client && q.client.notes);
-    window.services = JSON.parse(JSON.stringify(q.services || []));
-    window.equipment = JSON.parse(JSON.stringify(q.equipment || []));
+    // Always restore FULL original KP (all stages), not just the selected ones
+    window.services = JSON.parse(JSON.stringify(q.originalServices || q.services || []));
+    window.equipment = JSON.parse(JSON.stringify(q.originalEquipment || q.equipment || []));
+    window.extraStages = JSON.parse(JSON.stringify(q.originalExtraStages || []));
     if(q.discount){setIf('discountVal',q.discount.val||'');setIf('discountType',q.discount.type||'percent');}
     if(q.prepay !== undefined) setIf('prepayVal',q.prepay||'');
     showPage('new',null);
     jumpStep(2);
+    if(typeof renderExtraStages==='function')renderExtraStages();
     if(typeof renderEquipment==='function')renderEquipment();
     renderServices();
     toast('КП из графика загружено ✓','success');
@@ -506,14 +512,20 @@
   function makeQuoteSnapshot(){
     var c = typeof getClientData === 'function' ? getClientData() : {};
     var totals = typeof getTotals === 'function' ? getTotals() : {grand:0};
+    var svc = JSON.parse(JSON.stringify(window.services || []));
+    var eq  = JSON.parse(JSON.stringify(window.equipment || []));
+    var ext = JSON.parse(JSON.stringify(window.extraStages || []));
     return {
       client:Object.assign({},c),
-      services:JSON.parse(JSON.stringify(window.services || [])),
-      equipment:JSON.parse(JSON.stringify(window.equipment || [])),
+      services:svc,
+      equipment:eq,
       totals:Object.assign({},totals),
       discount:{val:parseFloat(val('discountVal'))||0,type:val('discountType')||'percent'},
       prepay:parseFloat(val('prepayVal'))||0,
-      createdAt:new Date().toISOString()
+      createdAt:new Date().toISOString(),
+      originalServices:svc,
+      originalExtraStages:ext,
+      originalEquipment:eq
     };
   }
 

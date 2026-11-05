@@ -1335,25 +1335,26 @@ function openContactModalFromQuote(){
   },60);
 }
 
-function exportContacts(){
-  if(!contactsData.length){toast('Нет контактов для экспорта','error');return;}
-  var rows=[['ФИО','Телефон','Email','Адрес','Заметки']];
-  contactsData.forEach(function(c){
-    rows.push([c.name||'',c.phone||'',c.email||'',c.address||'',c.notes||'']);
-  });
-  var csv=rows.map(function(r){
-    return r.map(function(v){return'"'+String(v).replace(/"/g,'""')+'"';}).join(',');
-  }).join('\r\n');
-  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
-  var a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='контакты.csv';
-  a.click();
+function _csvRow(fields){
+  return fields.map(function(v){return'"'+String(v||'').replace(/"/g,'""')+'"';}).join(';');
 }
 
+function exportContacts(){
+  if(!contactsData.length){toast('Нет контактов для экспорта','error');return;}
+  var rows=['sep=;\r\n'+_csvRow(['ФИО','Телефон','Email','Адрес','Заметки'])];
+  contactsData.forEach(function(c){
+    rows.push(_csvRow([c.name||'',c.phone||'',c.email||'',c.address||'',c.notes||'']));
+  });
+  var csv=rows.join('\r\n');
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='контакты.csv';a.click();
+}
 
 function downloadContactTemplate(){
-  var csv='ФИО,Телефон,Email,Адрес,Заметки\r\n"Иванов Иван Иванович","+7 (999) 123-45-67","ivan@mail.ru","г. Москва ул. Примерная 1","VIP клиент"';
+  var csv='sep=;\r\n'+
+    _csvRow(['ФИО','Телефон','Email','Адрес','Заметки'])+'\r\n'+
+    _csvRow(['Иванов Иван Иванович','+7 (999) 123-45-67','ivan@mail.ru','г. Москва ул. Примерная 1','VIP клиент'])+'\r\n'+
+    _csvRow(['Петрова Мария Сергеевна','+7 (916) 987-65-43','','г. Санкт-Петербург','']);
   var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='шаблон_контакты.csv';a.click();
 }
@@ -1369,23 +1370,25 @@ function importContacts(){
 async function _processContactsImport(file){
   if(!file)return;
   var text=await file.text();
-  // strip BOM
   if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
   var lines=text.split(/\r?\n/).filter(function(l){return l.trim();});
+  // skip sep= hint line if present
+  if(lines.length&&/^sep=/i.test(lines[0]))lines=lines.slice(1);
   if(lines.length<2){toast('Файл пустой или без данных','error');return;}
-  // parse CSV row
+  // auto-detect delimiter: semicolon wins if header has more semicolons than commas
+  var hdr=lines[0];
+  var delim=(hdr.split(';').length>=hdr.split(',').length)?';':',';
   function parseRow(line){
     var cols=[],cur='',inQ=false;
     for(var i=0;i<line.length;i++){var ch=line[i];
       if(ch==='"'&&!inQ){inQ=true;}
       else if(ch==='"'&&inQ&&line[i+1]==='"'){cur+='"';i++;}
       else if(ch==='"'&&inQ){inQ=false;}
-      else if(ch===','&&!inQ){cols.push(cur);cur='';}
+      else if(ch===delim&&!inQ){cols.push(cur);cur='';}
       else cur+=ch;
     }
     cols.push(cur);return cols;
   }
-  // skip header row
   var existingPhones=new Set(contactsData.map(function(c){return(c.phone||'').replace(/\D/g,'');}));
   var added=0,dupes=0,errors=0;
   for(var i=1;i<lines.length;i++){

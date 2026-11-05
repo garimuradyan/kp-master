@@ -861,7 +861,15 @@ async function saveToHistory(){
 
   if(!validateClient()){nextStep(1);return;}
   var c=getClientData(),t=getTotals(),num=generateQuoteNumber();
-  var entry={num:num,date:new Date().toLocaleDateString('ru-RU'),clientName:c.name,clientPhone:c.phone,total:t.grand,servicesCount:services.length,services:JSON.parse(JSON.stringify(services)),equipment:JSON.parse(JSON.stringify(equipment)),extraStages:JSON.parse(JSON.stringify(extraStages)),client:Object.assign({},c),discount:{val:parseFloat(document.getElementById('discountVal').value)||0,type:document.getElementById('discountType').value}};
+  var respName=currentEmployeeData?currentEmployeeData.name:(currentKeyData?(currentKeyData.master_name||''):'');
+  var editLog=[];
+  if(window._kpEditSourceId){
+    var prev=window._kpEditBaseLog||[];
+    editLog=prev.concat([{name:respName,at:new Date().toISOString()}]);
+    window._kpEditSourceId=null;window._kpEditBaseLog=null;
+  }
+  var entry={num:num,date:new Date().toLocaleDateString('ru-RU'),clientName:c.name,clientPhone:c.phone,total:t.grand,servicesCount:services.length,services:JSON.parse(JSON.stringify(services)),equipment:JSON.parse(JSON.stringify(equipment)),extraStages:JSON.parse(JSON.stringify(extraStages)),client:Object.assign({},c),discount:{val:parseFloat(document.getElementById('discountVal').value)||0,type:document.getElementById('discountType').value},responsible_name:respName};
+  if(editLog.length)entry.edit_log=editLog;
   var args=Object.assign(rpcAuthParams(),{p_client_name:c.name,p_client_phone:c.phone,p_total:t.grand,p_data:entry});
   var res=await sb.rpc('kp_save_quote',args);
   if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка сохранения'),'error');return;}
@@ -874,9 +882,18 @@ function renderHistory(){
   var used=historyData.length;
   var counter=!currentKeyData.is_admin&&used?'<div style="margin-bottom:12px;font-size:12px;color:var(--text2);padding:4px 0">КП сохранено: <strong>'+used+'</strong></div>':'';
   list.innerHTML=counter+historyData.map(function(h){
+    var respBadge=h.responsible_name?'<span class="kp-resp-badge">'+esc(h.responsible_name)+'</span>':'';
+    var editLog=h.edit_log&&h.edit_log.length?h.edit_log:null;
+    var editHtml='';
+    if(editLog){
+      var last=editLog[editLog.length-1];
+      var lastDate=last.at?new Date(last.at).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+      var logRows=editLog.map(function(e,i){var d=e.at?new Date(e.at).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'';return'<div class="kp-edit-row">'+(i+1)+'. '+esc(e.name||'—')+' — '+d+'</div>';}).join('');
+      editHtml='<div class="kp-edit-wrap"><span class="kp-edit-last" onclick="this.parentElement.classList.toggle(\'open\')">изм: '+esc(last.name||'—')+' '+lastDate+' ▸</span><div class="kp-edit-log">'+logRows+'</div></div>';
+    }
     return'<div class="history-item">'+
-    '<div class="history-info"><div class="history-name">'+esc(h.clientName)+'</div>'+
-    '<div class="history-meta"><span>№ '+h.num+'</span><span>'+h.date+'</span><span>'+esc(h.clientPhone)+'</span><span>'+h.servicesCount+' услуг</span></div></div>'+
+    '<div class="history-info"><div class="history-name">'+esc(h.clientName)+respBadge+'</div>'+
+    '<div class="history-meta"><span>№ '+h.num+'</span><span>'+h.date+'</span><span>'+esc(h.clientPhone)+'</span><span>'+h.servicesCount+' услуг</span></div>'+editHtml+'</div>'+
     '<div class="history-amount">'+fmt(h.total)+'</div>'+
     '<div class="history-actions"><button class="btn btn-ghost btn-sm" title="Загрузить" onclick="loadFromHistory('+h.id+')" style="display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
     '<button class="btn btn-danger btn-sm" onclick="deleteFromHistory('+h.id+')">✕</button></div></div>';
@@ -885,6 +902,8 @@ function renderHistory(){
 
 function loadFromHistory(id){
   var h=historyData.find(function(x){return x.id===id;});if(!h)return;
+  window._kpEditSourceId=id;
+  window._kpEditBaseLog=h.edit_log||[];
   document.getElementById('c-name').value=h.client.name||'';
   document.getElementById('c-phone').value=stripDialCodeForInput(h.client.phone||'');
   document.getElementById('c-email').value=h.client.email||'';
@@ -1332,6 +1351,65 @@ function exportContacts(){
   a.click();
 }
 
+
+function downloadContactTemplate(){
+  var csv='ФИО,Телефон,Email,Адрес,Заметки\r\n"Иванов Иван Иванович","+7 (999) 123-45-67","ivan@mail.ru","г. Москва ул. Примерная 1","VIP клиент"';
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='шаблон_контакты.csv';a.click();
+}
+
+function importContacts(){
+  var inp=document.getElementById('contactsImportInput');
+  if(!inp){inp=document.createElement('input');inp.type='file';inp.id='contactsImportInput';inp.accept='.csv';inp.style.display='none';document.body.appendChild(inp);
+    inp.addEventListener('change',function(){_processContactsImport(this.files[0]);this.value='';});
+  }
+  inp.click();
+}
+
+async function _processContactsImport(file){
+  if(!file)return;
+  var text=await file.text();
+  // strip BOM
+  if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
+  var lines=text.split(/\r?\n/).filter(function(l){return l.trim();});
+  if(lines.length<2){toast('Файл пустой или без данных','error');return;}
+  // parse CSV row
+  function parseRow(line){
+    var cols=[],cur='',inQ=false;
+    for(var i=0;i<line.length;i++){var ch=line[i];
+      if(ch==='"'&&!inQ){inQ=true;}
+      else if(ch==='"'&&inQ&&line[i+1]==='"'){cur+='"';i++;}
+      else if(ch==='"'&&inQ){inQ=false;}
+      else if(ch===','&&!inQ){cols.push(cur);cur='';}
+      else cur+=ch;
+    }
+    cols.push(cur);return cols;
+  }
+  // skip header row
+  var existingPhones=new Set(contactsData.map(function(c){return(c.phone||'').replace(/\D/g,'');}));
+  var added=0,dupes=0,errors=0;
+  for(var i=1;i<lines.length;i++){
+    var cols=parseRow(lines[i]);
+    var name=(cols[0]||'').trim();
+    if(!name){errors++;continue;}
+    var phone=(cols[1]||'').trim();
+    var phoneDigits=phone.replace(/\D/g,'');
+    if(phoneDigits&&existingPhones.has(phoneDigits)){dupes++;continue;}
+    var data={name:name,phone:phone,email:(cols[2]||'').trim(),address:(cols[3]||'').trim(),notes:(cols[4]||'').trim()};
+    var args=Object.assign(rpcAuthParams(),{p_contact_id:null,p_data:data});
+    var res=await sb.rpc('kp_save_contact',args);
+    if(res.error||rpcFailed(res)){errors++;continue;}
+    var newId=res.data&&res.data.id;
+    contactsData.unshift(Object.assign({id:newId,created_at:new Date().toISOString()},data));
+    if(phoneDigits)existingPhones.add(phoneDigits);
+    added++;
+  }
+  renderContacts(document.getElementById('contactsSearch').value);
+  var msg='Импорт завершён: добавлено '+added;
+  if(dupes)msg+=', дублей пропущено '+dupes;
+  if(errors)msg+=', ошибок '+errors;
+  toast(msg,added>0?'success':'error');
+}
 
 // ── DRAG-AND-DROP REORDER ────────────────────────────────────
 function drgStart(e,arr,si,idx){_drgSrc={arr:arr,si:si,idx:idx};e.dataTransfer.effectAllowed='move';}
@@ -1835,10 +1913,14 @@ function openDealPanel(hJson){
   var pn=document.getElementById('dpName');if(pn)pn.textContent=h.clientName||'Клиент';
   var sw=document.getElementById('dpStatusWrap');if(sw)sw.innerHTML='<span class="deal-st '+st.cls+'">'+st.lbl+'</span>';
   var body=document.getElementById('dpBody');
+  var editInfo='';
+  if(h.edit_log&&h.edit_log.length){var el=h.edit_log[h.edit_log.length-1];var ed=el.at?new Date(el.at).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';editInfo='<div class="dp-row"><span>Изменил:</span><span>'+esc(el.name||'—')+' '+ed+'</span></div>';}
   if(body)body.innerHTML='<div class="dp-row"><span>Телефон:</span><span>'+esc(h.clientPhone||'—')+'</span></div>'+
     '<div class="dp-row"><span>Адрес:</span><span>'+esc((h.client&&h.client.addr)||h.clientAddress||'—')+'</span></div>'+
     '<div class="dp-row"><span>Сумма:</span><span>'+_fmtShort(h.total||0)+'</span></div>'+
-    '<div class="dp-row"><span>КП №:</span><span>'+esc(h.num||'—')+'</span></div>';
+    '<div class="dp-row"><span>КП №:</span><span>'+esc(h.num||'—')+'</span></div>'+
+    (h.responsible_name?'<div class="dp-row"><span>Ответственный:</span><span class="dp-resp">'+esc(h.responsible_name)+'</span></div>':'')+
+    editInfo;
   var dp=document.getElementById('dealPanel');if(dp)dp.classList.add('open');
 }
 

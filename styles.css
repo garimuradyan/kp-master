@@ -4547,3 +4547,13 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 .app-dialog-input:focus { border-color: var(--accent) !important; }
 
 
+
+/* ── Ответственный и история редактирований ─────────────────── */
+.kp-resp-badge{display:inline-block;margin-left:8px;font-size:10px;font-weight:600;background:rgba(6,182,212,.12);color:#06B6D4;border-radius:9999px;padding:1px 7px;vertical-align:middle;border:1px solid rgba(6,182,212,.25)}
+.kp-edit-wrap{margin-top:4px;font-size:11px;}
+.kp-edit-last{color:var(--text3);cursor:pointer;user-select:none;}
+.kp-edit-last:hover{color:var(--accent);}
+.kp-edit-log{display:none;margin-top:4px;padding:6px 8px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);}
+.kp-edit-wrap.open .kp-edit-log{display:block;}
+.kp-edit-row{font-size:11px;color:var(--text2);padding:2px 0;}
+.dp-resp{color:#06B6D4;font-weight:600;}

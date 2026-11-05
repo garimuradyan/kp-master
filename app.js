@@ -2293,74 +2293,142 @@ function onGlobalSearch(val){
 }
 
 /* ── АНАЛИТИКА ───────────────────────────────────────────────── */
-var _analyticsLoaded = false;
+var _anPeriod = 'year';
+
+function setAnPeriod(p, btn){
+  _anPeriod = p;
+  document.querySelectorAll('.an-tab').forEach(function(b){b.classList.remove('on');});
+  if(btn) btn.classList.add('on');
+  renderAnalyticsPage();
+}
+
 function renderAnalyticsPage(){
-  if(_analyticsLoaded) return;
-  _analyticsLoaded = true;
-
-  var months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  var MONTHS = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
   var now = new Date();
-  var kpData = [], revData = [];
-  for(var i=0;i<6;i++){
-    kpData.push(Math.floor(Math.random()*30)+5);
-    revData.push(Math.floor(Math.random()*200000)+50000);
-  }
-  var labels = [];
-  for(var j=5;j>=0;j--){
-    var d = new Date(now.getFullYear(), now.getMonth()-j, 1);
-    labels.push(months[d.getMonth()]);
-  }
+  var data = historyData || [];
 
-  var maxKp = Math.max.apply(null, kpData);
-  var maxRev = Math.max.apply(null, revData);
-
-  var kpHTML = '';
-  for(var k=0;k<6;k++){
-    var h = Math.round((kpData[k]/maxKp)*100);
-    kpHTML += '<div class="chart-bar-col">'
-      + '<div class="chart-val">'+kpData[k]+'</div>'
-      + '<div class="chart-bar accent" style="height:'+h+'%"></div>'
-      + '<div class="chart-label">'+labels[k]+'</div>'
-      + '</div>';
+  // Populate responsible filter
+  var respSel = document.getElementById('anRespFilter');
+  if(respSel){
+    var respNames = [];
+    data.forEach(function(h){if(h.responsible_name&&respNames.indexOf(h.responsible_name)<0)respNames.push(h.responsible_name);});
+    var curVal = respSel.value;
+    respSel.innerHTML = '<option value="">Все сотрудники</option>' +
+      respNames.map(function(n){return'<option value="'+esc(n)+'"'+(curVal===n?' selected':'')+'>'+esc(n)+'</option>';}).join('');
   }
-  var revHTML = '';
-  for(var m=0;m<6;m++){
-    var rh = Math.round((revData[m]/maxRev)*100);
-    var rLabel = revData[m] >= 1000 ? Math.round(revData[m]/1000)+'к' : revData[m];
-    revHTML += '<div class="chart-bar-col">'
-      + '<div class="chart-val">'+rLabel+'</div>'
-      + '<div class="chart-bar success" style="height:'+rh+'%"></div>'
-      + '<div class="chart-label">'+labels[m]+'</div>'
-      + '</div>';
+  var respFilter = respSel ? respSel.value : '';
+
+  // Date filter
+  var periodStart = null;
+  if(_anPeriod==='month') periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  else if(_anPeriod==='quarter') periodStart = new Date(now.getFullYear(), now.getMonth()-2, 1);
+  else if(_anPeriod==='year') periodStart = new Date(now.getFullYear(), 0, 1);
+
+  function inPeriod(h){
+    if(!periodStart) return true;
+    var d = new Date(h.created_at||h.date||'');
+    return !isNaN(d) && d >= periodStart;
   }
 
-  var kpBars = document.getElementById('chart-kp-bars');
-  if(kpBars) kpBars.innerHTML = kpHTML;
-  var revBars = document.getElementById('chart-rev-bars');
-  if(revBars) revBars.innerHTML = revHTML;
-
-  // Status chart
-  var statuses = [{l:'Новые',v:12,cls:'accent'},{l:'В работе',v:8,cls:'warning'},{l:'Готово',v:21,cls:'success'},{l:'Отказ',v:4,cls:'danger'}];
-  var maxS = Math.max.apply(null, statuses.map(function(s){return s.v;}));
-  var sHTML = '';
-  statuses.forEach(function(s){
-    var sh = Math.round((s.v/maxS)*100);
-    sHTML += '<div class="chart-bar-col">'
-      + '<div class="chart-val">'+s.v+'</div>'
-      + '<div class="chart-bar '+s.cls+'" style="height:'+sh+'%"></div>'
-      + '<div class="chart-label">'+s.l+'</div>'
-      + '</div>';
+  var filtered = data.filter(function(h){
+    return inPeriod(h) && (!respFilter || h.responsible_name===respFilter);
   });
-  var statusBars = document.getElementById('chart-status-bars');
-  if(statusBars) statusBars.innerHTML = sHTML;
 
-  // stats
-  var el1 = document.getElementById('an-kp-month');
-  if(el1) el1.textContent = kpData[kpData.length-1];
-  var el2 = document.getElementById('an-deals-month');
-  if(el2) el2.textContent = Math.floor(kpData[kpData.length-1]*0.6);
-  var el3 = document.getElementById('an-revenue-month');
-  if(el3) el3.textContent = (revData[revData.length-1]/1000).toFixed(0)+' тыс.';
+  // Prev period for comparison
+  var prevStart = null, prevEnd = null;
+  if(_anPeriod==='month'){prevEnd=periodStart;prevStart=new Date(now.getFullYear(),now.getMonth()-1,1);}
+  else if(_anPeriod==='quarter'){prevEnd=periodStart;prevStart=new Date(now.getFullYear(),now.getMonth()-5,1);}
+  else if(_anPeriod==='year'){prevEnd=periodStart;prevStart=new Date(now.getFullYear()-1,0,1);}
+  var prevFiltered = prevStart ? data.filter(function(h){
+    var d=new Date(h.created_at||h.date||'');return !isNaN(d)&&d>=prevStart&&d<prevEnd&&(!respFilter||h.responsible_name===respFilter);
+  }) : [];
+
+  function fmtMoney(n){if(!n)return'0 ₽';if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return Math.round(n).toLocaleString('ru-RU')+' ₽';}
+  function fmtShortNum(n){if(n>=1000000)return(n/1000000).toFixed(1)+'М';if(n>=1000)return Math.round(n/1000)+'К';return String(n);}
+  function delta(cur,prev){if(!prev)return'';var d=cur-prev;var sign=d>0?'+':'';var pct=prev?Math.round(Math.abs(d)/prev*100):0;return'<span class="an-delta '+(d>=0?'pos':'neg')+'">'+sign+pct+'% к пред. периоду</span>';}
+
+  var totalKp = filtered.length;
+  var totalRev = filtered.reduce(function(s,h){return s+(h.total||0);},0);
+  var avgCheck = totalKp ? Math.round(totalRev/totalKp) : 0;
+  var doneCnt = filtered.filter(function(h){return h.status==='done';}).length;
+  var prevKp = prevFiltered.length;
+  var prevRev = prevFiltered.reduce(function(s,h){return s+(h.total||0);},0);
+
+  function set(id,v){var e=document.getElementById(id);if(e)e.innerHTML=v;}
+  set('an-total-kp', totalKp);
+  set('an-total-kp-sub', delta(totalKp,prevKp));
+  set('an-revenue', fmtMoney(totalRev));
+  set('an-revenue-sub', delta(totalRev,prevRev));
+  set('an-avg-check', fmtMoney(avgCheck));
+  set('an-avg-sub', totalKp?'по '+totalKp+' КП':'нет данных');
+  set('an-done', doneCnt);
+  set('an-done-sub', totalKp?'<span class="an-delta pos">'+Math.round(doneCnt/totalKp*100)+'% конверсия</span>':'');
+  set('an-contacts-cnt', (contactsData||[]).length);
+  var newContacts = (contactsData||[]).filter(function(c){return periodStart&&new Date(c.created_at||'')>=periodStart;}).length;
+  set('an-contacts-sub', periodStart&&newContacts?'+'+newContacts+' за период':'');
+
+  // Monthly bars (last 6 or 12 months depending on period)
+  var barCount = (_anPeriod==='year'||_anPeriod==='all') ? 12 : 6;
+  var kpByMonth = [], revByMonth = [], barLabels = [];
+  for(var bi=barCount-1;bi>=0;bi--){
+    var bm = new Date(now.getFullYear(), now.getMonth()-bi, 1);
+    barLabels.push(MONTHS[bm.getMonth()]+(bi===0||bm.getMonth()===0?'\''+(bm.getFullYear()%100):''));
+    var monthKp = data.filter(function(h){var d=new Date(h.created_at||h.date||'');return !isNaN(d)&&d.getMonth()===bm.getMonth()&&d.getFullYear()===bm.getFullYear()&&(!respFilter||h.responsible_name===respFilter);});
+    kpByMonth.push(monthKp.length);
+    revByMonth.push(monthKp.reduce(function(s,h){return s+(h.total||0);},0));
+  }
+  function renderBars(arrData, arrLabels, containerId, colorClass, fmtFn){
+    var el = document.getElementById(containerId); if(!el) return;
+    var maxV = Math.max.apply(null, arrData.concat([1]));
+    el.innerHTML = arrData.map(function(v,i){
+      var h = Math.max(4, Math.round(v/maxV*100));
+      return '<div class="chart-bar-col">'
+        +'<div class="chart-val">'+(v?fmtFn(v):'')+'</div>'
+        +'<div class="chart-bar '+colorClass+'" style="height:'+h+'%"'+(v===0?' style="opacity:.25;height:4%"':'')+'></div>'
+        +'<div class="chart-label">'+arrLabels[i]+'</div>'
+        +'</div>';
+    }).join('');
+  }
+  renderBars(kpByMonth, barLabels, 'chart-kp-bars', 'accent', function(v){return v;});
+  renderBars(revByMonth, barLabels, 'chart-rev-bars', 'success', function(v){return fmtShortNum(v);});
+
+  // Status breakdown
+  var stDefs = [{k:'new',l:'Новые',c:'#6366f1'},{k:'prog',l:'В работе',c:'#f59e0b'},{k:'done',l:'Выполнено',c:'#10b981'},{k:'wait',l:'Ожидание',c:'#06b6d4'}];
+  var stCounts = {}; stDefs.forEach(function(s){stCounts[s.k]=0;});
+  filtered.forEach(function(h){var k=h.status||'new';if(stCounts[k]!==undefined)stCounts[k]++;else stCounts.new++;});
+  var stTotal = filtered.length||1;
+  set('an-status-list', stDefs.map(function(s){
+    var cnt=stCounts[s.k]; var pct=Math.round(cnt/stTotal*100);
+    return '<div class="an-status-row">'
+      +'<div class="an-status-name">'+s.l+'</div>'
+      +'<div class="an-status-bar-wrap"><div class="an-status-bar" style="width:'+pct+'%;background:'+s.c+'"></div></div>'
+      +'<div class="an-status-val">'+cnt+'<span class="an-status-pct"> '+pct+'%</span></div>'
+      +'</div>';
+  }).join(''));
+
+  // By responsible
+  var respMap = {};
+  filtered.forEach(function(h){var n=h.responsible_name||'(не указан)';if(!respMap[n])respMap[n]={cnt:0,rev:0};respMap[n].cnt++;respMap[n].rev+=(h.total||0);});
+  var respList = Object.keys(respMap).map(function(n){return{name:n,cnt:respMap[n].cnt,rev:respMap[n].rev};}).sort(function(a,b){return b.cnt-a.cnt;});
+  var maxRespCnt = respList.length ? respList[0].cnt : 1;
+  set('an-resp-list', respList.length ? respList.map(function(r){
+    var pct=Math.round(r.cnt/maxRespCnt*100);
+    return '<div class="an-resp-row">'
+      +'<div class="an-resp-name">'+esc(r.name)+'</div>'
+      +'<div class="an-resp-bar-wrap"><div class="an-resp-bar" style="width:'+pct+'%"></div></div>'
+      +'<div class="an-resp-info">'+r.cnt+' КП · '+fmtMoney(r.rev)+'</div>'
+      +'</div>';
+  }).join('') : '<div style="color:var(--text3);font-size:13px;padding:8px 0">Нет данных</div>');
+
+  // Top clients
+  var clientMap = {};
+  filtered.forEach(function(h){var n=h.clientName||'—';var p=h.clientPhone||'';var key=n+'|'+p;if(!clientMap[key])clientMap[key]={name:n,phone:p,cnt:0,rev:0};clientMap[key].cnt++;clientMap[key].rev+=(h.total||0);});
+  var topClients = Object.keys(clientMap).map(function(k){return clientMap[k];}).sort(function(a,b){return b.rev-a.rev;}).slice(0,8);
+  set('an-top-clients', topClients.length ?
+    '<table class="an-clients-table"><thead><tr><th>#</th><th>Клиент</th><th>Телефон</th><th>КП</th><th>Сумма</th></tr></thead><tbody>'+
+    topClients.map(function(c,i){return'<tr><td class="an-ct-num">'+(i+1)+'</td><td>'+esc(c.name)+'</td><td style="color:var(--text3);font-size:12px">'+esc(c.phone)+'</td><td class="an-ct-cnt">'+c.cnt+'</td><td class="an-ct-rev">'+fmtMoney(c.rev)+'</td></tr>';}).join('')+
+    '</tbody></table>'
+    : '<div style="color:var(--text3);font-size:13px;padding:12px 0">Нет данных за выбранный период</div>');
 }
 
 /* ── ЗАДАЧИ ──────────────────────────────────────────────────── */

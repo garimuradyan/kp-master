@@ -1365,26 +1365,84 @@
 <div class="page" id="page-analytics">
   <div class="page-header">
     <div class="page-header-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Аналитика</div>
-    <div class="page-header-sub">Статистика и отчёты по продажам</div>
+    <div class="page-header-sub">Реальные данные по работе отдела</div>
   </div>
-  <div class="analytics-stat-row" style="margin-bottom:16px">
-    <div class="analytics-stat"><div class="analytics-stat-num" id="an-kp-month">—</div><div class="analytics-stat-label">КП за месяц</div></div>
-    <div class="analytics-stat"><div class="analytics-stat-num" id="an-deals-month">—</div><div class="analytics-stat-label">Сделок за месяц</div></div>
-    <div class="analytics-stat"><div class="analytics-stat-num" id="an-revenue-month">—</div><div class="analytics-stat-label">Выручка (₽)</div></div>
+
+  <!-- Фильтры -->
+  <div class="an-filter-bar">
+    <div class="an-period-tabs">
+      <button class="an-tab" onclick="setAnPeriod('month',this)">Месяц</button>
+      <button class="an-tab" onclick="setAnPeriod('quarter',this)">Квартал</button>
+      <button class="an-tab on" onclick="setAnPeriod('year',this)">Год</button>
+      <button class="an-tab" onclick="setAnPeriod('all',this)">Всё время</button>
+    </div>
+    <select id="anRespFilter" class="an-resp-select" onchange="renderAnalyticsPage()">
+      <option value="">Все сотрудники</option>
+    </select>
   </div>
-  <div class="analytics-grid">
+
+  <!-- KPI плитки -->
+  <div class="an-kpi-row">
+    <div class="an-kpi-card">
+      <div class="an-kpi-icon" style="background:rgba(99,102,241,.12);color:#6366f1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="an-kpi-num" id="an-total-kp">—</div>
+      <div class="an-kpi-label">КП создано</div>
+      <div class="an-kpi-sub" id="an-total-kp-sub"></div>
+    </div>
+    <div class="an-kpi-card">
+      <div class="an-kpi-icon" style="background:rgba(16,185,129,.12);color:#10b981"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+      <div class="an-kpi-num" id="an-revenue">—</div>
+      <div class="an-kpi-label">Выручка</div>
+      <div class="an-kpi-sub" id="an-revenue-sub"></div>
+    </div>
+    <div class="an-kpi-card">
+      <div class="an-kpi-icon" style="background:rgba(6,182,212,.12);color:#06b6d4"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+      <div class="an-kpi-num" id="an-avg-check">—</div>
+      <div class="an-kpi-label">Средний чек</div>
+      <div class="an-kpi-sub" id="an-avg-sub"></div>
+    </div>
+    <div class="an-kpi-card">
+      <div class="an-kpi-icon" style="background:rgba(245,158,11,.12);color:#f59e0b"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <div class="an-kpi-num" id="an-done">—</div>
+      <div class="an-kpi-label">Выполнено</div>
+      <div class="an-kpi-sub" id="an-done-sub"></div>
+    </div>
+    <div class="an-kpi-card">
+      <div class="an-kpi-icon" style="background:rgba(236,72,153,.12);color:#ec4899"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="an-kpi-num" id="an-contacts-cnt">—</div>
+      <div class="an-kpi-label">Контактов всего</div>
+      <div class="an-kpi-sub" id="an-contacts-sub"></div>
+    </div>
+  </div>
+
+  <!-- Графики по месяцам -->
+  <div class="an-charts-row">
     <div class="analytics-card">
-      <div class="analytics-card-title">КП по месяцам</div>
+      <div class="analytics-card-title">КП по месяцам <span class="an-chart-hint" id="an-kp-period-hint"></span></div>
       <div class="chart-bar-wrap" id="chart-kp-bars"></div>
     </div>
     <div class="analytics-card">
-      <div class="analytics-card-title">Выручка по месяцам</div>
+      <div class="analytics-card-title">Выручка по месяцам <span class="an-chart-hint" id="an-rev-period-hint"></span></div>
       <div class="chart-bar-wrap" id="chart-rev-bars"></div>
     </div>
   </div>
+
+  <!-- Статусы + по ответственным -->
+  <div class="an-bottom-row">
+    <div class="analytics-card">
+      <div class="analytics-card-title">Статусы сделок</div>
+      <div id="an-status-list" class="an-status-list"></div>
+    </div>
+    <div class="analytics-card">
+      <div class="analytics-card-title">По ответственным</div>
+      <div id="an-resp-list" class="an-resp-list"></div>
+    </div>
+  </div>
+
+  <!-- Топ клиентов -->
   <div class="analytics-card">
-    <div class="analytics-card-title">Статусы сделок</div>
-    <div id="chart-status-bars" class="chart-bar-wrap"></div>
+    <div class="analytics-card-title">Топ клиентов по сумме КП</div>
+    <div id="an-top-clients"></div>
   </div>
 </div>
 

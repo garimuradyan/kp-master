@@ -4312,6 +4312,8 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 .task-del-btn { background: none; border: none; padding: 4px; cursor: pointer; color: var(--text3); border-radius: 6px; opacity: 0; transition: opacity .15s, color .15s; flex-shrink: 0; }
 .task-item:hover .task-del-btn { opacity: 1; }
 .task-del-btn:hover { color: var(--danger); }
+@keyframes taskComplete { 0%{opacity:1;max-height:80px;transform:translateX(0)} 40%{opacity:.4;transform:translateX(8px)} 100%{opacity:0;max-height:0;padding-top:0;padding-bottom:0;border-width:0;transform:translateX(16px)} }
+.task-completing { animation: taskComplete .32s ease forwards; overflow:hidden; pointer-events:none; }
 /* Old priority dots kept for compat */
 .task-priority { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .task-priority.high { background: var(--danger); }

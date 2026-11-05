@@ -2433,7 +2433,7 @@ function renderAnalyticsPage(){
 
 /* ── ЗАДАЧИ ──────────────────────────────────────────────────── */
 var _tasks = [];
-var _taskFilter = 'all';
+var _taskFilter = 'open';
 var _taskModalPriority = 'mid';
 
 var PRIORITY_LABELS = {high:'Высокий', mid:'Средний', low:'Низкий'};
@@ -2503,7 +2503,21 @@ function renderTasksList(){
 
 function toggleTask(id){
   var t = _tasks.find(function(x){return x.id===id;});
-  if(t) t.done = !t.done;
+  if(!t) return;
+  // If marking as done and we're not in the done/all view — animate out
+  var disappears = !t.done && (_taskFilter === 'open' || _taskFilter === 'mine' || _taskFilter === 'overdue');
+  if(disappears){
+    var el = document.querySelector('.task-item[data-id="'+id+'"]');
+    if(el){
+      el.classList.add('task-completing');
+      setTimeout(function(){
+        t.done = true;
+        renderTasksList();
+      }, 320);
+      return;
+    }
+  }
+  t.done = !t.done;
   renderTasksList();
 }
 

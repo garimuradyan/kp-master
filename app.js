@@ -895,7 +895,9 @@ function renderHistory(){
     '<div class="history-info"><div class="history-name">'+esc(h.clientName)+respBadge+'</div>'+
     '<div class="history-meta"><span>№ '+h.num+'</span><span>'+h.date+'</span><span>'+esc(h.clientPhone)+'</span><span>'+h.servicesCount+' услуг</span></div>'+editHtml+'</div>'+
     '<div class="history-amount">'+fmt(h.total)+'</div>'+
-    '<div class="history-actions"><button class="btn btn-ghost btn-sm" title="Загрузить" onclick="loadFromHistory('+h.id+')" style="display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
+    '<div class="history-actions">'+
+    '<button class="btn btn-ghost btn-sm" title="Редактировать (загрузить)" onclick="loadFromHistory('+h.id+')" style="display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
+    '<button class="btn btn-ghost btn-sm" title="Создать копию" onclick="copyFromHistory('+h.id+')" style="display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>'+
     '<button class="btn btn-danger btn-sm" onclick="deleteFromHistory('+h.id+')">✕</button></div></div>';
   }).join('');
 }
@@ -916,6 +918,24 @@ function loadFromHistory(id){
   if(h.discount){document.getElementById('discountVal').value=h.discount.val||'';document.getElementById('discountType').value=h.discount.type||'percent';}
   showPage('new',null);
   jumpStep(2);renderEquipment();renderServices();toast('КП загружено ✓','success');
+}
+
+function copyFromHistory(id){
+  var h=historyData.find(function(x){return x.id===id;});if(!h)return;
+  // Reset edit tracking — this is a fresh copy, not an edit
+  window._kpEditSourceId=null;window._kpEditBaseLog=null;
+  document.getElementById('c-name').value=h.client.name||'';
+  document.getElementById('c-phone').value=stripDialCodeForInput(h.client.phone||'');
+  document.getElementById('c-email').value=h.client.email||'';
+  document.getElementById('c-city').value=h.client.city||'';
+  document.getElementById('c-addr').value=h.client.addr||'';
+  document.getElementById('c-notes').value=h.client.notes||'';
+  services=JSON.parse(JSON.stringify(h.services||[]));
+  equipment=JSON.parse(JSON.stringify(h.equipment||[]));
+  extraStages=JSON.parse(JSON.stringify(h.extraStages||[]));
+  if(h.discount){document.getElementById('discountVal').value=h.discount.val||'';document.getElementById('discountType').value=h.discount.type||'percent';}
+  showPage('new',null);
+  jumpStep(2);renderEquipment();renderServices();toast('Копия КП создана ✓','success');
 }
 
 async function deleteFromHistory(id){
@@ -1131,6 +1151,68 @@ function toast(msg,type){var el=document.getElementById('toast');el.textContent=
 
 // ── КОНТАКТЫ ─────────────────────────────────────────────────
 
+var _selectedContactIds=new Set();
+
+function _updateContactsBulkBar(){
+  var bar=document.getElementById('contactsBulkBar');
+  var cnt=document.getElementById('contactsBulkCount');
+  var n=_selectedContactIds.size;
+  if(bar)bar.style.display=n?'flex':'none';
+  if(cnt)cnt.textContent=n+' выбрано';
+  var selAll=document.getElementById('contactsSelectAll');
+  if(selAll){var visible=document.querySelectorAll('#contactsTbody .contact-row').length;selAll.checked=visible>0&&n>=visible;selAll.indeterminate=n>0&&n<visible;}
+}
+
+function toggleSelectAllContacts(checked){
+  document.querySelectorAll('#contactsTbody .contact-row-cb').forEach(function(cb){
+    var id=parseInt(cb.dataset.id);cb.checked=checked;
+    if(checked)_selectedContactIds.add(id);else _selectedContactIds.delete(id);
+    var row=cb.closest('tr');if(row)row.classList.toggle('contact-row-selected',checked);
+  });
+  _updateContactsBulkBar();
+}
+
+function toggleContactCheck(cb){
+  var id=parseInt(cb.dataset.id);
+  if(cb.checked)_selectedContactIds.add(id);else _selectedContactIds.delete(id);
+  var row=cb.closest('tr');if(row)row.classList.toggle('contact-row-selected',cb.checked);
+  _updateContactsBulkBar();
+}
+
+function clearContactsSelection(){
+  _selectedContactIds.clear();
+  document.querySelectorAll('#contactsTbody .contact-row-cb').forEach(function(cb){cb.checked=false;});
+  document.querySelectorAll('#contactsTbody .contact-row').forEach(function(r){r.classList.remove('contact-row-selected');});
+  _updateContactsBulkBar();
+}
+
+async function deleteSelectedContacts(){
+  var ids=Array.from(_selectedContactIds);
+  if(!ids.length)return;
+  appConfirm('Удалить '+ids.length+' клиент'+(ids.length===1?'а':ids.length>=2&&ids.length<=4?'ов':'ов')+'?',async function(){
+    var failed=0;
+    for(var i=0;i<ids.length;i++){
+      var args=Object.assign(rpcAuthParams(),{p_contact_id:ids[i]});
+      var res=await sb.rpc('kp_delete_contact',args);
+      if(res.error||rpcFailed(res))failed++;
+      else contactsData=contactsData.filter(function(c){return c.id!==ids[i];});
+    }
+    _selectedContactIds.clear();
+    renderContacts(document.getElementById('contactsSearch').value);
+    toast(failed?'Удалено '+(ids.length-failed)+', ошибок '+failed:'Удалено '+ids.length+' клиентов',failed?'error':'success');
+  },'Удалить');
+}
+
+function exportSelectedContacts(){
+  var ids=_selectedContactIds;
+  var list=ids.size?contactsData.filter(function(c){return ids.has(c.id);}):contactsData;
+  if(!list.length){toast('Нет контактов для экспорта','error');return;}
+  var rows=['sep=;\r\n'+_csvRow(['ФИО','Телефон','Email','Адрес','Заметки'])];
+  list.forEach(function(c){rows.push(_csvRow([c.name||'',c.phone||'',c.email||'',c.address||'',c.notes||'']));});
+  var blob=new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='контакты_выбранные.csv';a.click();
+}
+
 function renderContacts(query){
   var tbody=document.getElementById('contactsTbody');
   var emptyRow=document.getElementById('contactsEmptyRow');
@@ -1167,10 +1249,12 @@ function renderContacts(query){
 
   list.forEach(function(c){
     var tr=document.createElement('tr');
-    tr.className='contact-row';
+    var isSel=_selectedContactIds.has(c.id);
+    tr.className='contact-row'+(isSel?' contact-row-selected':'');
     var kpCnt=kpCountMap[c.id]||0;
     var kpBadge=kpCnt?'<span class="contact-kp-badge" onclick="openContactKpModal('+c.id+')" title="Связанные КП">'+kpCnt+' КП</span>':'';
     tr.innerHTML=
+      '<td class="contacts-td-check"><input type="checkbox" class="contact-row-cb" data-id="'+c.id+'" '+(isSel?'checked':'')+' onchange="toggleContactCheck(this)"></td>'+
       '<td><span class="contact-name">'+esc(c.name)+'</span>'+kpBadge+'</td>'+
       '<td>'+(c.phone?'<a href="tel:'+esc(c.phone)+'" class="contact-link">'+esc(c.phone)+'</a>':'<span class="contact-empty">—</span>')+'</td>'+
       '<td>'+(c.email?'<a href="mailto:'+esc(c.email)+'" class="contact-link">'+esc(c.email)+'</a>':'<span class="contact-empty">—</span>')+'</td>'+

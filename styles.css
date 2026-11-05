@@ -4478,11 +4478,12 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 .page-header-info{flex:1;min-width:0;}
 .page-header-title{
   font-size:16px;font-weight:600;color:#fff;
-  display:flex;align-items:center;gap:8px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
   font-family:Poppins,sans-serif;
 }
 .page-header-title svg{stroke:#67E8F9!important;flex-shrink:0;}
-.page-header-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px;}
+.page-header-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px;text-align:center;}
+.page-header-info{text-align:center;}
 
 /* ── Fix search inputs: icon overlap ──────────────────────── */
 .contacts-search-input { padding-left: 30px !important; }

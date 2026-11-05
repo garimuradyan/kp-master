@@ -1456,12 +1456,67 @@
     <div class="tasks-filter-row">
       <button class="task-filter-btn active" onclick="filterTasks('all',this)">Все</button>
       <button class="task-filter-btn" onclick="filterTasks('open',this)">Открытые</button>
+      <button class="task-filter-btn" onclick="filterTasks('mine',this)">Мои</button>
+      <button class="task-filter-btn" onclick="filterTasks('overdue',this)">Просрочены</button>
       <button class="task-filter-btn" onclick="filterTasks('done',this)">Выполненные</button>
     </div>
     <button class="btn btn-primary btn-sm" onclick="openAddTaskModal()">+ Задача</button>
   </div>
   <div class="card" style="padding:0;overflow:hidden">
     <div id="tasks-list"><!-- заполняется JS --></div>
+  </div>
+</div>
+
+<!-- ── МОДАЛ: СОЗДАНИЕ ЗАДАЧИ ────────────────────────────── -->
+<div class="emp-modal-overlay" id="taskModal" style="display:none" onclick="if(event.target===this)closeTaskModal()">
+  <div class="emp-modal-box" style="max-width:440px">
+    <div class="emp-modal-header">
+      <div>
+        <div class="emp-modal-title" id="taskModalTitle">Новая задача</div>
+        <div class="emp-modal-subtitle">Заполните детали задачи</div>
+      </div>
+      <button class="emp-modal-close" onclick="closeTaskModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:14px">
+      <!-- Название -->
+      <div class="emp-form-group">
+        <label class="emp-form-label">Название задачи *</label>
+        <input id="taskTitleInput" class="emp-form-input" type="text" placeholder="Описание задачи..." maxlength="200">
+      </div>
+      <!-- Кому назначить -->
+      <div class="emp-form-group">
+        <label class="emp-form-label">Назначить</label>
+        <select id="taskAssigneeSelect" class="emp-form-input">
+          <option value="">— Выбрать сотрудника —</option>
+        </select>
+      </div>
+      <!-- Срок -->
+      <div class="emp-form-group">
+        <label class="emp-form-label">Срок выполнения</label>
+        <input id="taskDueInput" class="emp-form-input" type="date">
+      </div>
+      <!-- Приоритет -->
+      <div class="emp-form-group">
+        <label class="emp-form-label">Приоритет</label>
+        <div class="task-priority-pick" id="taskPriorityPick">
+          <button class="tpp-btn" data-p="low" onclick="selectTaskPriority('low',this)">
+            <span class="tpp-dot low"></span>Низкий
+          </button>
+          <button class="tpp-btn on" data-p="mid" onclick="selectTaskPriority('mid',this)">
+            <span class="tpp-dot mid"></span>Средний
+          </button>
+          <button class="tpp-btn" data-p="high" onclick="selectTaskPriority('high',this)">
+            <span class="tpp-dot high"></span>Высокий
+          </button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-ghost" onclick="closeTaskModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="saveTaskModal()">Создать задачу</button>
+      </div>
+    </div>
   </div>
 </div>
 

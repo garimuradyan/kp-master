@@ -2432,14 +2432,12 @@ function renderAnalyticsPage(){
 }
 
 /* ── ЗАДАЧИ ──────────────────────────────────────────────────── */
-var _tasks = [
-  {id:1,title:'Позвонить Иванову А.В.',meta:'Контакты',priority:'high',done:false},
-  {id:2,title:'Отправить КП по кондиционерам',meta:'КП #34',priority:'mid',done:false},
-  {id:3,title:'Проверить наличие на складе',meta:'Склад',priority:'low',done:true},
-  {id:4,title:'Согласовать договор с юристом',meta:'Сделки',priority:'high',done:false},
-  {id:5,title:'Обновить прайс-лист',meta:'Настройки',priority:'low',done:true}
-];
+var _tasks = [];
 var _taskFilter = 'all';
+var _taskModalPriority = 'mid';
+
+var PRIORITY_LABELS = {high:'Высокий', mid:'Средний', low:'Низкий'};
+var PRIORITY_COLORS = {high:'#ef4444', mid:'#f59e0b', low:'#10b981'};
 
 function renderTasksPage(){
   renderTasksList();
@@ -2448,23 +2446,57 @@ function renderTasksPage(){
 function renderTasksList(){
   var list = document.getElementById('tasks-list');
   if(!list) return;
+  var me = currentEmployeeData ? currentEmployeeData.name : (currentKeyData ? (currentKeyData.master_name||'') : '');
+  var now = new Date(); now.setHours(0,0,0,0);
   var filtered = _tasks.filter(function(t){
     if(_taskFilter === 'open') return !t.done;
     if(_taskFilter === 'done') return t.done;
+    if(_taskFilter === 'mine') return !t.done && (t.assignee === me || t.created_by === me);
+    if(_taskFilter === 'overdue') return !t.done && t.due && new Date(t.due) < now;
     return true;
   });
   if(!filtered.length){
-    list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">Нет задач</div>';
+    list.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text3);font-size:13px">Задач нет</div>';
     return;
   }
+  // Sort: open first, then by priority (high→mid→low), then by due date
+  var pOrd = {high:0,mid:1,low:2};
+  filtered.sort(function(a,b){
+    if(a.done !== b.done) return a.done ? 1 : -1;
+    var pd = (pOrd[a.priority]||1) - (pOrd[b.priority]||1);
+    if(pd !== 0) return pd;
+    if(a.due && b.due) return a.due < b.due ? -1 : 1;
+    if(a.due) return -1;
+    if(b.due) return 1;
+    return 0;
+  });
   list.innerHTML = filtered.map(function(t){
-    return '<div class="task-item" data-id="'+t.id+'">'
-      + '<div class="task-check '+(t.done?'done':'')+'" onclick="toggleTask('+t.id+')"></div>'
+    var overdue = !t.done && t.due && new Date(t.due) < now;
+    var dueStr = '';
+    if(t.due){
+      var d = new Date(t.due);
+      dueStr = d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+    }
+    var assigneePart = t.assignee
+      ? '<span class="task-assignee-badge">'+esc(t.assignee)+'</span>'
+      : '';
+    var duePart = t.due
+      ? '<span class="task-due-badge'+(overdue?' overdue':'')+'"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'+dueStr+'</span>'
+      : '';
+    var priColor = PRIORITY_COLORS[t.priority]||'#f59e0b';
+    var priLabel = PRIORITY_LABELS[t.priority]||'';
+    return '<div class="task-item'+(t.done?' task-done':'')+'" data-id="'+t.id+'">'
+      + '<div class="task-check'+(t.done?' done':'')+'" onclick="toggleTask('+t.id+')" title="'+(t.done?'Возобновить':'Выполнено')+'"></div>'
       + '<div class="task-body">'
-        + '<div class="task-title '+(t.done?'done':'')+'">'+t.title+'</div>'
-        + '<div class="task-meta">'+t.meta+'</div>'
+        + '<div class="task-title'+(t.done?' done':'')+'">'+esc(t.title)+'</div>'
+        + '<div class="task-meta-row">'
+          + assigneePart
+          + duePart
+          + '<span class="task-pri-dot" style="background:'+priColor+'" title="'+priLabel+'"></span>'
+          + '<span class="task-pri-label" style="color:'+priColor+'">'+priLabel+'</span>'
+        + '</div>'
       + '</div>'
-      + '<div class="task-priority '+t.priority+'"></div>'
+      + '<button class="task-del-btn" onclick="deleteTask('+t.id+')" title="Удалить"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
     + '</div>';
   }).join('');
 }
@@ -2475,6 +2507,11 @@ function toggleTask(id){
   renderTasksList();
 }
 
+function deleteTask(id){
+  _tasks = _tasks.filter(function(t){return t.id!==id;});
+  renderTasksList();
+}
+
 function filterTasks(f, btn){
   _taskFilter = f;
   document.querySelectorAll('.task-filter-btn').forEach(function(b){ b.classList.remove('active'); });
@@ -2482,12 +2519,60 @@ function filterTasks(f, btn){
   renderTasksList();
 }
 
+function selectTaskPriority(p, btn){
+  _taskModalPriority = p;
+  document.querySelectorAll('#taskPriorityPick .tpp-btn').forEach(function(b){b.classList.remove('on');});
+  if(btn) btn.classList.add('on');
+}
+
 function openAddTaskModal(){
-  appPrompt('Название задачи:',function(title){
-    if(!title || !title.trim()) return;
-    _tasks.unshift({id:Date.now(),title:title.trim(),meta:'Новая',priority:'mid',done:false});
-    renderTasksList();
+  var modal = document.getElementById('taskModal');
+  if(!modal) return;
+  document.getElementById('taskModalTitle').textContent = 'Новая задача';
+  document.getElementById('taskTitleInput').value = '';
+  document.getElementById('taskDueInput').value = '';
+  _taskModalPriority = 'mid';
+  document.querySelectorAll('#taskPriorityPick .tpp-btn').forEach(function(b){
+    b.classList.toggle('on', b.dataset.p === 'mid');
   });
+  // Populate assignee dropdown
+  var sel = document.getElementById('taskAssigneeSelect');
+  var me = currentEmployeeData ? currentEmployeeData.name : (currentKeyData ? (currentKeyData.master_name||'') : '');
+  sel.innerHTML = '<option value="">— Не назначено —</option>';
+  if(me) sel.innerHTML += '<option value="'+esc(me)+'" selected>'+esc(me)+' (я)</option>';
+  if(employeesData && employeesData.length){
+    employeesData.forEach(function(e){
+      if(e.name !== me) sel.innerHTML += '<option value="'+esc(e.name)+'">'+esc(e.name)+'</option>';
+    });
+  }
+  modal.style.display = 'flex';
+  setTimeout(function(){document.getElementById('taskTitleInput').focus();},60);
+}
+
+function closeTaskModal(){
+  var modal = document.getElementById('taskModal');
+  if(modal) modal.style.display = 'none';
+}
+
+function saveTaskModal(){
+  var title = (document.getElementById('taskTitleInput').value||'').trim();
+  if(!title){toast('Введите название задачи','error');return;}
+  var assignee = document.getElementById('taskAssigneeSelect').value;
+  var due = document.getElementById('taskDueInput').value;
+  var me = currentEmployeeData ? currentEmployeeData.name : (currentKeyData ? (currentKeyData.master_name||'') : '');
+  _tasks.unshift({
+    id: Date.now(),
+    title: title,
+    assignee: assignee,
+    due: due,
+    priority: _taskModalPriority,
+    created_by: me,
+    created_at: new Date().toISOString(),
+    done: false
+  });
+  closeTaskModal();
+  renderTasksList();
+  toast('Задача создана');
 }
 
 /* ── КАНБАН ──────────────────────────────────────────────────── */

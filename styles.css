@@ -4679,3 +4679,433 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 .calls-wip-features{display:flex;flex-direction:column;gap:10px;margin-top:8px;text-align:left;width:100%;max-width:360px}
 .calls-wip-feat{display:flex;align-items:center;gap:10px;font-size:.9rem;color:var(--text2,#64748b)}
 .calls-wip-feat svg{color:var(--accent,#6366f1);flex-shrink:0}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE & TABLET ADAPTATION  (Mobile-first responsive)
+   Mobile  : < 768px
+   Tablet  : 768px – 1023px
+   Desktop : ≥ 1024px  (базовый дизайн — без изменений)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Общие мобильные переменные ── */
+@media(max-width:767px){
+  :root{
+    --bottom-nav-h:62px;
+    --radius:8px;
+  }
+}
+
+/* ═══════════════════════════════════════
+   BOTTOM NAV (мобильная навигация)
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .bottom-nav{
+    display:flex!important;
+    position:fixed;
+    bottom:0;left:0;right:0;
+    height:var(--bottom-nav-h);
+    background:var(--surface);
+    border-top:1px solid var(--border);
+    z-index:200;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    gap:0;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  .bottom-nav::-webkit-scrollbar{display:none}
+  .bottom-nav-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    flex:0 0 auto;
+    min-width:60px;
+    padding:4px 6px 2px;
+    border:none;
+    background:transparent;
+    color:var(--text3);
+    font-family:inherit;
+    font-size:9.5px;
+    font-weight:500;
+    cursor:pointer;
+    transition:color .15s;
+    white-space:nowrap;
+    line-height:1.1;
+  }
+  .bottom-nav-btn.active{color:var(--accent)}
+  .bnav-icon{font-size:20px;line-height:1}
+  /* Скрываем лишние кнопки нав — показываем только ключевые */
+  #bnav-about{display:none!important}
+  /* Гамбургер — показываем на мобиле (для страниц не в bottom nav) */
+  .hamburger-btn{display:flex!important;width:32px;height:32px}
+  /* Хедер адаптация */
+  .app-header{height:48px;padding:0 12px}
+  .app-logo{font-size:14px;letter-spacing:1px}
+  .days-counter-badge{font-size:10px;padding:3px 8px}
+  .logout-btn{font-size:11px;padding:4px 8px}
+  .master-badge{max-width:80px;font-size:11px}
+  /* Контент — отступ снизу для нав-бара */
+  .app-body{
+    padding:12px 12px calc(var(--bottom-nav-h) + 12px + env(safe-area-inset-bottom,0px));
+    max-width:100%;
+  }
+}
+
+/* ═══════════════════════════════════════
+   PAGE HEADERS — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .page-header{margin-bottom:14px}
+  .page-header-title{font-size:16px;gap:6px}
+  .page-header-title svg{width:14px;height:14px}
+  .page-header-sub{font-size:12px;margin-top:2px}
+  .page-header-row{flex-direction:column!important;align-items:flex-start;gap:8px}
+  .page-header-row>.btn,.page-header-row>.btn-primary{width:100%}
+  .page-header-actions{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+  .page-header-actions .btn{flex:1;min-width:0;font-size:12px;padding:7px 10px}
+  /* Поиск на полную ширину */
+  .history-search,.deals-search{font-size:16px!important}
+}
+
+/* ═══════════════════════════════════════
+   CARDS & BUTTONS — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .card{padding:14px;margin-bottom:12px}
+  .card-title{font-size:14px;margin-bottom:12px}
+  .btn{font-size:13px;padding:8px 12px;min-height:40px}
+  .btn-sm{font-size:12px;padding:6px 10px;min-height:36px}
+  /* Stat grid — 2 col на мобиле */
+  .stat-grid{grid-template-columns:1fr 1fr!important;gap:8px}
+  .stat-card,.stat-num{font-size:22px!important}
+  .stat-label{font-size:10px}
+}
+
+/* ═══════════════════════════════════════
+   FORMS — MOBILE (1 колонка, 16px inputs)
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .form-grid{grid-template-columns:1fr!important;gap:10px}
+  .field.span2{grid-column:span 1!important}
+  .field label{font-size:13px}
+  input,select,textarea{
+    font-size:16px!important; /* Предотвращает зум iOS */
+    min-height:44px;
+  }
+  textarea{min-height:80px!important}
+  .service-row{
+    grid-template-columns:1fr!important;
+    grid-template-rows:auto auto auto!important;
+    gap:6px!important;
+  }
+  .service-row .svc-name{grid-column:1!important}
+  .services-header{display:none!important}
+}
+
+/* ═══════════════════════════════════════
+   MODALS — MOBILE (bottom sheet)
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .kp-modal-overlay{
+    padding:0!important;
+    align-items:flex-end!important;
+  }
+  .kp-modal-box{
+    max-width:100%!important;
+    width:100%!important;
+    max-height:92vh!important;
+    border-radius:20px 20px 0 0!important;
+    padding:20px 16px 16px!important;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    /* Handle для bottom sheet */
+    position:relative;
+  }
+  .kp-modal-box::before{
+    content:'';
+    display:block;
+    width:36px;height:4px;
+    border-radius:2px;
+    background:var(--border);
+    margin:0 auto 16px;
+  }
+  .kp-modal-box-wide{max-width:100%!important}
+  .kp-modal-head{margin-bottom:12px}
+  .modal-actions{flex-direction:row;flex-wrap:wrap;gap:8px}
+  .modal-actions .btn{flex:1;min-width:120px}
+  /* Schedule modal на мобиле */
+  #scheduleModal .kp-modal-box{max-height:95vh!important}
+  #scheduleModal .form-grid{grid-template-columns:1fr 1fr!important;gap:8px}
+  #scheduleModal .field.span2{grid-column:1/-1!important}
+  /* Employees modal — bottom sheet */
+  .emp-modal-overlay{padding:0!important;align-items:flex-end!important}
+  .emp-modal-box{max-width:100%!important;width:100%!important;max-height:92vh!important;border-radius:20px 20px 0 0!important}
+  /* WH operation modal — bottom sheet */
+  .wh-op-overlay{padding:0!important;align-items:flex-end!important}
+  .wh-op-box{max-width:100%!important;width:100%!important;max-height:92vh!important;border-radius:20px 20px 0 0!important}
+  /* Generic modals */
+  .modal-overlay{padding:0!important;align-items:flex-end!important}
+  .modal-box{max-width:100%!important;width:100%!important;max-height:92vh!important;border-radius:20px 20px 0 0!important}
+}
+
+/* ═══════════════════════════════════════
+   HISTORY (КП) — MOBILE CARDS
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .history-item{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+    padding:12px;
+  }
+  .history-item-left{width:100%}
+  .history-item-right{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    width:100%;
+  }
+  .history-item-right .btn{
+    flex:1;
+    min-width:80px;
+    font-size:12px;
+    padding:6px 8px;
+  }
+  .history-name{font-size:14px;font-weight:600}
+  .history-meta{font-size:12px}
+}
+
+/* ═══════════════════════════════════════
+   CONTACTS TABLE — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .contacts-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--radius)}
+  .contacts-table{min-width:600px;font-size:13px}
+  .contacts-table th,.contacts-table td{padding:9px 10px}
+  /* Прячем колонку комментарий */
+  .contacts-table th:nth-child(5),.contacts-table td:nth-child(5){display:none}
+  /* Поиск и кнопки контактов */
+  .contacts-toolbar{flex-direction:column;gap:8px;align-items:stretch}
+  .contacts-toolbar-actions{flex-wrap:wrap;gap:6px}
+  .contacts-search-input{font-size:16px!important;width:100%}
+  .contacts-toolbar-actions .btn{flex:1;min-width:80px}
+}
+
+/* ═══════════════════════════════════════
+   KANBAN — MOBILE (горизонтальный скролл)
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .kanban-wrap{
+    display:flex!important;
+    flex-direction:row!important;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    gap:12px;
+    padding-bottom:12px;
+    scrollbar-width:none;
+  }
+  .kanban-wrap::-webkit-scrollbar{display:none}
+  .kanban-col{
+    flex:0 0 calc(100vw - 48px)!important;
+    max-width:calc(100vw - 48px)!important;
+    min-width:280px!important;
+    scroll-snap-align:start;
+    min-height:300px;
+  }
+  .kanban-add-btn{min-height:40px}
+  .kanban-card{padding:10px 12px}
+  .kanban-card-title{font-size:13px}
+}
+@media(min-width:768px) and (max-width:1023px){
+  .kanban-wrap{
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
+  .kanban-col{
+    flex:0 0 calc(50% - 6px)!important;
+    min-width:280px;
+    scroll-snap-align:start;
+  }
+}
+
+/* ═══════════════════════════════════════
+   DEALS TABLE — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .deals-tbl{display:none} /* скрываем таблицу */
+  /* Deals will be shown as cards (JS fallback - table still visible via scroll) */
+  .deals-tbl{display:block!important;overflow-x:auto;-webkit-overflow-scrolling:touch;min-width:0}
+  .deals-tbl table{min-width:500px}
+  /* Прячем тяжёлые колонки */
+  .deals-tbl th:nth-child(5),.deals-tbl td:nth-child(5){display:none}
+}
+
+/* ═══════════════════════════════════════
+   SCHEDULE — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .schedule-layout{grid-template-columns:1fr!important;gap:12px}
+  .schedule-stats{grid-template-columns:repeat(2,1fr)!important;gap:8px!important}
+  .schedule-day{min-height:50px!important;padding:4px!important}
+  .schedule-weekdays span{font-size:9px}
+  .schedule-job{grid-template-columns:1fr!important;gap:4px}
+  .schedule-job-time{display:flex;align-items:baseline;gap:6px}
+  .schedule-toolbar{gap:6px}
+  .schedule-toolbar .btn{font-size:12px;padding:7px 10px}
+  .schedule-month-label{font-size:13px}
+  .schedule-actions .btn{font-size:12px;padding:5px 8px}
+}
+
+/* ═══════════════════════════════════════
+   WAREHOUSE — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .wh-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .wh-table-card{border-radius:10px}
+  /* Поле поиска склада */
+  .wh-toolbar{flex-wrap:wrap;gap:8px}
+  .wh-toolbar .wh-search{font-size:16px!important;width:100%}
+  .wh-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;display:flex;flex-wrap:nowrap;gap:4px}
+  .wh-toolbar .btn{flex:1;min-width:100px}
+}
+
+/* ═══════════════════════════════════════
+   EMPLOYEES — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .employees-table-wrap,.emp-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .employees-table,.emp-table{min-width:480px;font-size:13px}
+  .employees-table th,.employees-table td,.emp-table th,.emp-table td{padding:9px 10px}
+  /* Прячем доп колонки */
+  .employees-table th:nth-child(4),.employees-table td:nth-child(4){display:none}
+  .emp-toolbar{flex-wrap:wrap;gap:8px}
+  .emp-toolbar .btn{flex:1}
+}
+
+/* ═══════════════════════════════════════
+   ANALYTICS — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .analytics-grid{grid-template-columns:1fr!important;gap:10px}
+  .analytics-stat-row{grid-template-columns:1fr 1fr!important;gap:8px}
+  .analytics-stat-num{font-size:18px}
+}
+
+/* ═══════════════════════════════════════
+   TASKS — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .tasks-toolbar{flex-wrap:wrap;gap:8px}
+  .tasks-toolbar .btn{flex:1;min-width:100px}
+  .task-item{padding:12px}
+  .task-item-row{flex-wrap:wrap;gap:6px}
+  .task-item-actions{flex-wrap:wrap;gap:4px}
+}
+
+/* ═══════════════════════════════════════
+   SETTINGS — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .settings-tabs{flex-wrap:wrap;gap:4px}
+  .settings-tab-btn{font-size:12px;padding:6px 10px}
+  .tariff-cards{grid-template-columns:1fr!important}
+  .add-key-form{grid-template-columns:1fr!important;gap:8px}
+}
+
+/* ═══════════════════════════════════════
+   PREVIEW PANEL (PDF) — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .preview-panel{padding:12px;font-size:11px}
+  .preview-panel table{font-size:10px}
+  .preview-panel th,.preview-panel td{padding:5px 4px}
+}
+
+/* ═══════════════════════════════════════
+   NEW KP PAGE — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  /* Лейаут новой формы КП */
+  .kp-layout,.kp-two-col{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:12px!important;
+  }
+  .kp-preview-col{display:none} /* Превью скрываем на мобиле (есть отдельная кнопка) */
+  /* Кнопка показать/скрыть превью */
+  .btn-show-preview{display:flex!important}
+  /* Итог суммы */
+  .kp-total-row{flex-wrap:wrap;gap:4px}
+}
+
+/* ═══════════════════════════════════════
+   ABOUT / LANDING — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .lp-hero h1{font-size:1.6rem}
+  .lp-hero-sub{font-size:14px}
+  .lp-actions{flex-direction:column;gap:10px;align-items:center}
+  .lp-btn-primary,.lp-btn-outline{width:100%;max-width:300px;text-align:center}
+  .lp-feat-card{padding:16px}
+  .tariff-cards{grid-template-columns:1fr!important}
+}
+
+/* ═══════════════════════════════════════
+   AUTH — MOBILE
+   ═══════════════════════════════════════ */
+@media(max-width:767px){
+  .auth-box{padding:24px 16px;border-radius:12px}
+  .auth-logo{font-size:24px}
+}
+
+/* ═══════════════════════════════════════
+   TABLET  768–1023px
+   ═══════════════════════════════════════ */
+@media(min-width:768px) and (max-width:1023px){
+  .app-body{max-width:100%;padding:16px 16px 32px}
+  .form-grid{grid-template-columns:1fr 1fr;gap:12px}
+  /* Таблицы показываем, но с overflow */
+  .contacts-table-wrap,.employees-table-wrap,.emp-table-wrap{overflow-x:auto}
+  /* Модалки — не bottom sheet, но полная ширина */
+  .kp-modal-overlay{padding:12px!important;align-items:center!important}
+  .kp-modal-box{max-width:600px!important;border-radius:16px!important}
+  .kp-modal-box::before{display:none}
+  /* Аналитика — 2 col */
+  .analytics-grid{grid-template-columns:1fr 1fr}
+  /* Кнопки в хедере страниц */
+  .page-header-actions .btn{font-size:13px}
+  /* Гамбургер видим на планшете */
+  .hamburger-btn{display:flex!important}
+  /* Sidebar на планшете — 220px */
+  .app-sidebar{width:220px}
+  /* Bottom nav — не показываем на планшете */
+  .bottom-nav{display:none!important}
+}
+
+/* ═══════════════════════════════════════
+   ДОП. ФИКСЫ — все мобильные
+   ═══════════════════════════════════════ */
+@media(max-width:1023px){
+  /* Убираем hover-эффекты transform на тач-устройствах */
+  .kanban-card:hover{transform:none;box-shadow:none}
+  .schedule-day:hover{transform:none}
+  /* Скролл без горизонтального переполнения */
+  .app-body{overflow-x:hidden}
+  /* Инпуты — чёткие границы на мобиле */
+  input:focus,select:focus,textarea:focus{
+    outline:2px solid var(--accent)!important;
+    outline-offset:1px;
+  }
+}
+
+/* ── Вспомогательный класс для горизонтального скролла ── */
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.scroll-x::-webkit-scrollbar{height:4px}
+.scroll-x::-webkit-scrollbar-track{background:transparent}
+.scroll-x::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}

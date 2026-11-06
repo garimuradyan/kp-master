@@ -3135,7 +3135,7 @@ body.sidebar-open{overflow:hidden}
 /* ═══════════════════════════════════════════
    СТРАНИЦА СДЕЛКИ
 ═══════════════════════════════════════════ */
-.deals-ftab-row{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:12px}
+.deals-ftab-row{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:12px;flex-wrap:nowrap}
 .deals-ftab{padding:5px 12px;border:1px solid var(--border);border-radius:20px;background:transparent;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
 .deals-ftab:hover{background:var(--surface2)}
 .deals-ftab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -3422,7 +3422,7 @@ html{scroll-behavior:smooth}
 
 .wh-table-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
 .wh-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.wh-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.wh-tabs{display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .wh-tab{padding:5px 12px;border-radius:7px;border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .15s}
 .wh-tab:hover{background:var(--surface2);color:var(--text)}
 .wh-tab.on{background:var(--accent);color:#fff}
@@ -4696,50 +4696,10 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 }
 
 /* ═══════════════════════════════════════
-   BOTTOM NAV (мобильная навигация)
+   BOTTOM NAV — скрыто на всех устройствах (только бургер-меню)
    ═══════════════════════════════════════ */
 @media(max-width:767px){
-  .bottom-nav{
-    display:flex!important;
-    position:fixed;
-    bottom:0;left:0;right:0;
-    height:var(--bottom-nav-h);
-    background:var(--surface);
-    border-top:1px solid var(--border);
-    z-index:200;
-    overflow-x:auto;
-    overflow-y:hidden;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-    gap:0;
-    padding-bottom:env(safe-area-inset-bottom,0px);
-  }
-  .bottom-nav::-webkit-scrollbar{display:none}
-  .bottom-nav-btn{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:3px;
-    flex:0 0 auto;
-    min-width:60px;
-    padding:4px 6px 2px;
-    border:none;
-    background:transparent;
-    color:var(--text3);
-    font-family:inherit;
-    font-size:9.5px;
-    font-weight:500;
-    cursor:pointer;
-    transition:color .15s;
-    white-space:nowrap;
-    line-height:1.1;
-  }
-  .bottom-nav-btn.active{color:var(--accent)}
-  .bnav-icon{font-size:20px;line-height:1}
-  /* Скрываем лишние кнопки нав — показываем только ключевые */
-  #bnav-about{display:none!important}
-  /* Гамбургер — показываем на мобиле (для страниц не в bottom nav) */
+  /* Гамбургер — показываем на мобиле */
   .hamburger-btn{display:flex!important;width:32px;height:32px}
   /* Хедер адаптация */
   .app-header{height:48px;padding:0 12px}
@@ -4747,9 +4707,9 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
   .days-counter-badge{font-size:10px;padding:3px 8px}
   .logout-btn{font-size:11px;padding:4px 8px}
   .master-badge{max-width:80px;font-size:11px}
-  /* Контент — отступ снизу для нав-бара */
+  /* Контент — нет отступа снизу (нет нижней навигации) */
   .app-body{
-    padding:12px 12px calc(var(--bottom-nav-h) + 12px + env(safe-area-inset-bottom,0px));
+    padding:12px 12px 24px;
     max-width:100%;
   }
 }
@@ -5109,3 +5069,24 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 .scroll-x::-webkit-scrollbar{height:4px}
 .scroll-x::-webkit-scrollbar-track{background:transparent}
 .scroll-x::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ── Глобальный поиск — результаты ── */
+.global-search-wrap{position:relative;flex:1;max-width:320px}
+.global-search-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);z-index:9999;max-height:380px;overflow-y:auto;overflow-x:hidden}
+.gs-section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);padding:8px 12px 4px}
+.gs-item{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;transition:background .12s;border-radius:0}
+.gs-item:hover{background:var(--surface2)}
+.gs-item:first-child{border-radius:9px 9px 0 0}
+.gs-item:last-child{border-radius:0 0 9px 9px}
+.gs-icon{width:28px;height:28px;border-radius:7px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;font-size:13px}
+.gs-text{flex:1;min-width:0}
+.gs-label{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gs-sub{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.gs-type{font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px;background:var(--surface2);color:var(--text3);white-space:nowrap;flex-shrink:0}
+.gs-empty{padding:16px 12px;text-align:center;font-size:13px;color:var(--text3)}
+.gs-divider{border:none;border-top:1px solid var(--border);margin:0}
+
+/* ── Sortable.js — эффекты drag-and-drop ── */
+.sortable-ghost{opacity:.35;background:var(--accent)!important;border-color:var(--accent)!important}
+.sortable-chosen{box-shadow:0 4px 16px rgba(0,0,0,.18);transform:scale(1.01);z-index:10;position:relative}
+.sortable-drag{opacity:0}

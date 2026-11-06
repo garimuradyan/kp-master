@@ -8,6 +8,7 @@
 <meta content="#ffffff" name="theme-color"/>
 <script>!function(){var t=localStorage.getItem('kpmaster-theme')||'light';document.documentElement.setAttribute('data-theme',t)}();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/js/intlTelInput.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23/build/css/intlTelInput.css"/>
 <link href="./styles.css" rel="stylesheet"/>
@@ -457,6 +458,10 @@
       <svg class="sidebar-profile-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 10 8 6 12 10"/></svg>
     </div>
     <div class="sidebar-profile-menu" id="sidebarProfileMenu" style="display:none">
+      <button class="sidebar-profile-menu-item" onclick="toggleTheme()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M14.5 10.07A6.5 6.5 0 0 1 5.93 1.5a6.5 6.5 0 1 0 8.57 8.57z"/></svg>
+        <span id="sidebarThemeLabel">Тёмная тема</span>
+      </button>
       <button class="sidebar-profile-menu-item danger" onclick="closeSidebar();doLogout()">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3"/><polyline points="7 11 11 8 7 5"/><line x1="11" y1="8" x2="1" y2="8"/></svg>
         Выйти из аккаунта
@@ -472,9 +477,10 @@
 <div class="app-logo">КП МАСТЕР</div>
 </div>
 <div class="header-right">
-<div class="global-search-wrap">
+<div class="global-search-wrap" id="globalSearchWrap">
   <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>
-  <input class="global-search-input" id="globalSearchInput" type="text" placeholder="Поиск..." oninput="onGlobalSearch(this.value)" autocomplete="off"/>
+  <input class="global-search-input" id="globalSearchInput" type="text" placeholder="Поиск..." oninput="onGlobalSearch(this.value)" onkeydown="if(event.key==='Escape')closeGlobalSearch()" autocomplete="off"/>
+  <div class="global-search-results" id="globalSearchResults" style="display:none"></div>
 </div>
 <div style="position:relative">
   <button class="notif-btn" id="notifBtn" onclick="toggleNotifPanel()">
@@ -504,13 +510,6 @@
 </div>
 <span class="days-counter-badge" id="daysCounter" style="display:none"></span>
 <span class="master-badge" id="masterName"></span>
-<button class="theme-pill" id="themeToggle" onclick="toggleTheme()" title="Сменить тему" aria-label="Переключить тему">
-  <span class="theme-pill-track">
-    <span class="theme-pill-thumb"></span>
-    <svg class="theme-pill-icon theme-pill-moon" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M14.5 10.07A6.5 6.5 0 0 1 5.93 1.5a6.5 6.5 0 1 0 8.57 8.57z"/></svg>
-    <svg class="theme-pill-icon theme-pill-sun" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M12 3l1-1M3 13l1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
-  </span>
-</button>
 <button class="logout-btn" onclick="doLogout()">Выйти</button>
 </div>
 </header>
@@ -1728,6 +1727,8 @@ function toggleTheme(){
   var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme',t);
   localStorage.setItem('kpmaster-theme',t);
+  var lbl=document.getElementById('sidebarThemeLabel');
+  if(lbl)lbl.textContent=t==='dark'?'Светлая тема':'Тёмная тема';
 }
 function updateSidebarProfile(){
   var ROLE_LABELS_S={director:'Директор',admin:'Администратор',manager:'Менеджер',accountant:'Бухгалтер',master:'Мастер',warehouse:'Складовщик'};

@@ -687,12 +687,49 @@ function resetSupplyContractTemplate(){
   });
 }
 
+var MAX_PHOTO_DIM=1200, MAX_PHOTO_KB=400;
+
+function _compressPhoto(img,cb){
+  var MAX=MAX_PHOTO_DIM,w=img.naturalWidth,h=img.naturalHeight;
+  // Уменьшаем только если превышает лимит, маленькие не растягиваем
+  if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+  var c=document.createElement('canvas');
+  c.width=w;c.height=h;
+  c.getContext('2d').drawImage(img,0,0,w,h);
+  // Итеративно снижаем качество пока не уложимся в MAX_PHOTO_KB
+  var qualities=[0.85,0.75,0.65,0.50];
+  var dataURL;
+  for(var qi=0;qi<qualities.length;qi++){
+    dataURL=c.toDataURL('image/jpeg',qualities[qi]);
+    var kb=Math.round(dataURL.length*0.75/1024);
+    if(kb<=MAX_PHOTO_KB) break;
+  }
+  cb(dataURL);
+}
+
 function renderPhotos(){
   var g=document.getElementById('photoGrid');
   document.getElementById('photoCount').textContent=quotePhotos.length+' / '+MAX_PHOTOS+' фото';
   document.getElementById('photoClearBtn').style.display=quotePhotos.length?'':'none';
   if(!quotePhotos.length){g.innerHTML='<div class="photo-empty">Фото пока не добавлены</div>';return;}
-  g.innerHTML=quotePhotos.map(function(p,i){return'<div class="photo-card"><img src="'+p.dataURL+'"><button class="photo-del" onclick="removePhoto('+i+')">✕</button></div>';}).join('');
+  g.innerHTML=quotePhotos.map(function(p,i){
+    return'<div class="photo-card" data-idx="'+i+'">'
+      +'<img src="'+p.dataURL+'">'
+      +'<button class="photo-del" onclick="removePhoto('+i+')">✕</button>'
+    +'</div>';
+  }).join('');
+  if(window.Sortable){
+    Sortable.create(g,{
+      animation:150,
+      ghostClass:'sortable-ghost',
+      chosenClass:'sortable-chosen',
+      onEnd:function(evt){
+        if(evt.oldIndex===evt.newIndex) return;
+        quotePhotos.splice(evt.newIndex,0,quotePhotos.splice(evt.oldIndex,1)[0]);
+        renderPhotos();
+      }
+    });
+  }
 }
 function removePhoto(i){quotePhotos.splice(i,1);renderPhotos();}
 function clearAllPhotos(){appConfirm('Удалить все фото?',function(){quotePhotos=[];renderPhotos();});}
@@ -702,11 +739,12 @@ function loadPhotoFromUrl(){
   if(quotePhotos.length>=MAX_PHOTOS){toast('Максимум '+MAX_PHOTOS+' фото','error');return;}
   var img=new Image();img.crossOrigin='anonymous';
   img.onload=function(){
-    try{var c=document.createElement('canvas'),M=800,w=img.naturalWidth,h=img.naturalHeight;
-    if(w>M||h>M){if(w>h){h=Math.round(h*M/w);w=M;}else{w=Math.round(w*M/h);h=M;}}
-    c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
-    quotePhotos.push({dataURL:c.toDataURL('image/jpeg',.85),name:'фото'});
-    document.getElementById('photoUrlInput').value='';renderPhotos();toast('Фото добавлено ✓','success');
+    try{
+      _compressPhoto(img,function(dataURL){
+        quotePhotos.push({dataURL:dataURL,name:'фото'});
+        document.getElementById('photoUrlInput').value='';
+        renderPhotos();toast('Фото добавлено ✓','success');
+      });
     }catch(e){toast('CORS — сайт запрещает копирование','error');}
   };
   img.onerror=function(){toast('Не удалось загрузить','error');};
@@ -718,12 +756,16 @@ function loadPhotoFromFile(e){
     if(file.size>MAX_PHOTO_MB*1024*1024){toast(file.name+': превышает '+MAX_PHOTO_MB+' МБ','error');return;}
     if(quotePhotos.length>=MAX_PHOTOS){toast('Максимум '+MAX_PHOTOS+' фото','error');return;}
     var r=new FileReader();
-    r.onload=function(ev){var img=new Image();img.onload=function(){
-      var c=document.createElement('canvas'),M=800,w=img.naturalWidth,h=img.naturalHeight;
-      if(w>M||h>M){if(w>h){h=Math.round(h*M/w);w=M;}else{w=Math.round(w*M/h);h=M;}}
-      c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
-      quotePhotos.push({dataURL:c.toDataURL('image/jpeg',.85),name:file.name});renderPhotos();
-    };img.src=ev.target.result;};
+    r.onload=function(ev){
+      var img=new Image();
+      img.onload=function(){
+        _compressPhoto(img,function(dataURL){
+          quotePhotos.push({dataURL:dataURL,name:file.name});
+          renderPhotos();
+        });
+      };
+      img.src=ev.target.result;
+    };
     r.readAsDataURL(file);
   });
   e.target.value='';

@@ -126,7 +126,7 @@ textarea{resize:vertical;min-height:80px}
 .color-swatch{width:40px;height:40px;border-radius:8px;border:2px solid var(--border);overflow:hidden;position:relative}
 .color-swatch input[type=color]{position:absolute;inset:-4px;width:150%;height:150%;border:none;background:none;cursor:pointer;padding:0}
 .history-list{display:flex;flex-direction:column;gap:10px}
-.history-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.history-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .history-info{flex:1;min-width:0}
 .history-name{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .history-meta{font-size:12px;color:var(--text2);margin-top:2px;display:flex;gap:12px;flex-wrap:wrap}
@@ -2960,18 +2960,16 @@ body.sidebar-open{overflow:hidden}
 .dash-table td{color:var(--text)}
 .dash-table tr:last-child td{border-bottom:none}
 .dash-table td:last-child,.dash-table th:last-child{text-align:right;white-space:nowrap}
+.dash-month-cur td{background:rgba(6,182,212,.06);font-weight:600}
+.dash-month-cur td b{color:var(--accent)}
 
 /* ── Contacts ────────────────────────────────────────────────── */
 .contacts-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .contacts-toolbar-actions{display:flex;align-items:center;gap:8px}
 .contacts-badge{display:inline-flex;align-items:center;font-size:12px;font-weight:600;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px}
 .contacts-table-wrap{padding:0;overflow:hidden}
-.contacts-table{width:100%;border-collapse:collapse;font-size:14px}
-.contacts-table th,.contacts-table td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border)}
-.contacts-table th{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;background:var(--surface2)}
+/* contacts-table: базовые стили перенесены в финальный блок ~4648 */
 .contacts-table td{color:var(--text)}
-.contacts-table tbody tr:last-child td{border-bottom:none}
-.contacts-table td:last-child,.contacts-table th:last-child{text-align:right}
 .contacts-empty-row td{padding:0 !important}
 .contacts-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:48px 16px;color:var(--text2)}
 
@@ -2999,15 +2997,14 @@ body.sidebar-open{overflow:hidden}
 .contacts-search-input{padding:7px 10px 7px 30px;font-size:13px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:inherit;width:180px}
 .contacts-search-input:focus{outline:none;border-color:var(--accent)}
 .contacts-table-wrap{padding:0;overflow:hidden}
-.contacts-table{width:100%;border-collapse:collapse;font-size:14px}
-.contacts-table thead th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap}
-.contacts-table tbody tr.contact-row{border-bottom:1px solid var(--border);transition:background .12s}
-.contacts-table tbody tr.contact-row:last-child{border-bottom:none}
-.contacts-table tbody tr.contact-row:hover{background:var(--surface2)}
-.contacts-table td{padding:10px 14px;vertical-align:middle}
+/* contacts-table: стили в финальном блоке ~4648 */
+.contacts-table tbody tr.contact-row{transition:background .12s}
 .contact-name{font-weight:600;color:var(--text)}
 .contact-kp-badge{display:inline-block;margin-left:8px;font-size:11px;font-weight:700;background:var(--accent);color:#fff;border-radius:9999px;padding:1px 7px;cursor:pointer;vertical-align:middle}
 .contact-kp-badge:hover{opacity:.8}
+.contact-bday{font-size:11px;color:var(--text3);margin-top:2px}
+.contact-bday-today{color:#a855f7;font-weight:700}
+.contact-bday-tomorrow{color:#f59e0b;font-weight:600}
 .contact-link{color:var(--accent);text-decoration:none}
 .contact-link:hover{text-decoration:underline}
 .contact-addr{color:var(--text2);font-size:13px}
@@ -3036,35 +3033,7 @@ body.sidebar-open{overflow:hidden}
 .contact-link{color:var(--accent)!important;text-decoration:none!important;font-size:14px!important;background:none!important;background-color:transparent!important;padding:0!important;border-radius:0!important;font-weight:400!important;display:inline!important;border:none!important;box-shadow:none!important;line-height:inherit!important}
 .contact-link:hover{color:var(--accent)!important;background:none!important;background-color:transparent!important;text-decoration:underline!important}
 
-/* ── Контакты: фиксированная таблица, обрезка длинного текста ─ */
-.contacts-table{table-layout:fixed}
-.contacts-table th:nth-child(1),.contacts-table td:nth-child(1){width:26%}
-.contacts-table th:nth-child(2),.contacts-table td:nth-child(2){width:18%}
-.contacts-table th:nth-child(3),.contacts-table td:nth-child(3){width:18%}
-.contacts-table th:nth-child(4),.contacts-table td:nth-child(4){width:22%}
-.contacts-table th:nth-child(5),.contacts-table td:nth-child(5){width:16%}
-.contacts-table td{overflow:hidden}
-.contact-name,.contact-addr,.contact-link,.contact-empty{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
-
-/* ── Контакты: принудительный фикс обрезки ─────────────────── */
-.contacts-table{table-layout:fixed!important;width:100%!important}
-.contacts-table th,.contacts-table td{overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important;max-width:0}
-.contacts-table th:nth-child(1),.contacts-table td:nth-child(1){width:25%!important}
-.contacts-table th:nth-child(2),.contacts-table td:nth-child(2){width:18%!important}
-.contacts-table th:nth-child(3),.contacts-table td:nth-child(3){width:18%!important}
-.contacts-table th:nth-child(4),.contacts-table td:nth-child(4){width:21%!important}
-.contacts-table th:nth-child(5),.contacts-table td:nth-child(5){width:18%!important;white-space:normal!important}
-.contact-name,.contact-addr,.contact-link,.contact-empty{display:inline!important;white-space:inherit!important;overflow:visible!important}
-
-/* ── Контакты: авто-перенос текста, кнопки всегда видны ─────── */
-.contacts-table{table-layout:auto!important;width:100%!important}
-.contacts-table th,.contacts-table td{overflow:visible!important;white-space:normal!important;text-overflow:clip!important;max-width:none!important;word-break:break-word!important}
-.contacts-table th:nth-child(1),.contacts-table td:nth-child(1){width:auto}
-.contacts-table th:nth-child(2),.contacts-table td:nth-child(2){width:auto}
-.contacts-table th:nth-child(3),.contacts-table td:nth-child(3){width:auto}
-.contacts-table th:nth-child(4),.contacts-table td:nth-child(4){width:auto}
-.contacts-table th:nth-child(5),.contacts-table td:nth-child(5){width:1%;white-space:nowrap!important}
-.contact-name,.contact-addr,.contact-link,.contact-empty{display:inline!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;word-break:break-word!important}
+/* contacts-table: старые ширины удалены, всё в финальном блоке ~4648 */
 
 /* ── INTL-TEL-INPUT THEME ─────────────────────────────────── */
 .iti{display:block!important;width:100%!important;background:var(--surface2)!important;border:1px solid var(--border)!important;border-radius:8px!important;transition:border-color .2s,box-shadow .2s}
@@ -4345,7 +4314,7 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 .history-item {
   display: flex;
   gap: 14px;
-  padding: 14px 0;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--border);
   position: relative;
 }
@@ -4658,19 +4627,32 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 .an-ct-cnt{text-align:center;font-weight:600;color:var(--text)}
 .an-ct-rev{text-align:right;font-weight:700;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums}
 
-/* ── Contacts table final fix (checkbox col shifts nth-child +1) ─ */
-.contacts-table{table-layout:fixed!important;width:100%!important}
-.contacts-table th,.contacts-table td{overflow:hidden!important;text-overflow:ellipsis!important;max-width:0;padding-left:8px!important;padding-right:8px!important}
-/* 1=checkbox 2=ФИО 3=телефон 4=email 5=адрес 6=действия */
-.contacts-table th:nth-child(1),.contacts-table td:nth-child(1){width:36px!important;padding:0 8px!important}
-.contacts-table th:nth-child(2),.contacts-table td:nth-child(2){width:24%!important;white-space:nowrap!important}
-.contacts-table th:nth-child(3),.contacts-table td:nth-child(3){width:16%!important;white-space:nowrap!important}
-.contacts-table th:nth-child(4),.contacts-table td:nth-child(4){width:18%!important;white-space:nowrap!important}
-.contacts-table th:nth-child(5),.contacts-table td:nth-child(5){width:22%!important;white-space:normal!important;word-break:break-word!important}
-.contacts-table th:nth-child(6),.contacts-table td:nth-child(6){width:120px!important;white-space:nowrap!important}
-.contact-link{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;display:block!important;max-width:100%!important}
-.contact-actions{white-space:nowrap!important;overflow:visible!important}
-.contact-actions .btn{white-space:nowrap!important;display:inline-flex!important;align-items:center!important;gap:3px!important;flex-shrink:0}
+/* ═══════════════════════════════════════════════════════════
+   CONTACTS TABLE — единственный авторитетный блок.
+   Все предыдущие блоки для .contacts-table перекрываются здесь.
+   НЕ ДОБАВЛЯТЬ других правил .contacts-table выше этого блока.
+   ═══════════════════════════════════════════════════════════ */
+.contacts-table{table-layout:fixed!important;width:100%!important;border-collapse:collapse!important;font-size:13px!important}
+/* Базовые стили всех ячеек */
+.contacts-table th,.contacts-table td{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;padding:10px 10px!important;vertical-align:middle!important;border-bottom:1px solid var(--border)!important;line-height:1.4!important;max-width:0;box-sizing:border-box!important}
+.contacts-table th{font-size:11px!important;font-weight:700!important;text-transform:uppercase!important;letter-spacing:.05em!important;color:var(--text3)!important;background:transparent!important;border-bottom:2px solid var(--border)!important}
+/* Ширины: 3+24+14+14+21+24=100% */
+.contacts-table th:nth-child(1),.contacts-table td:nth-child(1){width:3%!important;padding:0!important;text-align:center!important}
+.contacts-table th:nth-child(2),.contacts-table td:nth-child(2){width:24%!important;white-space:normal!important;word-break:break-word!important}
+.contacts-table th:nth-child(3),.contacts-table td:nth-child(3){width:14%!important}
+.contacts-table th:nth-child(4),.contacts-table td:nth-child(4){width:14%!important}
+.contacts-table th:nth-child(5),.contacts-table td:nth-child(5){width:21%!important}
+.contacts-table th:nth-child(6),.contacts-table td:nth-child(6){width:24%!important;overflow:hidden!important;max-width:none!important;text-overflow:clip!important;padding:4px 0!important;vertical-align:middle!important}
+/* Hover и последняя строка */
+.contacts-table tbody tr.contact-row:last-child td{border-bottom:none!important}
+.contacts-table tbody tr.contact-row:hover td{background:var(--surface2)!important}
+/* Ячейка действий: td обычная, flex на div внутри */
+.contact-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:6px!important;padding-right:8px!important;width:100%!important;box-sizing:border-box!important}
+.contact-actions .btn{display:inline-flex!important;align-items:center!important;gap:3px!important;flex-shrink:0!important;white-space:nowrap!important}
+/* ФИО-span: перенос */
+.contact-name{white-space:normal!important;word-break:break-word!important;font-weight:600!important}
+/* Ссылки телефон/email */
+.contact-link{display:block!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:100%!important}
 
 /* ── Звонки: заглушка ── */
 .calls-wip-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 24px;text-align:center;gap:16px}
@@ -5091,3 +5073,46 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 .sortable-ghost{opacity:.35;background:var(--accent)!important;border-color:var(--accent)!important}
 .sortable-chosen{box-shadow:0 4px 16px rgba(0,0,0,.18);transform:scale(1.01);z-index:10;position:relative}
 .sortable-drag{opacity:0}
+
+/* ── Поиск и фильтры истории КП ── */
+.history-filters{display:flex;align-items:center;gap:10px;padding:12px 16px 6px;flex-wrap:wrap}
+.history-search-wrap{position:relative;flex:1;min-width:180px;display:flex;align-items:center}
+.history-search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text2);pointer-events:none;display:block;flex-shrink:0;z-index:1}
+.history-search-input{width:100%;padding:8px 12px 8px 34px!important;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text1);font-size:13px;outline:none;transition:border-color .15s;box-sizing:border-box;min-width:0}
+.history-search-input:focus{border-color:var(--accent)}
+.history-date-wrap{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.history-date-input{padding:7px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text1);font-size:12px;outline:none;transition:border-color .15s}
+.history-date-input:focus{border-color:var(--accent)}
+.history-date-sep{font-size:13px;color:var(--text2)}
+.history-clear-btn{display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.history-export-btn{display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.history-csv-btn{display:flex;align-items:center;gap:6px;white-space:nowrap;color:#a5f3fc;border-color:rgba(255,255,255,.2)}
+.history-csv-btn:hover{background:rgba(255,255,255,.08)!important}
+.history-pagination{display:flex;align-items:center;gap:4px;justify-content:center;padding:16px 0 4px;flex-wrap:wrap}
+.history-pg-btn{padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text1);font-size:13px;cursor:pointer;transition:all .15s}
+.history-pg-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.history-pg-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.history-pg-btn:disabled{opacity:.4;cursor:default}
+.history-pg-dots{padding:0 4px;color:var(--text2);font-size:13px}
+.history-pg-info{margin-left:8px;font-size:12px;color:var(--text2)}
+.history-cb{accent-color:var(--accent)}
+.history-cb-wrap{display:flex;align-items:center;padding-right:10px;flex-shrink:0}
+.history-cb-wrap input{width:16px;height:16px;cursor:pointer;margin:0}
+@media(max-width:600px){
+  .history-filters{gap:8px}
+  .history-date-wrap{width:100%;justify-content:flex-start}
+  .history-search-wrap{min-width:0}
+}
+
+/* ── Статус КП в истории ── */
+.kp-status-btn{cursor:pointer;user-select:none;vertical-align:middle}
+.kp-status-btn:hover{opacity:.8}
+.kp-status-drop{position:fixed;z-index:9999;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.22);padding:5px;min-width:148px}
+.kp-status-drop-item{display:block;padding:7px 12px;cursor:pointer;border-radius:6px;margin:2px 0;font-size:12px;font-weight:600}
+.kp-status-drop-item:hover{filter:brightness(.93)}
+
+/* ── Тёмная тема: рамка вокруг белого превью КП ── */
+@media (prefers-color-scheme: dark){
+  .preview-panel{box-shadow:0 0 0 1px rgba(255,255,255,.07),0 4px 32px rgba(0,0,0,.5)}
+}
+[data-theme="dark"] .preview-panel{box-shadow:0 0 0 1px rgba(255,255,255,.07),0 4px 32px rgba(0,0,0,.5)}

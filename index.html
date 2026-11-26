@@ -580,6 +580,14 @@
 </div>
 <div class="card">
   <div class="card-title">
+    <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="14" height="12" rx="1"/><path d="M5 3V1M11 3V1M1 7h14"/></svg></span>
+    По месяцам
+    <span style="margin-left:auto;font-size:11px;color:var(--text3);font-weight:400" id="dashMonthYear"></span>
+  </div>
+  <div id="dashMonthTable"><div style="color:var(--text3);font-size:14px;padding:4px 0">Нет данных</div></div>
+</div>
+<div class="card">
+  <div class="card-title">
     <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="7"/><polyline points="8 4 8 8 11 10"/></svg></span>
     Последние КП
   </div>
@@ -666,7 +674,7 @@
 <div class="card">
 <div class="card-title"><span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg></span> Данные клиента</div>
 <div class="form-grid">
-<div class="field"><label>ФИО *</label><input id="c-name" maxlength="80" placeholder="Иванов Иван Иванович" type="text"/></div>
+<div class="field"><label>ФИО *</label><input id="c-name" maxlength="50" placeholder="Иванов Иван Иванович" type="text"/></div>
 <div class="field"><label>Телефон *</label><input id="c-phone" maxlength="20" placeholder="+7 (999) 000-00-00" type="tel"/></div>
 <div class="field"><label>Email</label><input id="c-email" maxlength="60" placeholder="client@email.com" type="email"/></div>
 <div class="field"><label>Город</label><input id="c-city" maxlength="40" placeholder="Москва" type="text"/></div>
@@ -756,9 +764,41 @@
 
 <div class="page" id="page-history">
 <div class="page-header">
-  <div class="page-header-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>История КП</div>
-  <div class="page-header-sub">Все созданные коммерческие предложения</div>
+  <div class="page-header-row">
+    <div class="page-header-info">
+      <div class="page-header-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>История КП</div>
+      <div class="page-header-sub">Все созданные коммерческие предложения</div>
+    </div>
+  </div>
 </div>
+<div class="history-filters" id="historyFilters">
+  <div class="history-search-wrap">
+    <svg class="history-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="historySearchInput" class="history-search-input" placeholder="Поиск по клиенту, № КП или телефону…" oninput="applyHistoryFilters()">
+  </div>
+  <div class="history-date-wrap">
+    <input type="date" id="historyDateFrom" class="history-date-input" title="Дата от" onchange="applyHistoryFilters()">
+    <span class="history-date-sep">—</span>
+    <input type="date" id="historyDateTo" class="history-date-input" title="Дата до" onchange="applyHistoryFilters()">
+  </div>
+  <select id="historyStatusFilter" class="history-date-input" onchange="applyHistoryFilters()" style="min-width:130px">
+    <option value="">Все статусы</option>
+    <option value="new">Новое</option>
+    <option value="sent">Отправлено</option>
+    <option value="agree">Согласование</option>
+    <option value="prog">В работе</option>
+    <option value="done">Выполнено</option>
+  </select>
+  <button id="historyClearBtn" class="btn btn-ghost btn-sm history-clear-btn" onclick="clearHistoryFilters()" style="display:none">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    Сбросить
+  </button>
+  <button class="btn btn-ghost btn-sm" onclick="exportHistoryCSV()" title="Экспорт в CSV" style="margin-left:auto">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Экспорт CSV
+  </button>
+</div>
+<div id="historyFilterLabel" style="display:none;padding:6px 16px 2px;font-size:12px;color:var(--accent)"></div>
 <div class="history-list" id="historyList"></div>
 </div>
 
@@ -1188,6 +1228,10 @@
       <div class="emp-field">
         <label class="emp-label">Пароль <span id="empPassHint" class="emp-label-hint">(обязательно при создании)</span></label>
         <input class="emp-input" id="empPass" placeholder="Введите пароль" type="password" maxlength="16"/>
+      </div>
+      <div class="emp-field">
+        <label class="emp-label">Дата рождения</label>
+        <input class="emp-input" id="empBirthday" type="date" placeholder=""/>
       </div>
       <div class="emp-field">
         <label class="emp-label">Роль</label>
@@ -1700,11 +1744,12 @@
     <button class="btn btn-ghost btn-sm" onclick="closeContactModal()">✕</button>
   </div>
   <input type="hidden" id="contactId"/>
-  <div class="field"><label>ФИО <span style="color:var(--danger)">*</span></label><input id="c-contact-name" type="text" placeholder="Иванов Иван Иванович" maxlength="80"/></div>
+  <div class="field"><label>ФИО <span style="color:var(--danger)">*</span></label><input id="c-contact-name" type="text" placeholder="Иванов Иван Иванович" maxlength="50"/></div>
   <div class="field"><label>Телефон</label><input id="c-contact-phone" type="tel" placeholder="+7 (999) 000-00-00" maxlength="20"/></div>
   <div class="field"><label>Email</label><input id="c-contact-email" type="email" placeholder="client@email.com" maxlength="60"/></div>
   <div class="field"><label>Адрес</label><input id="c-contact-address" type="text" placeholder="ул. Примерная, д. 1" maxlength="100"/></div>
   <div class="field"><label>Заметки</label><textarea id="c-contact-notes" rows="2" maxlength="300" placeholder="Особые пожелания..."></textarea></div>
+  <div class="field"><label>Дата рождения</label><input id="c-contact-birthday" type="date" placeholder=""/></div>
   <div class="modal-actions">
     <button class="btn btn-ghost" onclick="closeContactModal()">Отмена</button>
     <button class="btn btn-primary" onclick="saveContact()">Сохранить</button>
@@ -1720,6 +1765,9 @@
     <button class="btn btn-ghost btn-sm" onclick="closeContactKpModal()">✕</button>
   </div>
   <div id="contactKpList" style="margin-top:8px"></div>
+  <div id="contactKpNewBtn" style="margin-top:12px;display:none;text-align:right">
+    <button class="btn btn-primary btn-sm" id="contactKpNewBtnEl">+ Создать новое КП</button>
+  </div>
 </div>
 </div>
 
@@ -1798,16 +1846,64 @@ function renderDashboard(){
   var svcs=new Set();
   historyData.forEach(function(h){if(h.services)h.services.forEach(function(s){if(s&&s.name)svcs.add(s.name);});});
   var setEl=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  var fmt2=typeof fmt==='function'?fmt:function(n){return Number(n).toLocaleString('ru-RU')+' ₽';};
+  var esc2=typeof esc==='function'?esc:function(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
   setEl('dash-clients',clients.size);
-  setEl('dash-budget',typeof fmt==='function'?fmt(budget):budget.toLocaleString('ru-RU')+'  ₽');
+  setEl('dash-budget',fmt2(budget));
   setEl('dash-addresses',addrs.size);
   setEl('dash-services',svcs.size);
+
+  // ── Помесячная таблица ───────────────────────────────────────
+  var _MN=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  var monthMap={};
+  historyData.forEach(function(h){
+    var d=h.date||h.created_at||'';
+    var m=null,y=null;
+    if(d){
+      var parts=d.split(/[.\-\/]/);
+      if(parts.length>=3){
+        // формат DD.MM.YYYY или YYYY-MM-DD
+        if(parts[0].length===4){y=parseInt(parts[0]);m=parseInt(parts[1])-1;}
+        else{y=parseInt(parts[2]);m=parseInt(parts[1])-1;}
+      }
+    }
+    if(m===null||m<0||m>11||!y)return;
+    var key=y+'-'+(m<9?'0':'')+(m+1);
+    if(!monthMap[key])monthMap[key]={y:y,m:m,count:0,sum:0,clients:new Set()};
+    monthMap[key].count++;
+    monthMap[key].sum+=parseFloat(h.total)||0;
+    if(h.clientName)monthMap[key].clients.add((h.clientName||'').trim());
+  });
+  var months=Object.keys(monthMap).sort().reverse(); // новые сверху
+  var nowY=new Date().getFullYear();
+  var yearEl=document.getElementById('dashMonthYear');
+  if(yearEl)yearEl.textContent=months.length?months[0].split('-')[0]+' — '+months[months.length-1].split('-')[0]:'';
+  var mt=document.getElementById('dashMonthTable');
+  if(!mt)return;
+  if(!months.length){mt.innerHTML='<div style="color:var(--text3);font-size:14px;padding:4px 0">Нет данных</div>';}
+  else{
+    var rows=months.map(function(key){
+      var r=monthMap[key];
+      var avg=r.count?Math.round(r.sum/r.count):0;
+      var isCur=(r.y===new Date().getFullYear()&&r.m===new Date().getMonth());
+      return'<tr'+(isCur?' class="dash-month-cur"':'')+'>'
+        +'<td><b>'+_MN[r.m]+'</b> <span style="color:var(--text3);font-size:12px">'+r.y+'</span></td>'
+        +'<td style="text-align:center">'+r.count+'</td>'
+        +'<td style="text-align:center">'+r.clients.size+'</td>'
+        +'<td style="text-align:right">'+fmt2(r.sum)+'</td>'
+        +'<td style="text-align:right;color:var(--text3)">'+fmt2(avg)+'</td>'
+        +'</tr>';
+    }).join('');
+    mt.innerHTML='<table class="dash-table"><thead><tr>'
+      +'<th>Месяц</th><th style="text-align:center">КП</th><th style="text-align:center">Клиентов</th><th style="text-align:right">Сумма</th><th style="text-align:right">Ср. чек</th>'
+      +'</tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+
+  // ── Последние КП ─────────────────────────────────────────────
   var list=document.getElementById('dashRecentList');
   if(!list)return;
   var last5=historyData.slice(0,5);
   if(!last5.length){list.innerHTML='<div style="color:var(--text3);font-size:14px;padding:4px 0">История пуста</div>';return;}
-  var esc2=typeof esc==='function'?esc:function(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
-  var fmt2=typeof fmt==='function'?fmt:function(n){return Number(n).toLocaleString('ru-RU')+'  ₽';};
   list.innerHTML='<table class="dash-table"><thead><tr><th>Клиент</th><th>Дата</th><th>Услуг</th><th>Сумма</th></tr></thead><tbody>'+
     last5.map(function(h){
       return'<tr><td>'+esc2(h.clientName||'—')+'</td><td>'+esc2(h.date||'—')+'</td><td>'+esc2(h.servicesCount||0)+'</td><td>'+fmt2(h.total)+'</td></tr>';

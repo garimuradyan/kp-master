@@ -737,6 +737,7 @@ function loadPhotoFromUrl(){
   var url=document.getElementById('photoUrlInput').value.trim();
   if(!url){toast('Введите ссылку','error');return;}
   if(quotePhotos.length>=MAX_PHOTOS){toast('Максимум '+MAX_PHOTOS+' фото','error');return;}
+  var urlWithCb=url+(url.indexOf('?')>=0?'&':'?')+'_cb='+Date.now();
   var img=new Image();img.crossOrigin='anonymous';
   img.onload=function(){
     try{
@@ -745,10 +746,25 @@ function loadPhotoFromUrl(){
         document.getElementById('photoUrlInput').value='';
         renderPhotos();toast('Фото добавлено ✓','success');
       });
-    }catch(e){toast('CORS — сайт запрещает копирование','error');}
+    }catch(e){
+      // Canvas blocked by CORS — store URL directly
+      quotePhotos.push({dataURL:url,name:'фото'});
+      document.getElementById('photoUrlInput').value='';
+      renderPhotos();toast('Фото добавлено (внешняя ссылка) ✓','success');
+    }
   };
-  img.onerror=function(){toast('Не удалось загрузить','error');};
-  img.src=url+(url.indexOf('?')>=0?'&':'?')+'_cb='+Date.now();
+  img.onerror=function(){
+    // Try loading without CORS header as fallback
+    var img2=new Image();
+    img2.onload=function(){
+      quotePhotos.push({dataURL:url,name:'фото'});
+      document.getElementById('photoUrlInput').value='';
+      renderPhotos();toast('Фото добавлено (внешняя ссылка) ✓','success');
+    };
+    img2.onerror=function(){toast('Не удалось загрузить фото по ссылке','error');};
+    img2.src=url;
+  };
+  img.src=urlWithCb;
 }
 function loadPhotoFromFile(e){
   Array.from(e.target.files).forEach(function(file){
@@ -854,7 +870,7 @@ function printPDF(){
   var discH=t.discount>0?'<tr><td style="color:#444">Скидка:</td><td class="money-td" style="color:#c00">−'+moneyHtml(t.discount)+'</td></tr>':'';
   var prepayH=t.prepay>0?'<tr><td style="color:#059669">Предоплата:</td><td class="money-td" style="color:#059669">−'+moneyHtml(t.prepay)+'</td></tr>':'';
   var photosH='';
-  if(quotePhotos.length){photosH='<div style="margin-top:18px;padding-top:12px;border-top:2px solid '+color+'"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:'+color+';margin-bottom:8px">Фото оборудования</div><div style="display:grid;grid-template-columns:repeat('+Math.min(quotePhotos.length,3)+',1fr);gap:6px">'+quotePhotos.map(function(p){return'<img src="'+p.dataURL+'" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;border:1px solid #ddd">';}).join('')+'</div></div>';}
+  if(quotePhotos.length){photosH='<div style="margin-top:18px;padding-top:12px;border-top:2px solid '+color+'"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:'+color+';margin-bottom:8px">Фото оборудования</div><div style="display:grid;grid-template-columns:repeat('+Math.min(quotePhotos.length,3)+',1fr);gap:8px;align-items:start">'+quotePhotos.map(function(p){return'<img src="'+p.dataURL+'" style="width:100%;height:auto;max-height:160px;object-fit:contain;border-radius:4px;border:1px solid #ddd;display:block">';}).join('')+'</div></div>';}
   var footer=[settings.requisites,settings.inn?'ИНН '+settings.inn:'',settings.city].filter(Boolean).join(' · ');
   var pdfTitle='КП_'+safeFileName(c.name||'Клиент')+'_'+num;
   var html='<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no"><title>'+esc(pdfTitle)+'</title>'+
@@ -924,7 +940,6 @@ async function saveToHistory(){
   if(!validateClient()){nextStep(1);return;}
   var c=getClientData(),t=getTotals(),num=generateQuoteNumber();
   var respName=currentEmployeeData?currentEmployeeData.name:(currentKeyData?(currentKeyData.master_name||''):'');
-  // Preserve status from existing KP if editing, otherwise 'new'
   var existingStatus = 'new';
   if(window._kpEditSourceId){
     var existingH = historyData.find(function(x){return x.id===window._kpEditSourceId;});
@@ -941,8 +956,47 @@ async function saveToHistory(){
   var args=Object.assign(rpcAuthParams(),{p_client_name:c.name,p_client_phone:c.phone,p_total:t.grand,p_data:entry});
   var res=await sb.rpc('kp_save_quote',args);
   if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка сохранения'),'error');return;}
-  entry.id=res.data.id;historyData.unshift(entry);updateHistoryBadge();toast('КП сохранено ✓','success');
+  entry.id=res.data.id;historyData.unshift(entry);updateHistoryBadge();hideUpdateKpBtn();toast('КП сохранено ✓','success');
 }
+
+async function updateToHistory(){
+  if(!isLoggedIn()){showPublicLanding();toast('Введите ключ доступа','error');return;}
+  if(!window._kpEditSourceId){toast('Нет активного КП для перезаписи','error');return;}
+  if(!validateClient()){nextStep(1);return;}
+  var existingIdx=historyData.findIndex(function(x){return x.id===window._kpEditSourceId;});
+  if(existingIdx<0){toast('КП не найдено в истории','error');return;}
+  var existingH=historyData[existingIdx];
+  var c=getClientData(),t=getTotals();
+  var respName=currentEmployeeData?currentEmployeeData.name:(currentKeyData?(currentKeyData.master_name||''):'');
+  var prev=window._kpEditBaseLog||[];
+  var editLog=prev.concat([{name:respName,at:new Date().toISOString()}]);
+  var entry=Object.assign({},existingH,{
+    date:new Date().toLocaleDateString('ru-RU'),
+    clientName:c.name,clientPhone:c.phone,
+    total:t.grand,servicesCount:services.length,
+    services:JSON.parse(JSON.stringify(services)),
+    equipment:JSON.parse(JSON.stringify(equipment)),
+    extraStages:JSON.parse(JSON.stringify(extraStages)),
+    client:Object.assign({},c),
+    discount:{val:parseFloat(document.getElementById('discountVal').value)||0,type:document.getElementById('discountType').value},
+    responsible_name:respName,
+    edit_log:editLog
+  });
+  var oldId=window._kpEditSourceId;
+  var delArgs=Object.assign(rpcAuthParams(),{p_quote_id:oldId});
+  var delRes=await sb.rpc('kp_delete_quote',delArgs);
+  if(delRes.error||rpcFailed(delRes)){toast(rpcMsg(delRes,'Ошибка обновления'),'error');return;}
+  var saveArgs=Object.assign(rpcAuthParams(),{p_client_name:c.name,p_client_phone:c.phone,p_total:t.grand,p_data:entry});
+  var saveRes=await sb.rpc('kp_save_quote',saveArgs);
+  if(saveRes.error||rpcFailed(saveRes)){toast(rpcMsg(saveRes,'Ошибка сохранения'),'error');return;}
+  entry.id=saveRes.data.id;
+  historyData.splice(existingIdx,1,entry);
+  window._kpEditSourceId=null;window._kpEditBaseLog=null;
+  updateHistoryBadge();hideUpdateKpBtn();toast('КП перезаписано ✓','success');
+}
+
+function showUpdateKpBtn(){var b=document.getElementById('updateKpBtn');if(b)b.style.display='';}
+function hideUpdateKpBtn(){var b=document.getElementById('updateKpBtn');if(b)b.style.display='none';}
 
 function renderHistory(){
   var list=document.getElementById('historyList');
@@ -1013,7 +1067,7 @@ function loadFromHistory(id){
   extraStages=JSON.parse(JSON.stringify(h.extraStages||[]));
   if(h.discount){document.getElementById('discountVal').value=h.discount.val||'';document.getElementById('discountType').value=h.discount.type||'percent';}
   showPage('new',null);
-  jumpStep(2);renderEquipment();renderServices();toast('КП загружено ✓','success');
+  jumpStep(2);renderEquipment();renderServices();showUpdateKpBtn();toast('КП загружено ✓','success');
 }
 
 function copyFromHistory(id){
@@ -1031,7 +1085,7 @@ function copyFromHistory(id){
   extraStages=JSON.parse(JSON.stringify(h.extraStages||[]));
   if(h.discount){document.getElementById('discountVal').value=h.discount.val||'';document.getElementById('discountType').value=h.discount.type||'percent';}
   showPage('new',null);
-  jumpStep(2);renderEquipment();renderServices();toast('Копия КП создана ✓','success');
+  jumpStep(2);renderEquipment();renderServices();hideUpdateKpBtn();toast('Копия КП создана ✓','success');
 }
 
 async function deleteFromHistory(id){
@@ -1041,6 +1095,7 @@ async function deleteFromHistory(id){
     if(res.error||rpcFailed(res)){toast(rpcMsg(res,'Ошибка удаления'),'error');return;}
     historyData=historyData.filter(function(x){return x.id!==id;});
     updateHistoryBadge();renderHistory();
+    if(document.getElementById('page-analytics')&&document.getElementById('page-analytics').style.display!=='none')renderAnalyticsPage();
   });
 }
 
@@ -1056,6 +1111,7 @@ function resetForm(){
     document.getElementById('discountVal').value='';
     if(document.getElementById('prepayVal'))document.getElementById('prepayVal').value='';
     services=[];equipment=[];extraStages=[];quotePhotos=[];renderPhotos();jumpStep(1);renderEquipment();renderServices();
+    window._kpEditSourceId=null;window._kpEditBaseLog=null;hideUpdateKpBtn();
   });
 }
 
@@ -2541,11 +2597,13 @@ function renderAnalyticsPage(){
   function delta(cur,prev){if(!prev)return'';var d=cur-prev;var sign=d>0?'+':'';var pct=prev?Math.round(Math.abs(d)/prev*100):0;return'<span class="an-delta '+(d>=0?'pos':'neg')+'">'+sign+pct+'% к пред. периоду</span>';}
 
   var totalKp = filtered.length;
-  var totalRev = filtered.reduce(function(s,h){return s+(h.total||0);},0);
-  var avgCheck = totalKp ? Math.round(totalRev/totalKp) : 0;
-  var doneCnt = filtered.filter(function(h){return h.status==='done';}).length;
+  var doneKp = filtered.filter(function(h){return h.status==='done';});
+  var doneCnt = doneKp.length;
+  var totalRev = doneKp.reduce(function(s,h){return s+(h.total||0);},0);
+  var avgCheck = doneCnt ? Math.round(totalRev/doneCnt) : 0;
   var prevKp = prevFiltered.length;
-  var prevRev = prevFiltered.reduce(function(s,h){return s+(h.total||0);},0);
+  var prevDoneKp = prevFiltered.filter(function(h){return h.status==='done';});
+  var prevRev = prevDoneKp.reduce(function(s,h){return s+(h.total||0);},0);
 
   function set(id,v){var e=document.getElementById(id);if(e)e.innerHTML=v;}
   set('an-total-kp', totalKp);
@@ -2553,7 +2611,7 @@ function renderAnalyticsPage(){
   set('an-revenue', fmtMoney(totalRev));
   set('an-revenue-sub', delta(totalRev,prevRev));
   set('an-avg-check', fmtMoney(avgCheck));
-  set('an-avg-sub', totalKp?'по '+totalKp+' КП':'нет данных');
+  set('an-avg-sub', doneCnt?'по '+doneCnt+' выполненным':'нет данных');
   set('an-done', doneCnt);
   set('an-done-sub', totalKp?'<span class="an-delta pos">'+Math.round(doneCnt/totalKp*100)+'% конверсия</span>':'');
   set('an-contacts-cnt', (contactsData||[]).length);

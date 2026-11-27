@@ -5144,7 +5144,7 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
   .contacts-table td:nth-child(3){width:100%!important;max-width:none!important;min-width:0!important;color:var(--text2)!important}
   .contacts-table td:nth-child(4){width:100%!important;max-width:none!important;min-width:0!important;color:var(--text2)!important}
   /* Ссылки телефон/email — показываем полностью без обрезки */
-  .contact-link{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;max-width:none!important}
+  .contact-link{white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-all!important;overflow:visible!important;text-overflow:clip!important;max-width:none!important}
   /* Действия — override процентной ширины + разделитель снизу */
   .contacts-table td:nth-child(6){width:100%!important;max-width:none!important;min-width:0!important;margin-top:10px!important;padding-top:10px!important;border-top:1px solid var(--border)!important;overflow:visible!important;padding-left:0!important;padding-right:0!important}
   .contact-actions{justify-content:flex-start!important;padding-right:0!important;gap:8px!important}

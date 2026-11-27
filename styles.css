@@ -2316,10 +2316,6 @@ thead th:nth-child(4){
   max-width:100%!important;
   font-variant-numeric:tabular-nums!important;
 }
-.quote-preview-table col:nth-child(2){width:auto!important}
-.quote-preview-table col:nth-child(3){width:86px!important}
-.quote-preview-table col:nth-child(4){width:38px!important}
-.quote-preview-table col:nth-child(5){width:112px!important}
 .quote-preview-table .qp-name{
   overflow:hidden!important;
   overflow-wrap:anywhere!important;
@@ -2417,14 +2413,24 @@ thead th:nth-child(4){
   letter-spacing:-.15px!important;
   font-variant-numeric:tabular-nums!important;
 }
-.quote-preview-table col:nth-child(3){width:88px!important}
-.quote-preview-table col:nth-child(4){width:38px!important}
-.quote-preview-table col:nth-child(5){width:112px!important}
 .quote-preview-table .qp-money,
 .quote-preview-table .qp-total{
   text-align:right!important;
   overflow:visible!important;
   white-space:nowrap!important;
+}
+.preview-panel .quote-preview-table th{background:transparent!important}
+@media(max-width:640px){
+  .quote-preview-table th,.quote-preview-table td{font-size:10.5px!important;padding:6px 3px!important}
+  .quote-preview-table col:nth-child(2){width:62px!important}
+  .quote-preview-table col:nth-child(3){width:26px!important}
+  .quote-preview-table col:nth-child(4){width:26px!important}
+  .quote-preview-table col:nth-child(5){width:70px!important}
+  .quote-preview-table .qp-name{max-height:none!important}
+  .quote-preview-table th{white-space:nowrap!important;text-overflow:ellipsis!important}
+  .action-bar{display:grid!important;grid-template-columns:1fr 1fr;gap:8px}
+  .action-bar>.btn{width:100%;justify-content:center;min-width:0;padding-left:8px;padding-right:8px;white-space:normal;text-align:center;line-height:1.2}
+  .action-bar>.btn:only-child{grid-column:1/-1}
 }
 @media(max-width:760px){
   #section-services .services-header{display:none!important}
@@ -2518,17 +2524,19 @@ thead th:nth-child(4){
 @media(max-width:640px){
   #section-services .services-header{display:none!important}
   #section-services .service-row{
-    grid-template-columns:minmax(0,1fr) 78px 54px 54px 1fr 28px!important;
+    grid-template-columns:minmax(0,1fr) 64px 48px 28px!important;
     grid-template-areas:
-      "name name name name name name"
-      "price unit qty total total del"!important;
+      "name name name name"
+      "price unit qty del"
+      "total total total total"!important;
   }
   #section-services .service-row .svc-name{grid-area:name!important}
   #section-services .service-row input:nth-of-type(1){grid-area:price!important}
   #section-services .service-row .unit-select{grid-area:unit!important}
   #section-services .service-row input:nth-of-type(2){grid-area:qty!important}
   #section-services .service-row .svc-total{grid-area:total!important;text-align:right!important}
-  #section-services .service-row .delete-btn{grid-area:del!important}
+  #section-services .service-row .row-actions,
+  #section-services .service-row .delete-btn{grid-area:del!important;align-self:center!important}
 }
 
 

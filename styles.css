@@ -5154,9 +5154,11 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 /* ═══════════════════════════════════════════════════════════════
    DASHBOARD TABLES — СКРОЛЛ НА УЗКИХ ЭКРАНАХ
    ═══════════════════════════════════════════════════════════════ */
-@media(max-width:450px){
-  #dashMonthTable,#dashRecentList{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  #dashMonthTable .dash-table,#dashRecentList .dash-table{min-width:400px}
+@media(max-width:767px){
+  #dashMonthTable,#dashRecentList{overflow-x:auto;-webkit-overflow-scrolling:touch;-webkit-overflow-scrolling:touch}
+  /* width:auto позволяет таблице быть шире контейнера — иначе width:100% не создаёт overflow */
+  #dashMonthTable .dash-table{min-width:520px;width:auto}
+  #dashRecentList .dash-table{min-width:450px;width:auto}
 }
 
 /* ═══════════════════════════════════════════════════════════════

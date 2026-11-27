@@ -3336,7 +3336,7 @@ function renderKanbanPage(){
         +(desc?'<div class="kanban-card-sub">'+esc(desc)+'</div>':'')
         +'<div class="kanban-card-footer">'
           +'<div style="display:flex;align-items:center;gap:5px">'+resp+'<span class="kb-date">'+dateStr+'</span></div>'
-          +(total?'<span class="kb-amount">'+fmtMoney(total)+'</span>':'')
+          +(h.total?'<span class="kb-amount">'+fmtMoney(h.total)+'</span>':'')
         +'</div>'
       +'</div>';
     }).join('');
@@ -3351,7 +3351,60 @@ function renderKanbanPage(){
     +'</div>';
   }).join('');
   _initKanbanSortable();
+  _renderKanbanMobile(colCards, fmtMoney);
 }
+
+var _kbMobileStage = 'new', _kbMoveOpen = null;
+
+function kbSetStatus(id, newColId){
+  var h = (historyData||[]).find(function(x){return String(x.id)===String(id);});
+  if(!h || KB_STATUS_MAP[h.status||'new'] === newColId) return;
+  var prev = h.status;
+  h.status = newColId;
+  renderKanbanPage();
+  if(sb && h.id && typeof rpcAuthParams === 'function'){
+    sb.rpc('kp_update_quote_status', Object.assign(rpcAuthParams(), {p_id: h.id, p_status: newColId})).then(function(res){
+      if(res.error||rpcFailed(res)){h.status = prev; renderKanbanPage(); toast('Не удалось сменить стадию. Попробуйте ещё раз.','error');}
+    });
+  }
+}
+
+function _renderKanbanMobile(colCards, fmtMoney){
+  var box = document.getElementById('kanban-mobile');
+  if(!box) return;
+  var stage = KB_COLS.find(function(c){return c.id===_kbMobileStage;}) || KB_COLS[0];
+  var cards = colCards[stage.id];
+  var sum = cards.reduce(function(s,h){return s+(h.total||0);},0);
+  var tabs = KB_COLS.map(function(c){
+    return '<button class="kbm-tab'+(c.id===stage.id?' on':'')+'" style="--kb-c:'+c.color+'" onclick="kbMobileStage(\''+c.id+'\')">'
+      +esc(c.title)+' <span class="kbm-tab-n">'+colCards[c.id].length+'</span></button>';
+  }).join('');
+  var list = cards.length ? cards.map(function(h){
+    var desc = '';
+    if(h.services&&h.services.length) desc = h.services[0].name||'';
+    else if(h.equipment&&h.equipment.length) desc = h.equipment[0].name||'';
+    var d = _quoteDate(h);
+    var meta = [h.responsible_name||'', isNaN(d)?'':d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})].filter(Boolean).join(' · ');
+    var open = String(_kbMoveOpen)===String(h.id);
+    var menu = open ? '<div class="kbm-menu">'+KB_COLS.filter(function(c){return c.id!==stage.id;}).map(function(c){
+      return '<button class="kbm-move-to" style="--kb-c:'+c.color+'" onclick="event.stopPropagation();kbSetStatus(\''+h.id+'\',\''+c.id+'\')">'+esc(c.title)+'</button>';
+    }).join('')+'</div>' : '';
+    return '<div class="kbm-card" style="border-left-color:'+stage.color+'" onclick="kbOpenCard(\''+h.id+'\')">'
+      +'<div class="kbm-row"><span class="kbm-client">'+esc(h.clientName||'Клиент')+'</span>'+(h.total?'<span class="kbm-sum">'+fmtMoney(h.total)+'</span>':'')+'</div>'
+      +(desc?'<div class="kbm-desc">'+esc(desc)+'</div>':'')
+      +'<div class="kbm-row"><span class="kbm-meta">'+esc(meta)+'</span>'
+      +'<button class="kbm-move" onclick="event.stopPropagation();kbToggleMove(\''+h.id+'\')">Стадия '+(open?'▴':'▾')+'</button></div>'
+      +menu+'</div>';
+  }).join('') : '<div class="kbm-empty">В этой стадии сделок нет</div>';
+  box.innerHTML = '<div class="kbm-tabs">'+tabs+'</div>'
+    +'<div class="kbm-head"><span>'+esc(stage.title)+' · '+cards.length+'</span><span>'+(sum?fmtMoney(sum):'')+'</span></div>'
+    +'<div class="kbm-list">'+list+'</div>';
+  var active = box.querySelector('.kbm-tab.on');
+  if(active && active.scrollIntoView) active.scrollIntoView({block:'nearest', inline:'center'});
+}
+
+function kbMobileStage(id){ _kbMobileStage = id; _kbMoveOpen = null; renderKanbanPage(); }
+function kbToggleMove(id){ _kbMoveOpen = String(_kbMoveOpen)===String(id) ? null : id; renderKanbanPage(); }
 
 function kbOpenCard(id){
   var h = (historyData||[]).find(function(x){return String(x.id)===String(id);});
@@ -3379,14 +3432,7 @@ function _initKanbanSortable(){
         var newColWrap = evt.to;
         var newColId = newColWrap.getAttribute('data-col');
         if(!id||!newColId) return;
-        var h = (historyData||[]).find(function(x){return String(x.id)===String(id);});
-        if(!h) return;
-        if(KB_STATUS_MAP[h.status||'new'] === newColId) return;
-        h.status = newColId;
-        renderKanbanPage();
-        if(sb && h.id && typeof rpcAuthParams === 'function'){
-          sb.rpc('kp_update_quote_status', Object.assign(rpcAuthParams(), {p_id: h.id, p_status: newColId}));
-        }
+        kbSetStatus(id, newColId);
       }
     });
   });

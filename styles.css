@@ -4217,7 +4217,9 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 .kanban-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.12); transform: translateY(-1px); }
 .kanban-card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
 .kanban-card-sub { font-size: 11px; color: var(--text2); }
-.kanban-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.kanban-card-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 8px; margin-top: 8px; }
+.kanban-card-footer > div { min-width: 0; }
+@media(min-width:1024px){ .app-body:has(#page-kanban.active){ max-width: 1400px !important; } }
 .kanban-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
 .kanban-tag.blue { background: rgba(37,99,235,.10); color: var(--accent); }
 .kanban-tag.green { background: rgba(45,206,137,.12); color: var(--success); }
@@ -4859,43 +4861,29 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
 }
 
 /* ═══════════════════════════════════════
-   KANBAN — MOBILE (горизонтальный скролл)
+   KANBAN — телефоны и планшеты: вкладки стадий + список
    ═══════════════════════════════════════ */
-@media(max-width:767px){
-  .kanban-wrap{
-    display:flex!important;
-    flex-direction:row!important;
-    overflow-x:auto;
-    overflow-y:hidden;
-    scroll-snap-type:x mandatory;
-    -webkit-overflow-scrolling:touch;
-    gap:12px;
-    padding-bottom:12px;
-    scrollbar-width:none;
-  }
-  .kanban-wrap::-webkit-scrollbar{display:none}
-  .kanban-col{
-    flex:0 0 calc(100vw - 48px)!important;
-    max-width:calc(100vw - 48px)!important;
-    min-width:280px!important;
-    scroll-snap-align:start;
-    min-height:300px;
-  }
-  .kanban-add-btn{min-height:40px}
-  .kanban-card{padding:10px 12px}
-  .kanban-card-title{font-size:13px}
-}
-@media(min-width:768px) and (max-width:1023px){
-  .kanban-wrap{
-    overflow-x:auto;
-    scroll-snap-type:x mandatory;
-    -webkit-overflow-scrolling:touch;
-  }
-  .kanban-col{
-    flex:0 0 calc(50% - 6px)!important;
-    min-width:280px;
-    scroll-snap-align:start;
-  }
+.kb-mobile{display:none}
+@media(max-width:1023px){
+  #kanban-board{display:none!important}
+  .kb-mobile{display:block}
+  .kbm-tabs{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 0 10px}
+  .kbm-tabs::-webkit-scrollbar{display:none}
+  .kbm-tab{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-family:inherit;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer}
+  .kbm-tab-n{min-width:18px;padding:0 5px;border-radius:10px;background:var(--surface2);color:var(--text2);font-size:11px;line-height:18px;text-align:center}
+  .kbm-tab.on{border-color:var(--kb-c);color:var(--kb-c);background:color-mix(in srgb,var(--kb-c) 10%,var(--surface))}
+  .kbm-tab.on .kbm-tab-n{background:var(--kb-c);color:#fff}
+  .kbm-head{display:flex;justify-content:space-between;gap:10px;padding:4px 2px 10px;font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+  .kbm-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid transparent;border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer}
+  .kbm-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .kbm-client{font-size:14px;font-weight:600;color:var(--text);min-width:0;overflow-wrap:anywhere}
+  .kbm-sum{font-size:14px;font-weight:700;color:var(--accent);white-space:nowrap;align-self:flex-start}
+  .kbm-desc{font-size:12px;color:var(--text2);margin:4px 0 10px;overflow-wrap:anywhere}
+  .kbm-meta{font-size:12px;color:var(--text3);min-width:0}
+  .kbm-move{flex:0 0 auto;min-height:34px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .kbm-menu{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+  .kbm-move-to{min-height:36px;padding:6px 12px;border-radius:8px;border:1px solid var(--kb-c);background:transparent;color:var(--kb-c);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .kbm-empty{padding:40px 12px;text-align:center;font-size:13px;color:var(--text3);border:1px dashed var(--border);border-radius:10px}
 }
 
 /* ═══════════════════════════════════════

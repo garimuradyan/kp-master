@@ -182,6 +182,7 @@ function doLogout(){
   var epi=document.getElementById('empPassInput');if(epi)epi.value='';
   setAuthMsg('');
   toggleAuthMode('key');
+  window.scrollTo({top:0,left:0,behavior:'instant'});
 }
 
 var demoTimer = null;
@@ -1183,7 +1184,7 @@ function renderHistory(){
     (cb?'<div class="history-cb-wrap">'+cb+'</div>':'')+
     '<div class="history-info">'+
     '<div class="history-name">'+esc(h.clientName)+respBadge+'</div>'+
-    '<div class="history-meta"><span>№ '+h.num+'</span><span>'+h.date+'</span><span>'+esc(h.clientPhone)+'</span><span>'+h.servicesCount+' услуг</span>'+stBadge+'</div>'+editHtml+
+    '<div class="history-meta"><span>№ '+h.num+'</span><span>'+h.date+'</span><span>'+esc(h.clientPhone)+'</span><span>'+h.servicesCount+' '+_plural(h.servicesCount,'услуга','услуги','услуг')+'</span>'+stBadge+'</div>'+editHtml+
     '</div>'+
     '<div class="history-amount">'+fmt(h.total)+'</div>'+
     '<div class="history-actions">'+
@@ -2513,14 +2514,30 @@ function _fmtShort(n){
   return n.toLocaleString('ru-RU')+' ₽';
 }
 
+function _plural(n,one,few,many){
+  n=Math.abs(+n||0)%100;var n1=n%10;
+  if(n>10&&n<20)return many;
+  if(n1===1)return one;
+  if(n1>=2&&n1<=4)return few;
+  return many;
+}
+
+// КП хранят дату строкой "ДД.ММ.ГГГГ", которую new Date() не разбирает
+function _quoteDate(h){
+  if(h.created_at){var c=new Date(h.created_at);if(!isNaN(c))return c;}
+  var m=String(h.date||'').match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if(m)return new Date(+m[3],+m[2]-1,+m[1]);
+  return new Date(h.date||'');
+}
+
 function renderDealsPage(){
   var data=historyData||[];
   var now=new Date();
   var thisM=now.getMonth(),thisY=now.getFullYear();
   var prevM=thisM===0?11:thisM-1,prevY=thisM===0?thisY-1:thisY;
   var filtered=data.filter(function(h){
-    if(_dealsFilter==='month'){var d=new Date(h.created_at||h.date||'');return d.getMonth()===thisM&&d.getFullYear()===thisY;}
-    if(_dealsFilter==='prev'){var d=new Date(h.created_at||h.date||'');return d.getMonth()===prevM&&d.getFullYear()===prevY;}
+    if(_dealsFilter==='month'){var d=_quoteDate(h);return d.getMonth()===thisM&&d.getFullYear()===thisY;}
+    if(_dealsFilter==='prev'){var d=_quoteDate(h);return d.getMonth()===prevM&&d.getFullYear()===prevY;}
     return true;
   });
   if(_dealsSearch){
@@ -2530,7 +2547,7 @@ function renderDealsPage(){
     });
   }
   var totalSum=data.reduce(function(s,h){return s+(h.total||0);},0);
-  var monthCount=data.filter(function(h){var d=new Date(h.created_at||h.date||'');return d.getMonth()===thisM&&d.getFullYear()===thisY;}).length;
+  var monthCount=data.filter(function(h){var d=_quoteDate(h);return d.getMonth()===thisM&&d.getFullYear()===thisY;}).length;
   var avg=data.length?Math.round(totalSum/data.length):0;
   var el=function(id){return document.getElementById(id);};
   if(el('crm-total-count'))el('crm-total-count').textContent=data.length;
@@ -2544,7 +2561,7 @@ function renderDealsPage(){
   var stLbl={new:'Новая',sent:'Отправлено',agree:'Согласование',prog:'В работе',done:'Выполнено',wait:'Согласование'};
   tbody.innerHTML=filtered.map(function(h,i){
     var st=h.status||'new';
-    var d=new Date(h.created_at||h.date||'');
+    var d=_quoteDate(h);
     var dateStr=isNaN(d)?'—':d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit'});
     return'<tr class="dt-row" onclick="openDealPanel(\''+esc(JSON.stringify(h)).replace(/'/g,'\\\'')+'\')">'+'<td>'+(h.num||('#'+i))+'</td><td>'+esc(h.clientName||'—')+'</td><td style="font-size:11px">'+esc((h.client&&h.client.addr)||h.clientAddress||'—')+'</td><td>'+_fmtShort(h.total||0)+'</td><td><span class="deal-st '+stMap[st]+'">'+stLbl[st]+'</span></td><td>'+dateStr+'</td></tr>';
   }).join('');
@@ -2602,12 +2619,12 @@ var _masterFilter='all';
 function renderMasterPage(){
   var data=historyData||[];
   var fmtK=function(n){if(!n)return'0 ₽';if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return n.toLocaleString('ru-RU')+' ₽';};
-  var now=new Date(),todayStr=now.toISOString().slice(0,10);
+  var now=new Date();
   var thisM=now.getMonth(),thisY=now.getFullYear();
   var mn=['Январе','Феврале','Марте','Апреле','Мае','Июне','Июле','Августе','Сентябре','Октябре','Ноябре','Декабре'];
-  var getDate=function(h){return new Date(h.created_at||h.date||'');};
+  var getDate=function(h){return _quoteDate(h);};
   var monthData=data.filter(function(h){var d=getDate(h);return d.getMonth()===thisM&&d.getFullYear()===thisY;});
-  var todayData=data.filter(function(h){return getDate(h).toISOString().slice(0,10)===todayStr;});
+  var todayData=data.filter(function(h){return getDate(h).toDateString()===now.toDateString();});
   var doneMonth=monthData.filter(function(h){return h.status==='done';});
   var monthRev=monthData.reduce(function(s,h){return s+(h.total||0);},0);
   var setEl=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
@@ -2622,16 +2639,16 @@ function renderMasterPage(){
 }
 
 function _renderMasterList(data){
-  var now=new Date(),todayStr=now.toISOString().slice(0,10);
+  var now=new Date();
   var filtered=data;
-  if(_masterFilter==='today')filtered=data.filter(function(h){return new Date(h.created_at||h.date||'').toISOString().slice(0,10)===todayStr;});
-  else if(_masterFilter==='upcoming')filtered=data.filter(function(h){return new Date(h.created_at||h.date||'')>now;});
+  if(_masterFilter==='today')filtered=data.filter(function(h){return _quoteDate(h).toDateString()===now.toDateString();});
+  else if(_masterFilter==='upcoming')filtered=data.filter(function(h){return _quoteDate(h)>now;});
   var el=document.getElementById('masterJobsList');
   if(!el)return;
   if(!filtered.length){el.innerHTML='<div class="jobs-empty">Заявок нет</div>';return;}
   var groups={},order=[];
   filtered.forEach(function(h){
-    var d=new Date(h.created_at||h.date||'');
+    var d=_quoteDate(h);
     var key=isNaN(d)?'—':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
     if(!groups[key]){groups[key]=[];order.push(key);}
     groups[key].push(h);
@@ -2661,38 +2678,31 @@ function filterMasterJobs(type,btn){
 function renderAccountantPage(){
   var data=historyData||[];
   var fmtR=function(n){return Math.round(n||0).toLocaleString('ru-RU')+' ₽';};
-  var fmtK=function(n){if(!n)return'0 ₽';if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return n.toLocaleString('ru-RU')+' ₽';};
   var now=new Date();
   var monthSet={};
-  data.forEach(function(h){var d=new Date(h.created_at||h.date||'');if(!isNaN(d)){var k=d.getFullYear()+'-'+(d.getMonth()+1);monthSet[k]={y:d.getFullYear(),m:d.getMonth()};}});
+  data.forEach(function(h){var d=_quoteDate(h);if(!isNaN(d)){var k=d.getFullYear()+'-'+(d.getMonth()+1);monthSet[k]={y:d.getFullYear(),m:d.getMonth()};}});
   monthSet[now.getFullYear()+'-'+(now.getMonth()+1)]={y:now.getFullYear(),m:now.getMonth()};
   var months=Object.values(monthSet);
   months.sort(function(a,b){return b.y-a.y||b.m-a.m;});
   var mn=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-  var mnG=['Январе','Феврале','Марте','Апреле','Мае','Июне','Июле','Августе','Сентябре','Октябре','Ноябре','Декабре'];
   var sel=document.getElementById('salPeriodSel');
   if(sel&&!sel.options.length){months.forEach(function(mo){var opt=document.createElement('option');opt.value=mo.y+'-'+mo.m;opt.textContent=mn[mo.m]+' '+mo.y;sel.appendChild(opt);});}
   var chosen=sel&&sel.value?sel.value.split('-').map(Number):null;
   var selY=chosen?chosen[0]:now.getFullYear(),selM=chosen?chosen[1]:now.getMonth();
-  var periodData=data.filter(function(h){var d=new Date(h.created_at||h.date||'');return d.getMonth()===selM&&d.getFullYear()===selY;});
-  var totalRev=periodData.reduce(function(s,h){return s+(h.total||0);},0);
-  var netProfit=Math.round(totalRev*0.65);
-  var profitRatePct=totalRev>=1000000?'3%':'2%';
-  var profitRate=totalRev>=1000000?0.03:0.02;
-  var formEl=document.getElementById('salFormula');
-  if(formEl)formEl.style.display='none';
-  var employees=[
-    {initials:'МН',name:'Менеджер',role:'Менеджер',base:45000,ownRevShare:0.08,ownNetProfit:Math.round(netProfit*0.55),expenses:1500,status:'done'},
-    {initials:'МТ',name:'Мастер',role:'Мастер',base:0,ratePerJob:3000,jobs:periodData.length,bonus:periodData.length>=15?5000:0,expenses:2000,status:periodData.length>0?'done':'wait'},
-  ];
+  var periodData=data.filter(function(h){var d=_quoteDate(h);return d.getMonth()===selM&&d.getFullYear()===selY;});
+  var team=(teamData||[]).filter(function(e){return e&&e.name;});
   var grid=document.getElementById('salGrid');
   if(!grid)return;
-  grid.innerHTML=employees.map(function(e){
-    var total=e.role==='Мастер'?e.ratePerJob*e.jobs+e.bonus-e.expenses:Math.round(e.base+(e.ownNetProfit*e.ownRevShare)+(netProfit*profitRate*0.5)-e.expenses);
-    total=Math.max(0,total);
-    return'<div class="sal-card"><div class="sal-initials">'+esc(e.initials)+'</div><div class="sal-info"><div class="sal-name">'+esc(e.name)+'</div><div class="sal-role">'+esc(e.role)+'</div></div><div class="sal-num">'+fmtR(total)+'</div></div>';
+  if(!team.length){grid.innerHTML='<div class="wh-empty">Сотрудников пока нет. Добавьте их в разделе «Сотрудники».</div>';return;}
+  grid.innerHTML=team.map(function(e){
+    var own=periodData.filter(function(h){return (h.responsible_name||'').trim()===e.name.trim();});
+    var sum=own.reduce(function(s,h){return s+(h.total||0);},0);
+    var done=own.filter(function(h){return h.status==='done';}).length;
+    var initials=e.name.trim().split(/\s+/).slice(0,2).map(function(w){return w.charAt(0).toUpperCase();}).join('');
+    return'<div class="sal-card"><div class="sal-initials">'+esc(initials)+'</div><div class="sal-info"><div class="sal-name">'+esc(e.name)+'</div><div class="sal-role">'+esc(ROLE_LABELS[e.role]||e.role||'')+' · '+own.length+' КП · '+done+' выполн.</div></div><div class="sal-num">'+fmtR(sum)+'</div></div>';
   }).join('');
 }
+
 
 function exportSalaryReport(){toast('Экспорт отчёта — в разработке','info');}
 
@@ -2703,20 +2713,8 @@ var _whFilter='all',_whItems=null,_whOpType='in';
 
 function _fmtWh(n){if(!n&&n!==0)return'—';if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return n.toLocaleString('ru-RU')+' ₽';}
 
-function _defaultWhItems(){
-  return[
-    {id:1,n:'Кондиционер Daikin FTXF25D',cat:'Кондиционеры',q:4,max:10,price:38500,mv:'+2 шт.',st:'ok'},
-    {id:2,n:'Кондиционер Mitsubishi MSZ-LN25VG',cat:'Кондиционеры',q:1,max:8,price:52000,mv:'+3 шт.',st:'low'},
-    {id:3,n:'Кронштейн универсальный',cat:'Расходники',q:23,max:50,price:850,mv:'−3 шт.',st:'ok'},
-    {id:4,n:'Межблочная трасса 3м',cat:'Расходники',q:2,max:20,price:1200,mv:'−5 шт.',st:'low'},
-    {id:5,n:'Дренажный шланг 2м',cat:'Расходники',q:0,max:30,price:380,mv:'−2 шт.',st:'out'},
-    {id:6,n:'Медная трубка 1/4" (бухта 15м)',cat:'Расходники',q:8,max:15,price:3200,mv:'+10 шт.',st:'ok'},
-    {id:7,n:'Перфоратор Bosch GBH 2-26',cat:'Инструменты',q:3,max:5,price:14500,mv:'—',st:'ok'},
-  ];
-}
-
 function renderWarehousePage(){
-  if(!_whItems)_whItems=_defaultWhItems();
+  if(!_whItems)_whItems=[];
   var low=_whItems.filter(function(w){return w.st==='low'||w.st==='out';}).length;
   var totalSum=_whItems.reduce(function(s,w){return s+(w.price*w.q);},0);
   var setEl=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
@@ -2744,7 +2742,7 @@ function _renderWhTable(){
   var totalFilt=items.reduce(function(s,w){return s+(w.price*w.q);},0);
   var foot=document.getElementById('wh-foot-total');
   if(foot)foot.textContent=_fmtWh(totalFilt);
-  if(!items.length){tbody.innerHTML='<tr><td colspan="6" class="wh-empty">Позиций не найдено</td></tr>';return;}
+  if(!items.length){tbody.innerHTML='<tr><td colspan="6" class="wh-empty">'+(_whItems.length?'Позиций не найдено':'Склад пуст. Нажмите «+ Приход», чтобы добавить товар')+'</td></tr>';return;}
   tbody.innerHTML=items.map(function(w){
     var pct=w.max?Math.min(100,Math.round(w.q/w.max*100)):100;
     return'<tr class="wh-row">'+
@@ -2839,6 +2837,8 @@ async function loadWarehouseFromServer(){
   var res=await sb.rpc('kp_load_warehouse',rpcAuthParams());
   if(res.error||rpcFailed(res))return;
   var items=res.data.items||[];
+  if(typeof items==='string'){try{items=JSON.parse(items);}catch(e){items=[];}}
+  if(!Array.isArray(items))items=[];
   if(items.length){
     _whItems=items;
     if(document.getElementById('wh-stat-count'))renderWarehousePage();
@@ -2847,7 +2847,8 @@ async function loadWarehouseFromServer(){
 
 async function saveWarehouseToServer(){
   if(!sb||!currentKeyId||!_whItems)return;
-  sb.rpc('kp_save_warehouse',Object.assign(rpcAuthParams(),{p_items:JSON.stringify(_whItems)}));
+  var res=await sb.rpc('kp_save_warehouse',Object.assign(rpcAuthParams(),{p_items:JSON.stringify(_whItems)}));
+  if(res.error||rpcFailed(res))toast('Склад не сохранён на сервере — изменения пропадут после перезагрузки','error');
 }
 
 
@@ -3002,7 +3003,7 @@ function renderAnalyticsPage(){
 
   function inPeriod(h){
     if(!periodStart) return true;
-    var d = new Date(h.created_at||h.date||'');
+    var d = _quoteDate(h);
     return !isNaN(d) && d >= periodStart;
   }
 
@@ -3016,7 +3017,7 @@ function renderAnalyticsPage(){
   else if(_anPeriod==='quarter'){prevEnd=periodStart;prevStart=new Date(now.getFullYear(),now.getMonth()-5,1);}
   else if(_anPeriod==='year'){prevEnd=periodStart;prevStart=new Date(now.getFullYear()-1,0,1);}
   var prevFiltered = prevStart ? data.filter(function(h){
-    var d=new Date(h.created_at||h.date||'');return !isNaN(d)&&d>=prevStart&&d<prevEnd&&(!respFilter||h.responsible_name===respFilter);
+    var d=_quoteDate(h);return !isNaN(d)&&d>=prevStart&&d<prevEnd&&(!respFilter||h.responsible_name===respFilter);
   }) : [];
 
   function fmtMoney(n){if(!n)return'0 ₽';if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'М ₽';if(n>=1000)return Math.round(n/1000)+'К ₽';return Math.round(n).toLocaleString('ru-RU')+' ₽';}
@@ -3051,7 +3052,7 @@ function renderAnalyticsPage(){
   for(var bi=barCount-1;bi>=0;bi--){
     var bm = new Date(now.getFullYear(), now.getMonth()-bi, 1);
     barLabels.push(MONTHS[bm.getMonth()]+(bi===0||bm.getMonth()===0?'\''+(bm.getFullYear()%100):''));
-    var monthKp = data.filter(function(h){var d=new Date(h.created_at||h.date||'');return !isNaN(d)&&d.getMonth()===bm.getMonth()&&d.getFullYear()===bm.getFullYear()&&(!respFilter||h.responsible_name===respFilter);});
+    var monthKp = data.filter(function(h){var d=_quoteDate(h);return !isNaN(d)&&d.getMonth()===bm.getMonth()&&d.getFullYear()===bm.getFullYear()&&(!respFilter||h.responsible_name===respFilter);});
     kpByMonth.push(monthKp.length);
     revByMonth.push(monthKp.reduce(function(s,h){return s+(h.total||0);},0));
   }
@@ -3324,7 +3325,7 @@ function renderKanbanPage(){
       var desc = '';
       if(h.services&&h.services.length) desc = h.services[0].name||'';
       else if(h.equipment&&h.equipment.length) desc = h.equipment[0].name||'';
-      var d = new Date(h.created_at||h.date||'');
+      var d = _quoteDate(h);
       var dateStr = isNaN(d)?'':d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
       var resp = h.responsible_name ? '<span class="kb-resp">'+esc(h.responsible_name)+'</span>' : '';
       return '<div class="kanban-card"'
@@ -3392,13 +3393,7 @@ function _initKanbanSortable(){
 }
 
 /* ── ФАЙЛЫ ───────────────────────────────────────────────────── */
-var _files = [
-  {name:'КП_Климат_2024.pdf',size:'1.2 MB',type:'pdf',date:'03.11.2024'},
-  {name:'Договор_ТЦМарс.docx',size:'340 KB',type:'doc',date:'01.11.2024'},
-  {name:'Акт_Смирнова.pdf',size:'215 KB',type:'pdf',date:'28.10.2024'},
-  {name:'Прайс_2024.xlsx',size:'88 KB',type:'xls',date:'15.10.2024'},
-  {name:'Фото_монтажа.jpg',size:'2.4 MB',type:'img',date:'10.10.2024'}
-];
+var _files = [];
 
 var _fileTypeIcons = {
   pdf: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',

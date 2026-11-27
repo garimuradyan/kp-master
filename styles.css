@@ -2424,10 +2424,10 @@ thead th:nth-child(4){
   .quote-preview-table th,.quote-preview-table td{font-size:10.5px!important;padding:6px 3px!important}
   .quote-preview-table col:nth-child(2){width:62px!important}
   .quote-preview-table col:nth-child(3){width:26px!important}
-  .quote-preview-table col:nth-child(4){width:26px!important}
+  .quote-preview-table col:nth-child(4){width:30px!important}
   .quote-preview-table col:nth-child(5){width:70px!important}
   .quote-preview-table .qp-name{max-height:none!important}
-  .quote-preview-table th{white-space:nowrap!important;text-overflow:ellipsis!important}
+  .quote-preview-table th{white-space:nowrap!important;text-overflow:ellipsis!important;font-size:9.5px!important;letter-spacing:0!important}
   .action-bar{display:grid!important;grid-template-columns:1fr 1fr;gap:8px}
   .action-bar>.btn{width:100%;justify-content:center;min-width:0;padding-left:8px;padding-right:8px;white-space:normal;text-align:center;line-height:1.2}
   .action-bar>.btn:only-child{grid-column:1/-1}
@@ -4837,7 +4837,8 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
     font-size:12px;
     padding:6px 8px;
   }
-  .history-name{font-size:14px;font-weight:600}
+  .history-info{width:100%;max-width:100%}
+  .history-name{font-size:14px;font-weight:600;white-space:normal;overflow-wrap:anywhere}
   .history-meta{font-size:12px}
 }
 
@@ -4901,12 +4902,18 @@ input::placeholder, textarea::placeholder { color: var(--text3) !important; }
    DEALS TABLE — MOBILE
    ═══════════════════════════════════════ */
 @media(max-width:767px){
-  .deals-tbl{display:none} /* скрываем таблицу */
-  /* Deals will be shown as cards (JS fallback - table still visible via scroll) */
-  .deals-tbl{display:block!important;overflow-x:auto;-webkit-overflow-scrolling:touch;min-width:0}
-  .deals-tbl table{min-width:500px}
-  /* Прячем тяжёлые колонки */
-  .deals-tbl th:nth-child(5),.deals-tbl td:nth-child(5){display:none}
+  /* Сделки карточками: клиент + сумма / адрес / № · дата · статус */
+  .deals-tbl,.deals-tbl tbody{display:block!important;width:100%!important;min-width:0!important}
+  .deals-tbl thead{display:none!important}
+  .deals-tbl tr.dt-row{display:grid!important;grid-template-columns:auto 1fr auto;grid-template-areas:"client client sum" "addr addr addr" "num date status";gap:4px 10px;align-items:center;padding:12px 2px;border-bottom:1px solid var(--border)}
+  .deals-tbl tr.dt-row td{display:block!important;padding:0!important;border:none!important;min-width:0}
+  .deals-tbl tr.dt-row td:nth-child(1){grid-area:num;font-size:12px;color:var(--text3)}
+  .deals-tbl tr.dt-row td:nth-child(2){grid-area:client;font-weight:600;font-size:14px;overflow-wrap:anywhere}
+  .deals-tbl tr.dt-row td:nth-child(3){grid-area:addr;font-size:12px!important;color:var(--text2)}
+  .deals-tbl tr.dt-row td:nth-child(4){grid-area:sum;font-weight:700;white-space:nowrap;text-align:right;align-self:start}
+  .deals-tbl tr.dt-row td:nth-child(5){grid-area:status;text-align:right}
+  .deals-tbl tr.dt-row td:nth-child(6){grid-area:date;font-size:12px;color:var(--text3)}
+  .deals-tbl tr:not(.dt-row),.deals-tbl tr:not(.dt-row) td{display:block!important;width:100%}
 }
 
 /* ═══════════════════════════════════════

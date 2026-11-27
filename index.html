@@ -1037,8 +1037,8 @@
 <!-- ══════ БУХГАЛТЕР ══════ -->
 <div class="page" id="page-accountant">
 <div class="page-header">
-  <div class="page-header-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Расчёт зарплат</div>
-  <div class="page-header-sub">Финансовые начисления сотрудникам</div>
+  <div class="page-header-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Показатели сотрудников</div>
+  <div class="page-header-sub">КП и выручка сотрудников за месяц</div>
 </div>
 <div class="sal-top">
   <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3)">Период:</span>
@@ -1404,7 +1404,7 @@
     </div>
     <a class="about-v21-bot-link about-v21-support-link about-v21-support-btn about-v21-telegram-button" href="https://t.me/garimuradyan" target="_blank">Написать в Telegram</a>
   </section>
-</div></div>
+</div>
 
 <!-- ── АНАЛИТИКА ───────────────────────────────────────── -->
 <div class="page" id="page-analytics">
@@ -1580,14 +1580,18 @@
     <div class="page-header-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Файлы</div>
     <div class="page-header-sub">Документы, КП и медиафайлы</div>
   </div>
-  <div style="margin-bottom:16px">
-    <button class="file-upload-btn" onclick="triggerFileUpload()">
-      <svg width="24" height="24" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 10v3a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-3"/><polyline points="10 5 8 3 6 5"/><line x1="8" y1="3" x2="8" y2="10"/></svg>
-      Загрузить файл
-    </button>
-    <input type="file" id="fileUploadInput" style="display:none" multiple onchange="handleFileUpload(this.files)"/>
+  <div class="calls-wip-wrap">
+    <div class="calls-wip-icon">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="calls-wip-title">Раздел в разработке</div>
+    <div class="calls-wip-desc">Здесь появится хранилище документов, КП и фотографий с объектов.</div>
+    <div class="calls-wip-features">
+      <div class="calls-wip-feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Хранение КП, договоров и актов в одном месте</div>
+      <div class="calls-wip-feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Фото объектов и монтажа</div>
+      <div class="calls-wip-feat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Привязка файлов к клиенту и сделке</div>
+    </div>
   </div>
-  <div class="files-grid" id="files-grid"><!-- заполняется JS --></div>
 </div>
 
 <!-- ── ЗВОНКИ / SMS ───────────────────────────────────── -->
